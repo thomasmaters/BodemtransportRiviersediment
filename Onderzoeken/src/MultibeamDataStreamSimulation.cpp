@@ -3,11 +3,11 @@
 #include <fstream>
 #include <thread>
 #include <chrono>
-#include <ctime>
+#include <math.h>
 
 #include <sys/stat.h>
 
-#define BYTESCHUNCKTOREAD 42
+#define BYTESCHUNCKTOREAD 20
 
 std::size_t getFileSize(std::string filename)
 {
@@ -19,8 +19,8 @@ std::size_t getFileSize(std::string filename)
 int main(int argc, char **argv) {
 	if(argc != 4)
 	{
-		std::cerr << "Not enough arguments given, expected 3 got " << (argc - 1) << "." << std::endl;
-		std::cerr << "Usages: [input file][output file][rate in lines/s]" << std::endl;
+		std::cerr << "Not enough arguments given, expected 4 got " << (argc - 1) << "." << std::endl;
+		std::cerr << "Usages: [input file][output file][rate in mb/s]" << std::endl;
 		return EXIT_FAILURE;
 	}
 
@@ -28,7 +28,8 @@ int main(int argc, char **argv) {
 	std::ifstream testDataInputStream(argv[1], std::ios::in | std::ios::binary);
 	//Open outputstream which discards old information and outputs as binary.
 	std::ofstream testDataOutputStream(argv[2], std::ios::out | std::ios::trunc | std::ios::binary);
-	std::size_t sleepAmount = (1.0 / std::atof(argv[3])) * 1000000000;
+	double throughput = std::atof(argv[3]);
+	std::size_t bytePerWrite = throughput * 1024 * 1024;
 
 	//Can we open our input and output file.
 	if(!testDataInputStream)
@@ -39,6 +40,18 @@ int main(int argc, char **argv) {
 	if(!testDataOutputStream)
 	{
 		std::cerr << "Failed to open output stream" << std::endl;
+		return EXIT_FAILURE;
+	}
+
+	std::size_t fileSize = getFileSize(argv[1]);
+
+	char * buffer = new char[fileSize];
+	if (testDataInputStream.read(buffer, fileSize))
+	{
+	    std::cout << "Loaded inputfile into buffer of size: " << fileSize << std::endl;
+	}
+	else
+	{
 		return EXIT_FAILURE;
 	}
 
@@ -57,52 +70,43 @@ int main(int argc, char **argv) {
     std::cout << std::chrono::steady_clock::period::den << std::endl;
     std::cout << "steady = " << std::boolalpha << std::chrono::steady_clock::is_steady << std::endl << std::endl;
 
-	std::size_t fileSize = getFileSize(argv[1]);
-
-	std::cout << std::chrono::high_resolution_clock::duration::period::den << std::endl;
-
-	std::size_t zeroTimeDifferenceAmount = 0;
+	std::size_t frameCounter = 0;
 	std::chrono::time_point<std::chrono::steady_clock> subStart;
 	std::chrono::time_point<std::chrono::steady_clock> subEnd;
 	std::chrono::duration<int64_t,std::chrono::_V2::steady_clock::period>::rep subDuration;
-	char * buffer = new char [BYTESCHUNCKTOREAD];
 	auto start = std::chrono::steady_clock::now();
 
-	while(!testDataInputStream.eof())
+	while(true)
 	{
-		subStart = std::chrono::steady_clock::now();
-		testDataInputStream.read(buffer, BYTESCHUNCKTOREAD);
-
-		//Is it the last byte of the input.
-		if(testDataInputStream.eof())
+		if((frameCounter + 1) * bytePerWrite > fileSize)
 		{
+			//Performance numbers.
 			auto end = std::chrono::steady_clock::now();
-			auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-			double inSeconds = (duration - sleepAmount) / 1000000000.0;
-			double linesRead = ((fileSize - 1.0) / (BYTESCHUNCKTOREAD + 3));
+			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+			double inSeconds = duration / 1000.0;
+			double bytesWritten = std::floor(fileSize / bytePerWrite) * bytePerWrite;
 			std::cout << std::endl;
-			std::cout << "Read " << linesRead << " lines" << std::endl;
+			std::cout << "Written " << bytesWritten << " bytes" << std::endl;
 			std::cout << "in " << inSeconds << " seconds" << std::endl;
-			std::cout << "Read input file with: " << 1.0 / inSeconds * linesRead << " lines per second" << std::endl;
-			std::cout << "Deviation: " << (std::atof(argv[3]) - 1.0 / inSeconds * linesRead) / std::atof(argv[3]) * 100 << std::endl;
-			std::cout << "Time difference of 0: " << zeroTimeDifferenceAmount << std::endl;
-			std::cout << "Read input file with: " << 1.0 / inSeconds * linesRead * (BYTESCHUNCKTOREAD + 3) << " bytes per seconden" << std::endl;
-			std::cout <<  "DONE" << std::endl;
+			std::cout << "Deviation: " << (throughput - bytesWritten / inSeconds / 1024 / 1024) / throughput * 100 << std::endl;
+			std::cout << "Written output file with: " << 1.0 / inSeconds * bytesWritten / 1024 / 1024 << " mB/s" << std::endl;
+			std::cout << "DONE" << std::endl;
 			break;
 		}
+		subStart = std::chrono::steady_clock::now();
 
-		//Write to file and console.
-		testDataOutputStream.write(buffer, BYTESCHUNCKTOREAD);
-		testDataOutputStream << std::flush;
-
-		std::cout << std::fixed << std::setprecision(10) << " at: " << testDataInputStream.tellg() << "/" << fileSize << "\r" << std::flush;
-		subEnd = std::chrono::steady_clock::now();
-		subDuration = std::chrono::duration_cast<std::chrono::nanoseconds>(subEnd - subStart).count();
-		if(subDuration <= 0)
+		//Actual writing to file.
+		if(!testDataOutputStream.write((char*)&buffer[frameCounter * bytePerWrite], bytePerWrite))
 		{
-			zeroTimeDifferenceAmount++;
+			break;
 		}
-		std::this_thread::sleep_for(std::chrono::nanoseconds(std::max(sleepAmount - subDuration, (long long unsigned)0)));
+		//Does this line make writing slower?
+		testDataOutputStream << std::flush;
+		frameCounter++;
+
+		subEnd = std::chrono::steady_clock::now();
+		subDuration = std::chrono::duration_cast<std::chrono::milliseconds>(subEnd - subStart).count();
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000 - subDuration));
 	}
 
 	delete buffer;

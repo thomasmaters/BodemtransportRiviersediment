@@ -7,61 +7,28 @@
  */
 
 #include <exception>
-#include <bitset>
 #include <iostream>
-#include <fstream>
-#include <tuple>
 #include <cstdint>
+#include <fstream>
 
 #include "Types.hpp"
+#include "Interface.hpp"
 
-#if __cplusplus == 201103L
-	template <bool... b> struct all_el_arithmetic;
-	template <bool... tail>
-	struct all_el_arithmetic<true, tail...> : all_el_arithmetic<tail...> {};
-	template <bool... tail>
-	struct all_el_arithmetic<false, tail...> : std::false_type {};
-	template <> struct all_el_arithmetic<> : std::true_type {};
-	template<typename... types>
-	using all_is_arithmetic = all_el_arithmetic<std::is_arithmetic<types>::value...>;
-#endif
-
-template<typename... types>
-class frituur : public std::tuple<types...>
-{
-	static_assert(all_is_arithmetic<types...>::value, "Given types are not (all) arithmetic.");
-	typedef std::tuple<types...> InheretedType;
-public:
-	constexpr frituur() : InheretedType(), initialized(false){};
-
-	template<std::size_t idx>
-	typename std::tuple_element<idx, std::tuple<types...> >::type const& get()
-	{
-		return std::get<idx>(*this);
-	}
-
-private:
-	bool initialized;
-};
-
-typedef frituur<U4,U1,U1,U2,U4,U4,U2,U2,U2,U2,F4,U2,U2,F4,U1,U3> EM2040C;
-//typedef frituur<U4,U1,U1,U2,U4,U4,U2,U2,U2,U2,F4,U2,U2,F4,U1/*,U3*/> EM2040C;
+//typedef InterfaceBase<U4,U1,U1,U2,U4,U4,U2,U2,U2,U2,F4,U2,U2,F4,U1,U3> EM2040C;
+//typedef InterfaceBase<U4,U1,U1,U2,U4,U4,U2,U2,U2,U2,F4,U2,U2,F4,U1/*,U3*/> EM2040C;
+typedef InterfaceBase<U2,U2> EM2040C;
 
 int main(int argc, char **argv) {
 	try {
-		std::cout << sizeof(U3_t) << " " << std::is_arithmetic<U3_t>::value << " " << std::is_arithmetic<short>::value << std::endl;
-		EM2040C test_frituur;
-		std::get<0>(test_frituur);
-		test_frituur.get<0>();
-
-		std::ifstream test("input.bin", std::ios::in | std::ios::binary);
-		uint16_t takelwagen;
-		test >> std::hex >> takelwagen;
-		std::cout << takelwagen << std::endl;
-		EM2040C kaas;
-//		kaas.read(test);
-//		std::cout << std::to_string(kaas.a) << std::endl;
-//		kaas.write(std::cout);
+		std::cout << "asdf" << std::endl;
+		EM2040C asdf;
+		std::cout << "Total size: " << asdf << std::endl;
+		std::cout << asdf.gettt<0>() << std::endl;
+		std::cout << asdf.gettt<1>() << std::endl;
+		std::ifstream input("input.bin", std::ios::in | std::ios::binary);
+		input >> asdf;
+		std::cout << asdf.gettt<0>() << std::endl;
+		std::cout << asdf.gettt<1>() << std::endl;
 	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
 	}

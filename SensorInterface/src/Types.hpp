@@ -20,44 +20,13 @@ typedef std::uint8_t U1;
 typedef std::uint16_t U2;
 struct U3 {
   uint32_t value : 24;
-
-  std::ostream& operator<<(std::ostream& os)
-  {
-	  os << value;
-      return os;
-  }
-
-  std::istream& operator>>(std::istream& is)
-  {
-	  char* buffer = new char[3];
-	  is.read(buffer, 3);
-	  value = (buffer[0] << 16) | (buffer[1] << 8) | buffer[2];
-	  delete buffer;
-	  return is;
-  }
+//  using type = uint32_t;
 };
 typedef std::uint32_t U4;
 
 typedef std::int8_t S1;
 typedef std::int16_t S2;
-class S3 {
-  int32_t value : 24;
-
-  std::ostream& operator<<(std::ostream& os)
-  {
-	  os << value;
-      return os;
-  }
-
-  std::istream& operator>>(std::istream& is)
-  {
-	  char* buffer = new char[3];
-	  is.read(buffer, 3);
-	  value = (buffer[0] << 16) | (buffer[1] << 8) | buffer[2];
-	  delete buffer;
-	  return is;
-  }
-};
+typedef std::int32_t S3;
 typedef std::int32_t S4;
 typedef float F4;
 

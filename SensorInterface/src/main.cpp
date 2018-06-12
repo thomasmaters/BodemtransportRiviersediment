@@ -13,6 +13,7 @@
 
 #include "Types.hpp"
 #include "Interface.hpp"
+#include "SwitchDataCommand.hpp"
 
 //typedef InterfaceBase<U4,U1,U1,U2,U4,U4,U2,U2,U2,U2,F4,U2,U2,F4,U1,U3> EM2040C;
 //typedef InterfaceBase<U4,U1,U1,U2,U4,U4,U2,U2,U2,U2,F4,U2,U2,F4,U1/*,U3*/> EM2040C;
@@ -20,19 +21,45 @@ typedef InterfaceBase<U2,U2> EM2040C;
 
 int main(int argc, char **argv) {
 	try {
-		std::cout << "asdf" << std::endl;
-		EM2040C asdf;
-		std::cout << "Total size: " << asdf << std::endl;
-		std::cout << asdf.gettt<0>() << std::endl;
-		std::cout << asdf.gettt<1>() << std::endl;
+		Delta100::SwitchDataCommand header;
+		header.setExternalTransmitDelay(100);
+		header.setRunMode(Delta100::RunMode::AUTOGAINENABLE | Delta100::RunMode::TVGENABLE);
+//		EM2040 jan;
+//		std::cout << std::to_string(jan.type) << std::endl;
+//		std::cout << jan.kaas <<  std::endl;
+//		std::cout << jan.piet.value << std::endl;
 		std::ifstream input("input.bin", std::ios::in | std::ios::binary);
-		input >> asdf;
-		std::cout << asdf.gettt<0>() << std::endl;
-		std::cout << asdf.gettt<1>() << std::endl;
+//		input >> asdf;
+//		std::cout << asdf.gettt<0>() << std::endl;
+//		std::cout << asdf.gettt<1>() << std::endl;
 	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

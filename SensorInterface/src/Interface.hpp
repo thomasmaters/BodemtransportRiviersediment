@@ -13,6 +13,7 @@
 #include <iostream>
 #include <tuple>
 #include <typeinfo>
+#include <any>
 
 template<std::size_t N, typename T, typename... types>
 struct get_Nth_type
@@ -59,7 +60,7 @@ constexpr std::size_t sub_hendrik<0>(U1* array, std::size_t N)
 }
 
 template<std::size_t N, typename ReturnType>
-ReturnType hendrik(U1* array)
+ReturnType reinterpet_array(U1* array)
 {
 	return static_cast<ReturnType>(sub_hendrik<sizeof(ReturnType)>(array, N));
 }
@@ -70,20 +71,13 @@ class InterfaceBase : public std::tuple<types...>
 public:
 	InterfaceBase()
 	{
-		data = new U1[total_size];
-		data[0] = 0b11010010;
-		data[1] = 0b00000100;
-		data[2] = 0;
-		data[3] = 0;
 	};
 
 	virtual~ InterfaceBase()
 	{
-		delete data;
 	}
 	constexpr static std::size_t size = sizeof...(types);
 	constexpr static std::size_t total_size = size_in_bytes_template_params<types...>();
-	U1* data;
 
 	template<typename... args>
 	friend std::ostream& operator<<(std::ostream& os, const InterfaceBase<args...>& a)
@@ -93,36 +87,117 @@ public:
 	}
 
 	template<std::size_t N>
-	typename get_Nth_type<N,types...>::type gettt()
+	typename std::tuple_element<N, std::tuple<types...> >::type& get()
 	{
-		using returnType = typename get_Nth_type<N,types...>::type;
-	    std::cout << "Pos: " << posOfArgument<N,types...>() << std::endl;
-		return hendrik<posOfArgument<N,types...>(), returnType>(data);
+		return std::get<N>(*this);
 	}
 
-//	template<std::size_t N>
-//	U1* get()
-//	{
-//		return &data[posOfArgument<N,types...>()];
-//	}
-//
-//	void set()
-//	{
-//
-//	}
+	template<std::size_t N>
+	void set(typename get_Nth_type<N,types...>::type value)
+	{
+		std::get<N>(*this) = std::move(value);
+	}
 };
 
 template<typename... Args>
 std::istream& operator>>(std::istream& is, InterfaceBase<Args...> a)
 {
 	U1* buffer = new U1[a.total_size];
-//	is.read(buffer, a.total_size);
 	is >> buffer;
-	std::cout << "buf" << buffer[0] << std::endl;
-//	delete a.data;
-//	a.data = buffer;
-//	std::cout << "new buf" << a.data[0] << std::endl;
 	return is;
 }
+
+#include <vector>
+#include <variant>
+
+template<std::size_t N>
+class InterfaceBase2
+{
+public:
+	InterfaceBase2()
+	{
+		data[0] = 41;
+		data[1] = 41;
+		data[2] = 41;
+		data[3] = 0;
+		data[4] = 0;
+		data[5] = 0;
+	}
+
+
+	std::vector<std::variant<U1,U2,U4>> interperData(std::initializer_list<uint8_t> list)
+	{
+		std::vector<std::variant<U1,U2,U4>> temp;
+		std::size_t offset = 0;
+
+		std::cout << __PRETTY_FUNCTION__ << std::endl;
+		for(auto it = list.begin(); it != list.end(); ++it) {
+			temp.push_back(get(*it, offset));
+			offset += *it;
+		}
+		return temp;
+	}
+
+	template<typename a>
+	std::variant<U1,U2,U4> get(a size, std::size_t offset)
+	{
+		std::cout << __PRETTY_FUNCTION__ << ": " << size << std::endl;
+		switch (size) {
+			case 1:
+				return (U1)(data[offset]);
+			case 2:
+				return (U2)((data[offset] << 8) | (data[offset + 1]));
+			case 3:
+				return (U4)((data[offset] << 16) | (data[offset + 1] << 8) | data[offset + 2]);
+			case 4:
+				return (U4)((data[offset] << 24) | (data[offset + 1] << 16) | (data[offset + 2] << 8) | data[offset + 3]);
+			default:
+				break;
+		}
+		throw std::runtime_error("Failed to convert byte array to type of size.");
+	}
+
+private:
+	std::array<char,N> data;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #endif /* INTERFACE_HPP_ */

@@ -11,13 +11,7 @@
 #include <cstdint>
 #include <fstream>
 
-#include "Types.hpp"
-#include "Interface.hpp"
 #include "SwitchDataCommand.hpp"
-
-//typedef InterfaceBase<U4,U1,U1,U2,U4,U4,U2,U2,U2,U2,F4,U2,U2,F4,U1,U3> EM2040C;
-//typedef InterfaceBase<U4,U1,U1,U2,U4,U4,U2,U2,U2,U2,F4,U2,U2,F4,U1/*,U3*/> EM2040C;
-typedef InterfaceBase<U2,U2> EM2040C;
 
 int main(int argc, char **argv) {
 	try {

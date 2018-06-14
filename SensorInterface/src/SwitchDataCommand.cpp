@@ -11,7 +11,7 @@
 namespace Delta100
 {
 
-SwitchDataCommand::SwitchDataCommand(): data(new uint8_t[27])
+SwitchDataCommand::SwitchDataCommand() : SensorMessage(27)
 {
 	data[0] = 0xFE;
 	data[1] = 0x44;
@@ -44,7 +44,6 @@ SwitchDataCommand::SwitchDataCommand(): data(new uint8_t[27])
 
 SwitchDataCommand::~SwitchDataCommand()
 {
-	delete[] data;
 }
 
 } /* namespace Delta100 */

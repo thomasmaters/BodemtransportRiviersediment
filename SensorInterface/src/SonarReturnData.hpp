@@ -12,14 +12,14 @@
 #include <cstdint>
 #include <memory>
 #include "SwitchDataCommand.hpp"
+#include "SensorMessage.hpp"
 
 namespace Delta100
 {
-
 /*
  *
  */
-class SonarReturnData
+class SonarReturnData : public SensorMessage
 {
 	enum class SerialStatus : uint8_t
 	{
@@ -32,7 +32,7 @@ class SonarReturnData
 	};
 
 public:
-	SonarReturnData() : data(new uint8_t[1032])
+	SonarReturnData() : SensorMessage(1032)
 	{
 
 	}
@@ -151,8 +151,6 @@ public:
 	{
 
 	}
-private:
-	std::shared_ptr<uint8_t[]> data;
 };
 
 } /* namespace Delta100 */

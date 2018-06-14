@@ -12,6 +12,8 @@
 #include <cstdint>
 #include <stdexcept>
 
+#include "SensorMessage.hpp"
+
 namespace Delta100
 {
 	enum class Mode : uint8_t
@@ -53,7 +55,7 @@ namespace Delta100
 /*
  *
  */
-class SwitchDataCommand
+class SwitchDataCommand : SensorMessage
 {
 public:
 	enum class PulseLength : uint8_t
@@ -206,6 +208,7 @@ public:
 		data[22] = static_cast<std::underlying_type<Mode>::type>(value);
 	}
 
+	//Calculates the single byte value for the switch delay;
 	void setSwitchDelay(uint16_t value)
 	{
 		uint8_t aValue = value/2;
@@ -216,6 +219,7 @@ public:
 		data[24] = aValue;
 	}
 
+	//Sets the switch delay directly to this value.
 	void setSwitchDelay(uint8_t value)
 	{
 		data[24] = value;
@@ -227,8 +231,6 @@ public:
 	}
 
 	virtual ~SwitchDataCommand();
-private:
-	uint8_t* data;
 };
 
 } /* namespace Delta100 */

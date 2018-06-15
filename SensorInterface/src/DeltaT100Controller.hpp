@@ -16,7 +16,7 @@ namespace Controller
 /*
  *
  */
-class DeltaT100Controller : ResponseHandler
+class DeltaT100Controller
 {
 public:
 	DeltaT100Controller();

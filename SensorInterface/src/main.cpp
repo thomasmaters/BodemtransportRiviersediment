@@ -13,24 +13,33 @@
 
 #include "SwitchDataCommand.hpp"
 #include "SensorMessage.hpp"
-#include "SensorProxy.hpp"
 #include "TCPConnection.hpp"
 
 #include <boost/asio.hpp>
 
-int main(int argc, char **argv) {
+int main(int argc, char *argv[]) {
 	try {
-		SensorMessage message(5);
-		Delta100::SwitchDataCommand header;
-		header.setExternalTransmitDelay(100);
-		header.setRunMode(Delta100::RunMode::AUTOGAINENABLE | Delta100::RunMode::TVGENABLE);
-
-		boost::asio::io_service io_service;
-//		Communication::TCP::TCPServer asdf(io_service) ;
-		Communication::TCP::TCPServer2<Communication::TCP::chat_handler> asdf2 = Communication::TCP::TCPServer2<Communication::TCP::chat_handler>();
-		asdf2.startServer(1337);
-		io_service.run();
-
+		if(argc == 4)
+		{
+			boost::asio::io_service io_service;
+			std::string arg1 = std::string(argv[1]);
+			std::string arg2 = std::string(argv[2]);
+			std::string arg3 = std::string(argv[3]);
+			Communication::TCP::TCPServerClient asdf(io_service, arg1,arg2,arg3);
+			asdf.sendMessage();
+			io_service.run();
+		}
+		else
+		{
+			std::cout << "We missen wat argumenten" << std::endl;
+		}
+//		asdf
+//		Communication::TCP::TCPServer2<Communication::TCP::chat_handler> asdf2 = Communication::TCP::TCPServer2<Communication::TCP::chat_handler>();
+		std::cout << "before starting server" << std::endl;
+//		asdf2.startServer(12345);
+		std::cout << "afster starting server" << std::endl;
+		std::thread kaas = std::thread([]{std::cout << "start sleep" << std::endl;std::this_thread::sleep_for(std::chrono::seconds(30)); std::cout << "sleep end" << std::endl;});
+		kaas.join();
 //		EM2040 jan;
 //		std::cout << std::to_string(jan.type) << std::endl;
 //		std::cout << jan.kaas <<  std::endl;
@@ -39,7 +48,6 @@ int main(int argc, char **argv) {
 //		input >> asdf;
 //		std::cout << asdf.gettt<0>() << std::endl;
 //		std::cout << asdf.gettt<1>() << std::endl;
-		Controller::SensorProxy::getInstance();
 	} catch (std::exception& e) {
 		std::cerr << e.what() << std::endl;
 	}

@@ -6,17 +6,17 @@
  *		Email : thomasmaters@hotmail.com (TG.Maters@student.han.nl)
  */
 
-#ifndef SRC_UDPSERVER_HPP_
-#define SRC_UDPSERVER_HPP_
+#ifndef SRC_UDPCONNECTION_HPP_
+#define SRC_UDPCONNECTION_HPP_
 
-class UDPServer
+class UDPServerClient
 {
-	UDPServer()
+	UDPServerClient()
 	{
 
 	}
 
-	virtual ~UDPServer()
+	virtual ~UDPServerClient()
 	{
 
 	}
@@ -24,4 +24,4 @@ class UDPServer
 
 
 
-#endif /* SRC_UDPSERVER_HPP_ */
+#endif /* SRC_UDPCONNECTION_HPP_ */

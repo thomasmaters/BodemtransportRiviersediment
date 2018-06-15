@@ -10,24 +10,44 @@
 #include <iostream>
 #include <cstdint>
 #include <fstream>
+#include <random>
 
 #include "SwitchDataCommand.hpp"
 #include "SensorMessage.hpp"
 #include "TCPConnection.hpp"
+//#include "DeltaT100Controller.hpp"
 
 #include <boost/asio.hpp>
 
 int main(int argc, char *argv[]) {
 	try {
-		if(argc == 4)
+		if(argc == 5)
 		{
+		     std::random_device rd;
+		     std::mt19937 generator(rd());
+
 			boost::asio::io_service io_service;
 			std::string arg1 = std::string(argv[1]);
 			std::string arg2 = std::string(argv[2]);
 			std::string arg3 = std::string(argv[3]);
+			int loop = std::atoi(argv[4]);
 			Communication::TCP::TCPServerClient asdf(io_service, arg1,arg2,arg3);
-			asdf.sendMessage();
+			std::thread a(std::thread([&]{
+				while(1) {
+					if(loop == 1)
+						{
+					std::string str("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+
+				     std::shuffle(str.begin(), str.end(), generator);
+
+					asdf.sendRequest(str.substr(0, 5));
+						}
+					std::this_thread::sleep_for(std::chrono::seconds(2)
+					);}}));
+			asdf.sendRequest("JOJOJO");
 			io_service.run();
+			a.join();
+//			Controller::DeltaT::DeltaT100Controller controller(arg1,arg2,arg3);
 		}
 		else
 		{

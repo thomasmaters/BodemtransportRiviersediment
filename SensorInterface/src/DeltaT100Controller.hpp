@@ -9,24 +9,28 @@
 #ifndef SRC_DELTAT100CONTROLLER_HPP_
 #define SRC_DELTAT100CONTROLLER_HPP_
 
-#include "ServerInterface.hpp"
+#include "ConnectionInterface.hpp"
+#include "TCPConnection.hpp"
 
-namespace Controller
+namespace Controller::DeltaT
 {
 /*
  *
  */
-class DeltaT100Controller
+class DeltaT100Controller : public Communication::RequestHandler, public Communication::ResponseHandler
 {
 public:
-	DeltaT100Controller();
+//	DeltaT100Controller();
 
-	void handleResponse(uint8_t* data, std::size_t length)
-	{
+	DeltaT100Controller(const std::string& host, const std::string& localPort, const std::string& remotePort);
 
-	}
+	void handleResponse(uint8_t* data, std::size_t length);
+
+	void handleRequest(uint8_t* data, std::size_t length);
 
 	virtual ~DeltaT100Controller();
+private:
+//	 Communication::TCP::TCPServerClient com;
 };
 
 } /* namespace Controller */

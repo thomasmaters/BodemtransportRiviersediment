@@ -15,12 +15,23 @@
 class SensorMessage
 {
 public:
-	SensorMessage(std::size_t size): data(new uint8_t[size])
+	SensorMessage(std::size_t size): data(new uint8_t[size]), size(size)
 	{
 //		static_assert(size > 0, "Value of N is zero or negative!");
 	}
+
+	uint8_t* getData() const
+	{
+		return &(data.get()[0]);
+	}
+
+	std::size_t getDataLength() const
+	{
+		return size;
+	}
 protected:
 	std::shared_ptr<uint8_t[]> data;
+	std::size_t size;
 };
 
 

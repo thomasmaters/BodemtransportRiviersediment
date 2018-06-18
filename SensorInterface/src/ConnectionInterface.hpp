@@ -43,27 +43,13 @@ protected:
 	boost::asio::io_service io_service;
 };
 
-class ConnectionInterface
-{
-public:
-	virtual ~ConnectionInterface() = default;
-
-	virtual void sendRequest(uint8_t* data, std::size_t length) = 0;
-
-	virtual void sendRequest(const SensorMessage& message) = 0;
-
-	virtual void sendRequest(const std::string& message) = 0;
-private:
-//	std::shared_ptr<> TODO hadler for request
-};
-
 //Handles incomming request from to sensor.
 class RequestHandler
 {
 public:
 	RequestHandler(){}
 
-	virtual void handleRequest(uint8_t* data, std::size_t length){}
+	virtual SensorMessage handleRequest(uint8_t* data, std::size_t length) = 0;
 
 	virtual ~RequestHandler()
 	{
@@ -88,7 +74,26 @@ class RequestResponseHandler : public RequestHandler, public ResponseHandler
 {
 };
 
+class ConnectionInterface
+{
+public:
+	virtual ~ConnectionInterface() = default;
+
+	virtual void sendRequest(uint8_t* data, std::size_t length) = 0;
+
+	virtual void sendRequest(const SensorMessage& message) = 0;
+
+	virtual void sendRequest(const std::string& message) = 0;
+
+	virtual	void addRequestHandler(std::shared_ptr<RequestHandler> aRequestHandler) = 0;
+
+	virtual	void addResponseHandler(std::shared_ptr<ResponseHandler> aResponseHandler) = 0;
+private:
+
+};
+
 }
+
 
 
 

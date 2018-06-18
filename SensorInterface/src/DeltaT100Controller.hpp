@@ -22,15 +22,16 @@ class DeltaT100Controller : public Communication::RequestHandler, public Communi
 public:
 //	DeltaT100Controller();
 
-	DeltaT100Controller(const std::string& host, const std::string& localPort, const std::string& remotePort);
+	DeltaT100Controller(boost::asio::io_service& aService, const std::string& host, const std::string& localPort, const std::string& remotePort);
 
 	void handleResponse(uint8_t* data, std::size_t length);
 
-	void handleRequest(uint8_t* data, std::size_t length);
+	SensorMessage handleRequest(uint8_t* data, std::size_t length);
 
 	virtual ~DeltaT100Controller();
 private:
-//	 Communication::TCP::TCPServerClient com;
+	 boost::asio::io_service& service;
+	 Communication::TCP::TCPServerClient com;
 };
 
 } /* namespace Controller */

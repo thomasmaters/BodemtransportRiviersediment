@@ -31,47 +31,62 @@ public:
 		return socket;
 	}
 
-	void handleIncommingConnection()
+	void handleIncommingConnection(std::shared_ptr<RequestHandler> aRequestHandler)
 	{
 		boost::asio::async_read( getSocket(),
 			 boost::asio::buffer( data, 5),
 			 boost::bind( &TCPSession::handleRequest,
 			 shared_from_this(),
 			 boost::asio::placeholders::error,
-			 boost::asio::placeholders::bytes_transferred));
+			 boost::asio::placeholders::bytes_transferred,
+			 aRequestHandler));
 	}
 
-	void handleOutgoingConnection(const std::string& message)
+	void handleOutgoingConnection(const boost::asio::mutable_buffer& message, std::shared_ptr<ResponseHandler> aResponseHandler)
 	{
-		std::cout << "STARTED SENDING REQUEST: " << message << std::endl;
+		std::cout << "STARTED SENDING REQUEST: " << (char*)message.data() << std::endl;
 		boost::asio::async_write(getSocket(), boost::asio::buffer(message),
 			boost::bind(&TCPSession::handleResponse, shared_from_this(),
 			boost::asio::placeholders::error,
-			boost::asio::placeholders::bytes_transferred));
+			boost::asio::placeholders::bytes_transferred,
+			aResponseHandler));
 	}
 
-	void handleResponse(const boost::system::error_code& error,
-			std::size_t bytesTransferd )
+	void handleResponse(const boost::system::error_code& error,	std::size_t bytesTransferd,	std::shared_ptr<ResponseHandler> aResponseHandler )
 	{
 		std::cout << "Send: " << bytesTransferd << " bytes." << std::endl;
 		if(!error)
 		{
 			boost::asio::async_read( getSocket(),
-				 boost::asio::buffer( data, 5),[&](const boost::system::error_code& error, std::size_t bytesRead){std::cout << "RECEIVED RESPONSE: " << data << std::endl;});
+					boost::asio::buffer(data, 5),
+					boost::bind(&TCPSession::handleReceivedResponse, shared_from_this(),
+					boost::asio::placeholders::error,
+					boost::asio::placeholders::bytes_transferred,
+					aResponseHandler));
 		}
 		else
 		{
 			std::cout << "FAILED TO GET RESPONSE: " << error.message() << std::endl;
 		}
 	}
-
-	void handleRequest(const boost::system::error_code& error,
-			std::size_t bytesTransferd)
+	void handleReceivedResponse(const boost::system::error_code& error, std::size_t bytesTransferd , std::shared_ptr<ResponseHandler> aResponseHandler)
 	{
-		//TODO Somehting with calling a callback.
-		if(!error)
+		std::cout << "GOT RESPONSE(" << bytesTransferd << "): " << data << std::endl;
+		if(aResponseHandler.use_count() > 0)
+		{
+			aResponseHandler->handleResponse((uint8_t*)data, bytesTransferd);
+		}
+	}
+
+	void handleRequest(const boost::system::error_code& error, std::size_t bytesTransferd, std::shared_ptr<RequestHandler> aRequestHandler)
+	{
+		if(!error or error == boost::asio::error::eof)
 		{
 			std::cout << "We got request with data: " << data << std::endl;
+			if(aRequestHandler.use_count() > 0)
+			{
+				aRequestHandler->handleRequest((uint8_t*)data, bytesTransferd);
+			}
 			boost::asio::async_write(getSocket(), boost::asio::buffer(data , 5),[&](const boost::system::error_code& error, std::size_t byteWritten){std::cout << "Written response: " << data << std::endl;});
 		}
 		else
@@ -95,8 +110,19 @@ public:
 		acceptor(aIoService, boost::asio::ip::tcp::endpoint( boost::asio::ip::tcp::v4(), std::atoi(localPort.c_str()))),
 		ioService(aIoService)
 	{
-//		handleAccept( std::make_shared<TCPSession>(TCPSession(ioService)), boost::system::error_code());
 		start_accept();
+	}
+
+	void addRequestHandler(std::shared_ptr<RequestHandler> aRequestHandler)
+	{
+		requestHandler.reset();
+		requestHandler.swap(aRequestHandler);
+	}
+
+	void addResponseHandler(std::shared_ptr<ResponseHandler> aResponseHandler)
+	{
+		responseHandler.reset();
+		responseHandler.swap(aResponseHandler);
 	}
 
 //	TCPServerClient(std::string host, std::string remotePort, std::string localPort):
@@ -109,53 +135,19 @@ public:
 //		handleAccept( nullptr, boost::system::error_code());
 //	}
 
-	void handleAccept( 	std::shared_ptr<TCPSession> aSession,
-						const boost::system::error_code& error)
-	{
-		std::cout << __PRETTY_FUNCTION__ << std::endl;
-		if (!error)
-		{
-			if(!ioService.stopped())
-			{
-				if (aSession)
-				{
-					std::cout << "We gaan een sessie starten" << std::endl;
-					aSession->handleIncommingConnection();
-				}
-				else
-				{
-					std::cout << "We hebben een binnenkomende verbinding" << std::endl;
-					std::shared_ptr<TCPSession> session = std::shared_ptr<TCPSession>(new TCPSession( ioService));
-
-					acceptor.async_accept( session->getSocket(),
-							boost::bind( &TCPServerClient::handleAccept, shared_from_this(), session, boost::asio::placeholders::error));
-				}
-			}
-			else
-			{
-				std::cout << "service stopped" << std::endl;
-			}
-		} else
-		{
-			std::cout << "FAILED TO CREATE SERVER SESSION" << std::endl;
-			throw std::runtime_error( __PRETTY_FUNCTION__ + std::string( ": ") + error.message());
-		}
-	}
-
 	void sendRequest(uint8_t* data, std::size_t length)
 	{
-//		sendMessage(boost::asio::mutable_buffer(data, length));
+		sendMessage(boost::asio::mutable_buffer(reinterpret_cast<char*>(data), length));
 	}
 
 	void sendRequest(const SensorMessage& message )
 	{
-//		sendMessage(boost::asio::mutable_buffer(message.getData(), message.getDataLength()));
+		sendMessage(boost::asio::mutable_buffer(message.getData(), message.getDataLength()));
 	}
 
 	void sendRequest(const std::string& message)
 	{
-//		sendRequest((uint8_t*)&message[0], message.length());
-		sendMessage(message);
+		sendRequest((uint8_t*)&message[0], message.length());
 	}
 
 	virtual~ TCPServerClient()
@@ -177,12 +169,12 @@ private:
 	  {
 	    if (!error)
 	    {
-	      new_connection->handleIncommingConnection();
+	      new_connection->handleIncommingConnection(requestHandler);
 	      start_accept();
 	    }
 	  }
 
-	void sendMessage(const std::string& messageBuffer)
+	void sendMessage(const boost::asio::mutable_buffer& messageBuffer)
 	{
 		std::cout << __PRETTY_FUNCTION__ << std::endl;
 		std::shared_ptr<TCPSession> session = std::shared_ptr<TCPSession>(new TCPSession(ioService));
@@ -196,13 +188,13 @@ private:
 											boost::bind( &TCPServerClient::handleConnect, this, session, messageBuffer, boost::asio::placeholders::error));
 	}
 
-	void handleConnect(std::shared_ptr<TCPSession> aSession, const std::string& messageBuffer,
+	void handleConnect(std::shared_ptr<TCPSession> aSession, const boost::asio::mutable_buffer& messageBuffer,
 			const boost::system::error_code& error)
 	{
 		if (!error)
 		{
 			std::cout << "CONNECTED TO HOST" << std::endl;
-			aSession->handleOutgoingConnection(messageBuffer);
+			aSession->handleOutgoingConnection(messageBuffer, responseHandler);
 		} else
 		{
 			std::cout << "COULD NOT CONNECT TO HOST: " << error.message() << std::endl;

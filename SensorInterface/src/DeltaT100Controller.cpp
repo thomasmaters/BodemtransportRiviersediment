@@ -18,27 +18,24 @@ namespace Controller::DeltaT
 //	// TODO Auto-generated constructor stub
 //}
 
-DeltaT100Controller::DeltaT100Controller(const std::string& host, const std::string& localPort, const std::string& remotePort)/* : com(host, localPort, remotePort)*/
+DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& aService, const std::string& host, const std::string& localPort, const std::string& remotePort) : service(aService), com(aService, host, localPort, remotePort)
 {
 	std::cout << __PRETTY_FUNCTION__ << std::endl;
-//	com.sendRequest("DELTAT100Controller1");
-//	std::this_thread::sleep_for(std::chrono::seconds(10));
-//	com.sendRequest("DELTAT100Controller2");
-//	std::this_thread::sleep_for(std::chrono::seconds(10));
-//	com.sendRequest("DELTAT100Controller3");
-//	std::this_thread::sleep_for(std::chrono::seconds(10));
-//	com.sendRequest("DELTAT100Controller4");
-//	std::this_thread::sleep_for(std::chrono::seconds(10));
-//	ioService.run();
+	com.addRequestHandler(std::shared_ptr<RequestHandler>(this));
+	com.addResponseHandler(std::shared_ptr<ResponseHandler>(this));
+	service.run();
 }
 
 
 void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
 {
+	std::cout << __PRETTY_FUNCTION__ << ": " << (char*)data << std::endl;
 }
 
-void DeltaT100Controller::handleRequest(uint8_t* data, std::size_t length)
+SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t length)
 {
+	std::cout << __PRETTY_FUNCTION__ << ": " << (char*)data << std::endl;
+	return SensorMessage(0);
 }
 
 

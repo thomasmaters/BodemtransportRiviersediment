@@ -125,16 +125,6 @@ public:
 		responseHandler.swap(aResponseHandler);
 	}
 
-//	TCPServerClient(std::string host, std::string remotePort, std::string localPort):
-//		host(host),
-//		remotePort(remotePort),
-//		localPort(localPort),
-//		acceptor(getIOService(), boost::asio::ip::tcp::endpoint( boost::asio::ip::tcp::v4(), std::atoi(localPort.c_str()))),
-//		ioService(getIOService())
-//	{
-//		handleAccept( nullptr, boost::system::error_code());
-//	}
-
 	void sendRequest(uint8_t* data, std::size_t length)
 	{
 		sendMessage(boost::asio::mutable_buffer(reinterpret_cast<char*>(data), length));

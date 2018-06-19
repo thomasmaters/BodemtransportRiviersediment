@@ -77,14 +77,6 @@ private:
 		boost::asio::ip::udp::resolver::iterator iter = resolver.resolve(query);
 		sender_endpoint_ = *iter;
 
-		std::string kaas = "kaaskaaska";
-		for (std::size_t i = 0; i < 10; ++i) {
-			data_[i] = kaas.at(i);
-		}
-		io_service_thread_ = std::thread([this]()
-		{
-			io_service_.run();
-		});
 //		do_receive();
 		do_send(10);
 

@@ -8,40 +8,53 @@
 
 #include "DeltaT100Controller.hpp"
 
+#include <random>
+#include <string>
+
 namespace Controller::DeltaT
 {
-
-//DeltaT100Controller::DeltaT100Controller() : com("0.0.0.0", "1337", "1338")
-//{
-//	std::cout << __PRETTY_FUNCTION__ << std::endl;
-//	com.sendRequest("DELTAT100Controller");
-//	// TODO Auto-generated constructor stub
-//}
-
-DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& aService, const std::string& host, const std::string& localPort, const std::string& remotePort) : service(aService), com(aService, host, localPort, remotePort)
+DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& aService, const std::string& host,
+                                         const std::string& localPort, const std::string& remotePort)
+  : service(aService), com(aService, host, localPort, remotePort)
 {
-	std::cout << __PRETTY_FUNCTION__ << std::endl;
-	com.addRequestHandler(std::shared_ptr<RequestHandler>(this));
-	com.addResponseHandler(std::shared_ptr<ResponseHandler>(this));
-	service.run();
-}
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    com.addRequestHandler(std::shared_ptr<RequestHandler>(this));
+    com.addResponseHandler(std::shared_ptr<ResponseHandler>(this));
+    std::random_device rd;
+    std::mt19937 generator(rd());
 
+    std::thread a(std::thread([&] {
+        while (1)
+        {
+            if (true)
+            {
+                std::string str("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+
+                std::shuffle(str.begin(), str.end(), generator);
+
+                com.sendRequest(str.substr(0, 5));
+            }
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+        }
+    }));
+    service.run();
+    a.join();
+}
 
 void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
 {
-	std::cout << __PRETTY_FUNCTION__ << ": " << (char*)data << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << ": " << (char*)data << std::endl;
 }
 
 SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t length)
 {
-	std::cout << __PRETTY_FUNCTION__ << ": " << (char*)data << std::endl;
-	return SensorMessage(0);
+    std::cout << __PRETTY_FUNCTION__ << ": " << (char*)data << std::endl;
+    return SensorMessage(0);
 }
-
 
 DeltaT100Controller::~DeltaT100Controller()
 {
-	// TODO Auto-generated destructor stub
+    // TODO Auto-generated destructor stub
 }
 
 } /* namespace Controller */

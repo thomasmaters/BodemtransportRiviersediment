@@ -16,6 +16,7 @@
 #include "SensorMessage.hpp"
 #include "TCPConnection.hpp"
 #include "DeltaT100Controller.hpp"
+#include "UDPConnection.hpp"
 
 #include <boost/asio.hpp>
 
@@ -31,21 +32,10 @@ int main(int argc, char *argv[]) {
 			std::string arg2 = std::string(argv[2]);
 			std::string arg3 = std::string(argv[3]);
 			int loop = std::atoi(argv[4]);
+//			Communication::UDP::UDPServerClient kaas(io_service, arg1, arg2, arg3);
 			Controller::DeltaT::DeltaT100Controller asdf(io_service, arg1,arg2,arg3);
-			std::thread a(std::thread([&]{
-				while(1) {
-					if(loop == 1)
-						{
-					std::string str("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
 
-				     std::shuffle(str.begin(), str.end(), generator);
-
-//					asdf.sendRequest(str.substr(0, 5));
-						}
-					std::this_thread::sleep_for(std::chrono::seconds(2)
-					);}}));
 //			io_service.run();
-			a.join();
 //			Controller::DeltaT::DeltaT100Controller controller(arg1,arg2,arg3);
 		}
 		else

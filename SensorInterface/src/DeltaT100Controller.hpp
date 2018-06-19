@@ -11,6 +11,7 @@
 
 #include "ConnectionInterface.hpp"
 #include "TCPConnection.hpp"
+#include "UDPConnection.hpp"
 
 namespace Controller::DeltaT
 {
@@ -19,19 +20,21 @@ namespace Controller::DeltaT
  */
 class DeltaT100Controller : public Communication::RequestHandler, public Communication::ResponseHandler
 {
-public:
-//	DeltaT100Controller();
+  public:
+    //	DeltaT100Controller();
 
-	DeltaT100Controller(boost::asio::io_service& aService, const std::string& host, const std::string& localPort, const std::string& remotePort);
+    DeltaT100Controller(boost::asio::io_service& aService, const std::string& host, const std::string& localPort,
+                        const std::string& remotePort);
 
-	void handleResponse(uint8_t* data, std::size_t length);
+    void handleResponse(uint8_t* data, std::size_t length);
 
-	SensorMessage handleRequest(uint8_t* data, std::size_t length);
+    SensorMessage handleRequest(uint8_t* data, std::size_t length);
 
-	virtual ~DeltaT100Controller();
-private:
-	 boost::asio::io_service& service;
-	 Communication::TCP::TCPServerClient com;
+    virtual ~DeltaT100Controller();
+
+  private:
+    boost::asio::io_service& service;
+    Communication::UDP::UDPServerClient com;
 };
 
 } /* namespace Controller */

@@ -39,6 +39,8 @@ public:
 
 	virtual void handleResponse(uint8_t* data, std::size_t length){}
 
+	virtual std::size_t handleResponseHead(uint8_t* data, std::size_t length){ return 10; }
+
 	virtual ~ResponseHandler()
 	{
 
@@ -54,11 +56,9 @@ class ConnectionInterface
 public:
 	virtual ~ConnectionInterface() = default;
 
-	virtual void sendRequest(uint8_t* data, std::size_t length, std::size_t responseSize = 0) = 0;
+	virtual void sendRequest(const SensorMessage& message, std::size_t responseSize, bool hasResponseHeadAndBody = false) = 0;
 
-	virtual void sendRequest(const SensorMessage& message, std::size_t responseSize = 0) = 0;
-
-	virtual void sendRequest(const std::string& message, std::size_t responseSize = 0) = 0;
+	virtual void sendRequest(const SensorMessage& message, char delimiter, bool hasResponseHeadAndBody = false) = 0;
 
 	virtual	void addRequestHandler(std::shared_ptr<RequestHandler> aRequestHandler) = 0;
 

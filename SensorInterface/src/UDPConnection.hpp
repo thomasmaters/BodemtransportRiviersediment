@@ -30,20 +30,20 @@ class UDPServerClient : public ConnectionInterface, public std::enable_shared_fr
         start_receive();
     }
 
-    void sendRequest(uint8_t* data, std::size_t length, std::size_t responseSize = 0)
-    {
-        sendMessage(boost::asio::mutable_buffer(reinterpret_cast<char*>(data), length), responseSize);
-    }
+	void sendRequest(const SensorMessage& message, std::size_t responseSize, bool hasResponseHeadAndBody = false)
+	{
+		sendMessage(boost::asio::mutable_buffer(message.getData(), message.getDataLength()), responseSize, hasResponseHeadAndBody);
+	}
 
-    void sendRequest(const SensorMessage& message, std::size_t responseSize = 0)
-    {
-        sendMessage(boost::asio::mutable_buffer(message.getData(), message.getDataLength()), responseSize);
-    }
+	void sendRequest(const SensorMessage& message, char delimiter, bool hasResponseHeadAndBody = false)
+	{
+		throw std::runtime_error("UDP connection do not support reading until a delimiter, use a response size instead.");
+	}
 
-    void sendRequest(const std::string& message, std::size_t responseSize = 0)
-    {
-        sendRequest((uint8_t*)&message[0], message.length(), responseSize);
-    }
+	void sendRequest(std::string message, std::size_t responseSize)
+	{
+		sendMessage(boost::asio::mutable_buffer(message.data(), message.length()), responseSize, false);
+	}
 
     void addRequestHandler(std::shared_ptr<RequestHandler> aRequestHandler)
     {
@@ -63,36 +63,45 @@ class UDPServerClient : public ConnectionInterface, public std::enable_shared_fr
     }
 
   private:
-    void sendMessage(const boost::asio::mutable_buffer& buffer, std::size_t responseSize)
+    bool connectOutgoingSocket()
     {
         boost::asio::ip::udp::resolver resolver(service);
         boost::asio::ip::udp::resolver::query query(boost::asio::ip::udp::v4(), host, remotePort);
         boost::asio::ip::udp::resolver::iterator iter = resolver.resolve(query);
         boost::system::error_code ec;
         boost::asio::connect(socketOutgoing, iter, ec);
-        if (ec)
+        if(ec)
         {
-            std::cout << ec.message() << std::endl;
+        	std::cout << ec.message() << std::endl;
         }
-        else
-        {
+        return !ec;
+    }
 
-        std::cout << __PRETTY_FUNCTION__ << ": " << (char*)buffer.data() << std::endl;
-        socketOutgoing.async_send(buffer,
-                                  boost::bind(&UDPServerClient::getResponse, this, responseSize, boost::asio::placeholders::error,
-                                              boost::asio::placeholders::bytes_transferred));
+
+    void sendMessage(const boost::asio::mutable_buffer& buffer, std::size_t responseSize, bool hasResponseHeadAndBody)
+    {
+        if (connectOutgoingSocket())
+        {
+        	std::cout << __PRETTY_FUNCTION__ << ": " << (char*)buffer.data() << std::endl;
+        	socketOutgoing.async_send(buffer,
+        			boost::bind(&UDPServerClient::getResponse,
+        					this,
+							responseSize,
+							hasResponseHeadAndBody,
+							boost::asio::placeholders::error,
+							boost::asio::placeholders::bytes_transferred));
         }
     }
 
-    void getResponse(std::size_t responseSize, const boost::system::error_code& error, std::size_t bytes_transferred)
+    void getResponse(std::size_t responseSize, bool hasResponseHeadAndBody, const boost::system::error_code& error, std::size_t bytes_transferred)
     {
         std::cout << "WRITTEN: " << bytes_transferred << " bytes" << std::endl;
         if (!error)
         {
-            socketOutgoing.async_receive_from(boost::asio::buffer(data, responseSize), remote_endpoint_,
-                                              boost::bind(&UDPServerClient::gotResponse, this,
-                                                          boost::asio::placeholders::error,
-                                                          boost::asio::placeholders::bytes_transferred));
+                socketOutgoing.async_receive_from(boost::asio::buffer(data, responseSize), remote_endpoint_,
+                                                  boost::bind(&UDPServerClient::gotResponse, this, hasResponseHeadAndBody,
+                                                              boost::asio::placeholders::error,
+                                                              boost::asio::placeholders::bytes_transferred));
         }
         else
         {
@@ -100,12 +109,26 @@ class UDPServerClient : public ConnectionInterface, public std::enable_shared_fr
         }
     }
 
-    void gotResponse(const boost::system::error_code& error, std::size_t bytes_transferred)
+    void gotResponse(bool hasResponseHeadAndBody, const boost::system::error_code& error, std::size_t bytes_transferred)
     {
+    	if(error)
+    	{
+    		//throw std::runtime_error("Failed getting response." + error.message());
+    		return;
+    	}
+
         if (responseHandler.use_count() != 0)
         {
             std::cout << "GOT RESPONSE OF: " << bytes_transferred << " bytes" << std::endl;
-            responseHandler->handleResponse(data.data(), bytes_transferred);
+        	if (hasResponseHeadAndBody)
+        	{
+        		std::size_t bodyLength = responseHandler->handleResponseHead(data.data(), bytes_transferred);
+        		getResponse(bodyLength, false, boost::system::error_code(), 0);
+        	}
+        	else
+        	{
+                responseHandler->handleResponse(data.data(), bytes_transferred);
+        	}
         }
     }
 
@@ -142,6 +165,7 @@ class UDPServerClient : public ConnectionInterface, public std::enable_shared_fr
     }
 
     std::array<uint8_t, 2048> data;
+    boost::asio::streambuf streamBuffer;
 
     std::string host;
     std::string remotePort;

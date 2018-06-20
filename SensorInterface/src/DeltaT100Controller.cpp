@@ -27,8 +27,8 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& aService, cons
 
     std::thread a(std::thread([&] {
         SensorMessage temp = Controller::DeltaT100::SwitchDataCommand::getDefaultInstance();
-        com.sendRequest(temp, 10);
-        std::this_thread::sleep_for(std::chrono::seconds(5));
+        com.sendRequest(temp, (std::size_t)10, true);
+        std::this_thread::sleep_for(std::chrono::seconds(15));
         while (1)
         {
             if (true)

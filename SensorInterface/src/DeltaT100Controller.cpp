@@ -8,10 +8,12 @@
 
 #include "DeltaT100Controller.hpp"
 
+#include "SwitchDataCommand.hpp"
+
 #include <random>
 #include <string>
 
-namespace Controller::DeltaT
+namespace Controller::DeltaT100
 {
 DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& aService, const std::string& host,
                                          const std::string& localPort, const std::string& remotePort)
@@ -24,6 +26,9 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& aService, cons
     std::mt19937 generator(rd());
 
     std::thread a(std::thread([&] {
+        SensorMessage temp = Controller::DeltaT100::SwitchDataCommand::getDefaultInstance();
+        com.sendRequest(temp, 10);
+        std::this_thread::sleep_for(std::chrono::seconds(5));
         while (1)
         {
             if (true)
@@ -32,7 +37,7 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& aService, cons
 
                 std::shuffle(str.begin(), str.end(), generator);
 
-                com.sendRequest(str.substr(0, 5));
+                com.sendRequest(str.substr(0, 5), 10);
             }
             std::this_thread::sleep_for(std::chrono::seconds(2));
         }

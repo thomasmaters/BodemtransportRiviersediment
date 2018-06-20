@@ -6,17 +6,17 @@
  *		Email : thomasmaters@hotmail.com (TG.Maters@student.han.nl)
  */
 
-#ifndef SRC_SERIALSERVER_HPP_
-#define SRC_SERIALSERVER_HPP_
+#ifndef SRC_SERIALCONNECTION_HPP_
+#define SRC_SERIALCONNECTION_HPP_
 
-class SerialServer
+class SerialClientServer
 {
-	SerialServer()
+	SerialClientServer()
 	{
 
 	}
 
-	virtual ~SerialServer()
+	virtual ~SerialClientServer()
 	{
 
 	}
@@ -24,4 +24,4 @@ class SerialServer
 
 
 
-#endif /* SRC_SERIALSERVER_HPP_ */
+#endif /* SRC_SERIALCONNECTION_HPP_ */

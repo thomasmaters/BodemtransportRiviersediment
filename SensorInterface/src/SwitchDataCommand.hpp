@@ -14,7 +14,7 @@
 
 #include "SensorMessage.hpp"
 
-namespace Delta100
+namespace Controller::DeltaT100
 {
 enum class Mode : uint8_t
 {
@@ -55,7 +55,7 @@ enum class RunMode : uint8_t
 /*
  *
  */
-class SwitchDataCommand : SensorMessage
+class SwitchDataCommand : public SensorMessage
 {
   public:
     enum class PulseLength : uint8_t
@@ -105,6 +105,41 @@ class SwitchDataCommand : SensorMessage
     };
 
     SwitchDataCommand();
+
+    static SwitchDataCommand getDefaultInstance()
+    {
+    	SwitchDataCommand temp;
+    	temp.setRange(Range::M30);
+    	temp.setNadirOffsetAngle(0);
+    	temp.setStartGain(10);
+    	temp.setAbsorption(0);
+    	temp.setAgcThreshold(10);
+    	temp.setPacketNumberRequest(0);
+    	temp.setPulseLength(PulseLength::M30);
+    	temp.setExternalTriggerControlEdge(ExternalTriggerControlEdge::NEG);
+    	temp.enableExternalTriggerControl(false);
+    	temp.setExternalTransmitDelay(0);
+    	temp.setDataPoints(Mode::IUX);
+    	temp.setDataBits(DataBits::BITS8);
+    	temp.setPrhCommand(PrhCommand::NOPRH);
+    	temp.setRunMode(RunMode::DISABLEALL);
+    	temp.setSwitchDelay((uint8_t)0);
+    	temp.setFrequency(Frequency::KHZ120);
+    	return temp;
+    }
+
+    void setRange(Controller::DeltaT100::Range value)
+    {
+    	data[3] = static_cast<uint8_t>(value);
+    }
+
+    void setNadirOffsetAngle(int16_t value)
+    {
+    	int16_t offsetAngle = value / 360 *65536;
+    	if(value < 0){ offsetAngle |= 0x8000; }
+    	data[5] = (offsetAngle & 0xFF00) >> 8;
+    	data[6] = offsetAngle & 0x00FF;
+    }
 
     void setStartGain(uint8_t value)
     {
@@ -235,16 +270,16 @@ class SwitchDataCommand : SensorMessage
 
 } /* namespace Delta100 */
 
-constexpr Delta100::RunMode operator|(Delta100::RunMode lhs, Delta100::RunMode rhs)
+constexpr Controller::DeltaT100::RunMode operator|(Controller::DeltaT100::RunMode lhs, Controller::DeltaT100::RunMode rhs)
 {
-    using underlying = typename std::underlying_type<Delta100::RunMode>::type;
-    return static_cast<Delta100::RunMode>(static_cast<underlying>(lhs) | static_cast<underlying>(rhs));
+    using underlying = typename std::underlying_type<Controller::DeltaT100::RunMode>::type;
+    return static_cast<Controller::DeltaT100::RunMode>(static_cast<underlying>(lhs) | static_cast<underlying>(rhs));
 }
 
-constexpr Delta100::RunMode operator&(Delta100::RunMode lhs, Delta100::RunMode rhs)
+constexpr Controller::DeltaT100::RunMode operator&(Controller::DeltaT100::RunMode lhs, Controller::DeltaT100::RunMode rhs)
 {
-    using underlying = typename std::underlying_type<Delta100::RunMode>::type;
-    return static_cast<Delta100::RunMode>(static_cast<underlying>(lhs) & static_cast<underlying>(rhs));
+    using underlying = typename std::underlying_type<Controller::DeltaT100::RunMode>::type;
+    return static_cast<Controller::DeltaT100::RunMode>(static_cast<underlying>(lhs) & static_cast<underlying>(rhs));
 }
 
 #endif /* SRC_SWITCHDATACOMMAND_HPP_ */

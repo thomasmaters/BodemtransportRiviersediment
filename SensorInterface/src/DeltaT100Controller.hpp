@@ -13,7 +13,7 @@
 #include "TCPConnection.hpp"
 #include "UDPConnection.hpp"
 
-namespace Controller::DeltaT
+namespace Controller::DeltaT100
 {
 /*
  *

@@ -14,7 +14,7 @@
 #include "SwitchDataCommand.hpp"
 #include "SensorMessage.hpp"
 
-namespace Delta100
+namespace Controller::DeltaT100
 {
 /*
  *

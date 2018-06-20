@@ -18,31 +18,6 @@
 namespace Communication
 {
 
-class IoServiceHandler
-{
-public:
-	IoServiceHandler()
-	{
-		std::cout << __PRETTY_FUNCTION__ << std::endl;
-		std::thread temp = std::thread([this]{
-			getIOService().run();
-		});
-
-		requestHandlerThread.swap(temp);
-	}
-
-	boost::asio::io_service& getIOService()
-	{
-		return io_service;
-	}
-
-	virtual ~IoServiceHandler() {}
-
-protected:
-	std::thread requestHandlerThread;
-	boost::asio::io_service io_service;
-};
-
 //Handles incomming request from to sensor.
 class RequestHandler
 {
@@ -79,11 +54,11 @@ class ConnectionInterface
 public:
 	virtual ~ConnectionInterface() = default;
 
-	virtual void sendRequest(uint8_t* data, std::size_t length) = 0;
+	virtual void sendRequest(uint8_t* data, std::size_t length, std::size_t responseSize = 0) = 0;
 
-	virtual void sendRequest(const SensorMessage& message) = 0;
+	virtual void sendRequest(const SensorMessage& message, std::size_t responseSize = 0) = 0;
 
-	virtual void sendRequest(const std::string& message) = 0;
+	virtual void sendRequest(const std::string& message, std::size_t responseSize = 0) = 0;
 
 	virtual	void addRequestHandler(std::shared_ptr<RequestHandler> aRequestHandler) = 0;
 

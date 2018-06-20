@@ -8,7 +8,7 @@
 
 #include "SonarReturnData.hpp"
 
-namespace Delta100
+namespace Controller::DeltaT100
 {
 
 //SonarReturnData::SonarReturnData()

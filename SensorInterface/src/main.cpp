@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
 			std::string arg3 = std::string(argv[3]);
 			int loop = std::atoi(argv[4]);
 //			Communication::UDP::UDPServerClient kaas(io_service, arg1, arg2, arg3);
-			Controller::DeltaT::DeltaT100Controller asdf(io_service, arg1,arg2,arg3);
+			Controller::DeltaT100::DeltaT100Controller asdf(io_service, arg1,arg2,arg3);
 
 //			io_service.run();
 //			Controller::DeltaT::DeltaT100Controller controller(arg1,arg2,arg3);

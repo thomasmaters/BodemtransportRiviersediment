@@ -8,7 +8,7 @@
 
 #include "SwitchDataCommand.hpp"
 
-namespace Delta100
+namespace Controller::DeltaT100
 {
 
 SwitchDataCommand::SwitchDataCommand() : SensorMessage(27)

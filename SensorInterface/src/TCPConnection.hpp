@@ -80,7 +80,7 @@ public:
 
 	void handleRequest(const boost::system::error_code& error, std::size_t bytesTransferd, std::shared_ptr<RequestHandler> aRequestHandler)
 	{
-		if(!error or error == boost::asio::error::eof)
+		if(!error || error == boost::asio::error::eof)
 		{
 			std::cout << "We got request with data: " << data << std::endl;
 			if(aRequestHandler.use_count() > 0)

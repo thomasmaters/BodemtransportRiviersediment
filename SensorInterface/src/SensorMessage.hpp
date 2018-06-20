@@ -12,10 +12,16 @@
 #include <cstdint>
 #include <memory>
 
+
 class SensorMessage
 {
 public:
 	SensorMessage(std::size_t size): data(new uint8_t[size]), size(size)
+	{
+//		static_assert(size > 0, "Value of N is zero or negative!");
+	}
+
+	SensorMessage(uint8_t data, std::size_t size): data(new uint8_t[size]), size(size)
 	{
 //		static_assert(size > 0, "Value of N is zero or negative!");
 	}

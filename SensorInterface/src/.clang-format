@@ -3,6 +3,7 @@ BasedOnStyle:  Google
 AccessModifierOffset: -2
 ConstructorInitializerIndentWidth: 2
 AlignEscapedNewlinesLeft: false
+AlignConsecutiveAssignments: true
 AlignTrailingComments: true
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortIfStatementsOnASingleLine: false

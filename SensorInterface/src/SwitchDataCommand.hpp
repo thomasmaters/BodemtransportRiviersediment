@@ -24,14 +24,14 @@ enum class Mode : uint8_t
 
 enum class Range : uint8_t
 {
-    M5 = 5,
-    M10 = 10,
-    M20 = 20,
-    M30 = 30,
-    M40 = 40,
-    M50 = 50,
-    M60 = 60,
-    M80 = 80,
+    M5   = 5,
+    M10  = 10,
+    M20  = 20,
+    M30  = 30,
+    M40  = 40,
+    M50  = 50,
+    M60  = 60,
+    M80  = 80,
     M100 = 100,
     M150 = 150,
     M200 = 200,
@@ -41,14 +41,14 @@ enum class Range : uint8_t
 
 enum class RunMode : uint8_t
 {
-    XMITDISABLE = 0b00000001,
-    XMITENABLE = 0b00000000,
-    TVGDISABLE = 0b00000010,
-    TVGENABLE = 0b00000000,
-    AUTOGAINENABLE = 0b00010000,
+    XMITDISABLE     = 0b00000001,
+    XMITENABLE      = 0b00000000,
+    TVGDISABLE      = 0b00000010,
+    TVGENABLE       = 0b00000000,
+    AUTOGAINENABLE  = 0b00010000,
     AUTOGAINDISABLE = 0b00000000,
 
-    ENABLEALL = 0b00010011,
+    ENABLEALL  = 0b00010011,
     DISABLEALL = 0b00000000
 };
 
@@ -60,14 +60,14 @@ class SwitchDataCommand : public SensorMessage
   public:
     enum class PulseLength : uint8_t
     {
-        M5 = 3,
-        M10 = 6,
-        M20 = 12,
-        M30 = 18,
-        M40 = 24,
-        M50 = 30,
-        M60 = 36,
-        M80 = 48,
+        M5   = 3,
+        M10  = 6,
+        M20  = 12,
+        M30  = 18,
+        M40  = 24,
+        M50  = 30,
+        M60  = 36,
+        M80  = 48,
         M100 = 60,
         M150 = 90,
         M200 = 120,
@@ -88,19 +88,19 @@ class SwitchDataCommand : public SensorMessage
 
     enum class PrhCommand : uint8_t
     {
-        NOPRH = 0x00,
-        STARTCOMPASSCALIBRATION = 0x02,
-        STOPCOMPASSCALIBRATION = 0x03,
+        NOPRH                     = 0x00,
+        STARTCOMPASSCALIBRATION   = 0x02,
+        STOPCOMPASSCALIBRATION    = 0x03,
         STARTPITCHROLLCALIBRATION = 0x04,
-        STOPPITCHROLLCALIBRATION = 0x05,
-        OUTPUTGYROEULERANGLES = 0x80
+        STOPPITCHROLLCALIBRATION  = 0x05,
+        OUTPUTGYROEULERANGLES     = 0x80
     };
 
     enum class Frequency : uint8_t
     {
-        KHZ120 = 58,
-        KHZ260 = 86,
-        KHZ675 = 169,
+        KHZ120  = 58,
+        KHZ260  = 86,
+        KHZ675  = 169,
         KHZ1700 = 68
     };
 
@@ -108,37 +108,40 @@ class SwitchDataCommand : public SensorMessage
 
     static SwitchDataCommand getDefaultInstance()
     {
-    	SwitchDataCommand temp;
-    	temp.setRange(Range::M30);
-    	temp.setNadirOffsetAngle(0);
-    	temp.setStartGain(10);
-    	temp.setAbsorption(0);
-    	temp.setAgcThreshold(10);
-    	temp.setPacketNumberRequest(0);
-    	temp.setPulseLength(PulseLength::M30);
-    	temp.setExternalTriggerControlEdge(ExternalTriggerControlEdge::NEG);
-    	temp.enableExternalTriggerControl(false);
-    	temp.setExternalTransmitDelay(0);
-    	temp.setDataPoints(Mode::IUX);
-    	temp.setDataBits(DataBits::BITS8);
-    	temp.setPrhCommand(PrhCommand::NOPRH);
-    	temp.setRunMode(RunMode::DISABLEALL);
-    	temp.setSwitchDelay((uint8_t)0);
-    	temp.setFrequency(Frequency::KHZ120);
-    	return temp;
+        SwitchDataCommand temp;
+        temp.setRange(Range::M30);
+        temp.setNadirOffsetAngle(0);
+        temp.setStartGain(10);
+        temp.setAbsorption(0);
+        temp.setAgcThreshold(10);
+        temp.setPacketNumberRequest(0);
+        temp.setPulseLength(PulseLength::M30);
+        temp.setExternalTriggerControlEdge(ExternalTriggerControlEdge::NEG);
+        temp.enableExternalTriggerControl(false);
+        temp.setExternalTransmitDelay(0);
+        temp.setDataPoints(Mode::IUX);
+        temp.setDataBits(DataBits::BITS8);
+        temp.setPrhCommand(PrhCommand::NOPRH);
+        temp.setRunMode(RunMode::DISABLEALL);
+        temp.setSwitchDelay((uint8_t)0);
+        temp.setFrequency(Frequency::KHZ120);
+        return temp;
     }
 
     void setRange(Controller::DeltaT100::Range value)
     {
-    	data[3] = static_cast<uint8_t>(value);
+        data[3] = static_cast<uint8_t>(value);
     }
 
     void setNadirOffsetAngle(int16_t value)
     {
-    	int16_t offsetAngle = value / 360 *65536;
-    	if(value < 0){ offsetAngle |= 0x8000; }
-    	data[5] = (offsetAngle & 0xFF00) >> 8;
-    	data[6] = offsetAngle & 0x00FF;
+        int16_t offsetAngle = value / 360 * 65536;
+        if (value < 0)
+        {
+            offsetAngle |= 0x8000;
+        }
+        data[5] = (offsetAngle & 0xFF00) >> 8;
+        data[6] = offsetAngle & 0x00FF;
     }
 
     void setStartGain(uint8_t value)
@@ -270,13 +273,15 @@ class SwitchDataCommand : public SensorMessage
 
 } /* namespace Delta100 */
 
-constexpr Controller::DeltaT100::RunMode operator|(Controller::DeltaT100::RunMode lhs, Controller::DeltaT100::RunMode rhs)
+constexpr Controller::DeltaT100::RunMode operator|(Controller::DeltaT100::RunMode lhs,
+                                                   Controller::DeltaT100::RunMode rhs)
 {
     using underlying = typename std::underlying_type<Controller::DeltaT100::RunMode>::type;
     return static_cast<Controller::DeltaT100::RunMode>(static_cast<underlying>(lhs) | static_cast<underlying>(rhs));
 }
 
-constexpr Controller::DeltaT100::RunMode operator&(Controller::DeltaT100::RunMode lhs, Controller::DeltaT100::RunMode rhs)
+constexpr Controller::DeltaT100::RunMode operator&(Controller::DeltaT100::RunMode lhs,
+                                                   Controller::DeltaT100::RunMode rhs)
 {
     using underlying = typename std::underlying_type<Controller::DeltaT100::RunMode>::type;
     return static_cast<Controller::DeltaT100::RunMode>(static_cast<underlying>(lhs) & static_cast<underlying>(rhs));

@@ -32,12 +32,16 @@ class UDPServerClient : public ConnectionInterface, public std::enable_shared_fr
 
 	void sendRequest(const SensorMessage& message, std::size_t responseSize, bool hasResponseHeadAndBody = false)
 	{
+		if(hasResponseHeadAndBody)
+		{
+			throw std::runtime_error("UDP connection does not support reading parts of a datagram.");
+		}
 		sendMessage(boost::asio::mutable_buffer(message.getData(), message.getDataLength()), responseSize, hasResponseHeadAndBody);
 	}
 
 	void sendRequest(const SensorMessage& message, char delimiter, bool hasResponseHeadAndBody = false)
 	{
-		throw std::runtime_error("UDP connection do not support reading until a delimiter, use a response size instead.");
+		throw std::runtime_error("UDP connection does not support reading until a delimiter, use a response size instead.");
 	}
 
 	void sendRequest(std::string message, std::size_t responseSize)
@@ -95,7 +99,7 @@ class UDPServerClient : public ConnectionInterface, public std::enable_shared_fr
 
     void getResponse(std::size_t responseSize, bool hasResponseHeadAndBody, const boost::system::error_code& error, std::size_t bytes_transferred)
     {
-        std::cout << "WRITTEN: " << bytes_transferred << " bytes" << std::endl;
+        std::cout << "WRITTEN: " << bytes_transferred << " bytes, trying to receive: " << responseSize << " bytes." << std::endl;
         if (!error)
         {
                 socketOutgoing.async_receive_from(boost::asio::buffer(data, responseSize), remote_endpoint_,
@@ -105,7 +109,7 @@ class UDPServerClient : public ConnectionInterface, public std::enable_shared_fr
         }
         else
         {
-            std::cerr << error.message() << std::endl;
+            std::cerr << __PRETTY_FUNCTION__ << ": " << error.message() << std::endl;
         }
     }
 
@@ -113,22 +117,14 @@ class UDPServerClient : public ConnectionInterface, public std::enable_shared_fr
     {
     	if(error)
     	{
+    		std::cout << __PRETTY_FUNCTION__ << ": " << error.message() << std::endl;
     		//throw std::runtime_error("Failed getting response." + error.message());
-    		return;
+//    		return;
     	}
 
         if (responseHandler.use_count() != 0)
         {
-            std::cout << "GOT RESPONSE OF: " << bytes_transferred << " bytes" << std::endl;
-        	if (hasResponseHeadAndBody)
-        	{
-        		std::size_t bodyLength = responseHandler->handleResponseHead(data.data(), bytes_transferred);
-        		getResponse(bodyLength, false, boost::system::error_code(), 0);
-        	}
-        	else
-        	{
-                responseHandler->handleResponse(data.data(), bytes_transferred);
-        	}
+			responseHandler->handleResponse(data.data(), bytes_transferred);
         }
     }
 

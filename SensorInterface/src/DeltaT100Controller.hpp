@@ -34,7 +34,7 @@ class DeltaT100Controller : public Communication::RequestHandler, public Communi
 
   private:
     boost::asio::io_service& service;
-    Communication::UDP::UDPServerClient com;
+    Communication::TCP::TCPServerClient com;
 };
 
 } /* namespace Controller */

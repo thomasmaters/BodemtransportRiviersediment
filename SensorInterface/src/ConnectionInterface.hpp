@@ -60,11 +60,20 @@ public:
 
 	virtual void sendRequest(const SensorMessage& message, char delimiter, bool hasResponseHeadAndBody = false) = 0;
 
-	virtual	void addRequestHandler(std::shared_ptr<RequestHandler> aRequestHandler) = 0;
+	virtual	void addRequestHandler(std::shared_ptr<RequestHandler> aRequestHandler)
+	{
+        requestHandler.reset();
+        requestHandler.swap(aRequestHandler);
+	}
 
-	virtual	void addResponseHandler(std::shared_ptr<ResponseHandler> aResponseHandler) = 0;
-private:
-
+	virtual	void addResponseHandler(std::shared_ptr<ResponseHandler> aResponseHandler)
+	{
+        responseHandler.reset();
+        responseHandler.swap(aResponseHandler);
+	}
+protected:
+    std::shared_ptr<RequestHandler> requestHandler;
+    std::shared_ptr<ResponseHandler> responseHandler;
 };
 
 }

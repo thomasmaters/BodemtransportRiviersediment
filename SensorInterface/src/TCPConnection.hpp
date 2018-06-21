@@ -14,6 +14,8 @@
 
 #include "ConnectionInterface.hpp"
 
+#define TCP_BUFFER_SIZE 1024
+
 using boost::asio::ip::tcp;
 namespace Communication::TCP
 {
@@ -120,7 +122,7 @@ class TCPSession : public std::enable_shared_from_this<TCPSession>
 
   private:
     boost::asio::ip::tcp::socket socket;
-    char data[1024];
+    char data[TCP_BUFFER_SIZE];
 };
 
 class TCPServerClient : public ConnectionInterface, public std::enable_shared_from_this<TCPServerClient>
@@ -135,18 +137,6 @@ class TCPServerClient : public ConnectionInterface, public std::enable_shared_fr
       , ioService(aIoService)
     {
         start_accept();
-    }
-
-    void addRequestHandler(std::shared_ptr<RequestHandler> aRequestHandler)
-    {
-        requestHandler.reset();
-        requestHandler.swap(aRequestHandler);
-    }
-
-    void addResponseHandler(std::shared_ptr<ResponseHandler> aResponseHandler)
-    {
-        responseHandler.reset();
-        responseHandler.swap(aResponseHandler);
     }
 
     void sendRequest(const SensorMessage& message, std::size_t responseSize, bool hasResponseHeadAndBody = false)
@@ -225,9 +215,6 @@ class TCPServerClient : public ConnectionInterface, public std::enable_shared_fr
     std::string host;
     std::string remotePort;
     std::string localPort;
-
-    std::shared_ptr<RequestHandler> requestHandler;
-    std::shared_ptr<ResponseHandler> responseHandler;
 
     boost::asio::ip::tcp::acceptor acceptor;
     boost::asio::io_service& ioService;

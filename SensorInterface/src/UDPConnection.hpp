@@ -49,18 +49,6 @@ class UDPServerClient : public ConnectionInterface, public std::enable_shared_fr
 		sendMessage(boost::asio::mutable_buffer(message.data(), message.length()), responseSize, false);
 	}
 
-    void addRequestHandler(std::shared_ptr<RequestHandler> aRequestHandler)
-    {
-        requestHandler.reset();
-        requestHandler.swap(aRequestHandler);
-    }
-
-    void addResponseHandler(std::shared_ptr<ResponseHandler> aResponseHandler)
-    {
-        responseHandler.reset();
-        responseHandler.swap(aResponseHandler);
-    }
-
     virtual ~UDPServerClient()
     {
         std::cout << __PRETTY_FUNCTION__ << std::endl;
@@ -166,9 +154,6 @@ class UDPServerClient : public ConnectionInterface, public std::enable_shared_fr
     std::string host;
     std::string remotePort;
     std::string localPort;
-
-    std::shared_ptr<RequestHandler> requestHandler;
-    std::shared_ptr<ResponseHandler> responseHandler;
 
     boost::asio::ip::udp::endpoint local_endpoint_;
     boost::asio::ip::udp::endpoint remote_endpoint_;

@@ -12,6 +12,7 @@
 #include "ConnectionInterface.hpp"
 #include "TCPConnection.hpp"
 #include "UDPConnection.hpp"
+#include "SerialConnection.hpp"
 
 namespace Controller::DeltaT100
 {
@@ -34,7 +35,7 @@ class DeltaT100Controller : public Communication::RequestHandler, public Communi
 
   private:
     boost::asio::io_service& service;
-    Communication::TCP::TCPServerClient com;
+    Communication::Serial::SerialClientServer com;
 };
 
 } /* namespace Controller */

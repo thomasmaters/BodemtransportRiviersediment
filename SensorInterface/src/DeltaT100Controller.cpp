@@ -17,7 +17,7 @@ namespace Controller::DeltaT100
 {
 DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& aService, const std::string& host,
                                          const std::string& localPort, const std::string& remotePort)
-  : service(aService), com(aService, host, localPort, remotePort)
+  : service(aService), com(service, host, std::atoi(localPort.c_str()))
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     com.addRequestHandler(std::shared_ptr<RequestHandler>(this));
@@ -27,8 +27,8 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& aService, cons
 
     std::thread a(std::thread([&] {
         SensorMessage temp = Controller::DeltaT100::SwitchDataCommand::getDefaultInstance();
-        com.sendRequest(temp, (std::size_t)10, true);
-        std::this_thread::sleep_for(std::chrono::seconds(15));
+        com.sendRequest(temp, (std::size_t)5, true);
+        std::this_thread::sleep_for(std::chrono::seconds(5));
         while (1)
         {
             if (true)
@@ -42,7 +42,9 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& aService, cons
             std::this_thread::sleep_for(std::chrono::seconds(2));
         }
     }));
+    auto work = std::make_shared<boost::asio::io_service::work>(service);
     service.run();
+    std::cout << "Preemptive exit" << std::endl;
     a.join();
 }
 

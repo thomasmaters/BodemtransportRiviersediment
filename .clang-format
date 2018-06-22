@@ -5,6 +5,7 @@ ConstructorInitializerIndentWidth: 2
 AlignEscapedNewlinesLeft: false
 AlignConsecutiveAssignments: true
 AlignTrailingComments: true
+AlignAfterOpenBracket: Align 
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
@@ -15,7 +16,8 @@ AlwaysBreakBeforeMultilineStrings: false
 BreakBeforeBinaryOperators: false
 BreakBeforeTernaryOperators: false
 BreakConstructorInitializersBeforeComma: false
-BinPackParameters: true
+BinPackParameters: false
+BinPackArguments: false
 ColumnLimit:    120
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 DerivePointerBinding: true
@@ -24,6 +26,7 @@ IndentCaseLabels: true
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: None
 ObjCSpaceBeforeProtocolList: true
+Language: Cpp
 PenaltyBreakBeforeFirstCallParameter: 19
 PenaltyBreakComment: 60
 PenaltyBreakString: 1
@@ -45,6 +48,8 @@ SpaceInEmptyParentheses: false
 SpacesInCStyleCastParentheses: false
 SpaceAfterControlStatementKeyword: true
 SpaceBeforeAssignmentOperators: true
+Standard: Auto
+SortIncludes: true
 ContinuationIndentWidth: 4
 ...
 

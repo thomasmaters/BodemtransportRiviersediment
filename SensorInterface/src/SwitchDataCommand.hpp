@@ -106,33 +106,33 @@ class SwitchDataCommand : public SensorMessage
 
     SwitchDataCommand() : SensorMessage(27)
     {
-    	data_[0] = 0xFE;
-    	data_[1] = 0x44;
-    	data_[2] = 0x10; //Are there multiple heads?
-    	//Range
-    	data_[4] = 0;
-    	//Nadir
-    	//Nadir
-    	data_[7] = 0;
-    	//Gain
-    	data_[9] = 1;
-    	//Absorption
-    	//AgcThreshold
-    	data_[12] = 0;
-    	//PacketNumberRequest
-    	//PulseLength
-    	data_[15] = 0;
-    	data_[16] = 0;//ExternalTriggerControl //User defined default value
-    	//ExternalTransmitDelay
-    	//ExternalTransmitDelay
-    	//DataPoints
-    	//DataBits
-    	//PrhCommand
-    	//RunMode
-    	data_[23] = 0;
-    	//SwitchDelay
-    	//Frequency
-    	data_[26] = 0xFD;
+        data_[0] = 0xFE;
+        data_[1] = 0x44;
+        data_[2] = 0x10;  // Are there multiple heads?
+        // Range
+        data_[4] = 0;
+        // Nadir
+        // Nadir
+        data_[7] = 0;
+        // Gain
+        data_[9] = 1;
+        // Absorption
+        // AgcThreshold
+        data_[12] = 0;
+        // PacketNumberRequest
+        // PulseLength
+        data_[15] = 0;
+        data_[16] = 0;  // ExternalTriggerControl //User defined default value
+        // ExternalTransmitDelay
+        // ExternalTransmitDelay
+        // DataPoints
+        // DataBits
+        // PrhCommand
+        // RunMode
+        data_[23] = 0;
+        // SwitchDelay
+        // Frequency
+        data_[26] = 0xFD;
     }
 
     static SwitchDataCommand getDefaultInstance()
@@ -300,7 +300,6 @@ class SwitchDataCommand : public SensorMessage
     virtual ~SwitchDataCommand()
     {
     }
-
 };
 
 } /* namespace Delta100 */

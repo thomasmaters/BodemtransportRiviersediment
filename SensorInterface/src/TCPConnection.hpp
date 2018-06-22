@@ -14,7 +14,6 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
-
 #define TCP_BUFFER_SIZE 1024
 
 using boost::asio::ip::tcp;
@@ -33,14 +32,26 @@ class TCPSession : public std::enable_shared_from_this<TCPSession>
     void handleIncommingConnection(std::shared_ptr<RequestHandler> request_handler);
 
     template <typename Type>
-    void handleOutgoingConnection(const boost::asio::mutable_buffer& message, Type response_indentifier, bool has_response_head_and_body, std::shared_ptr<ResponseHandler> response_handler);
+    void handleOutgoingConnection(const boost::asio::mutable_buffer& message,
+                                  Type response_indentifier,
+                                  bool has_response_head_and_body,
+                                  std::shared_ptr<ResponseHandler> response_handler);
 
     template <typename Type>
-    void handleResponse(Type response_indentifier, bool has_response_head_and_body, const boost::system::error_code& error, std::size_t bytes_transferd, std::shared_ptr<ResponseHandler> response_handler);
+    void handleResponse(Type response_indentifier,
+                        bool has_response_head_and_body,
+                        const boost::system::error_code& error,
+                        std::size_t bytes_transferd,
+                        std::shared_ptr<ResponseHandler> response_handler);
 
-    void handleReceivedResponse(bool has_response_head_and_body, const boost::system::error_code& error, std::size_t bytes_transferd, std::shared_ptr<ResponseHandler> response_handler);
+    void handleReceivedResponse(bool has_response_head_and_body,
+                                const boost::system::error_code& error,
+                                std::size_t bytes_transferd,
+                                std::shared_ptr<ResponseHandler> response_handler);
 
-    void handleRequest(const boost::system::error_code& error, std::size_t bytes_transferd, std::shared_ptr<RequestHandler> request_handler);
+    void handleRequest(const boost::system::error_code& error,
+                       std::size_t bytes_transferd,
+                       std::shared_ptr<RequestHandler> request_handler);
 
   private:
     boost::asio::ip::tcp::socket socket_;
@@ -50,7 +61,10 @@ class TCPSession : public std::enable_shared_from_this<TCPSession>
 class TCPServerClient : public ConnectionInterface, public std::enable_shared_from_this<TCPServerClient>
 {
   public:
-    TCPServerClient(boost::asio::io_service& io_service, std::string host, std::string remote_port, std::string local_port);
+    TCPServerClient(boost::asio::io_service& io_service,
+                    std::string host,
+                    std::string remote_port,
+                    std::string local_port);
 
     void sendRequest(const SensorMessage& message, std::size_t response_size, bool has_response_head_and_body = false);
 
@@ -66,10 +80,16 @@ class TCPServerClient : public ConnectionInterface, public std::enable_shared_fr
     void handle_accept(std::shared_ptr<TCPSession> new_connection, const boost::system::error_code& error);
 
     template <typename Type>
-    void sendMessage(const boost::asio::mutable_buffer& message_buffer, Type response_indentifier, bool has_response_head_and_body);
+    void sendMessage(const boost::asio::mutable_buffer& message_buffer,
+                     Type response_indentifier,
+                     bool has_response_head_and_body);
 
     template <typename Type>
-    void handleConnect(std::shared_ptr<TCPSession> session, const boost::asio::mutable_buffer& message_buffer, Type response_indentifier, bool has_response_head_and_body, const boost::system::error_code& error);
+    void handleConnect(std::shared_ptr<TCPSession> session,
+                       const boost::asio::mutable_buffer& message_buffer,
+                       Type response_indentifier,
+                       bool has_response_head_and_body,
+                       const boost::system::error_code& error);
 
     std::string host_;
     std::string remote_port_;

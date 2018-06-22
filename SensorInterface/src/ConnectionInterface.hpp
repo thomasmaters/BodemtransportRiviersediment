@@ -15,34 +15,40 @@
 
 namespace Communication
 {
-
-//Handles incomming request from to sensor.
+// Handles incomming request from to sensor.
 class RequestHandler
 {
-public:
-	RequestHandler(){}
+  public:
+    RequestHandler()
+    {
+    }
 
-	virtual SensorMessage handleRequest(uint8_t* data, std::size_t length) = 0;
+    virtual SensorMessage handleRequest(uint8_t* data, std::size_t length) = 0;
 
-	virtual ~RequestHandler()
-	{
-
-	}
+    virtual ~RequestHandler()
+    {
+    }
 };
 
 class ResponseHandler
 {
-public:
-	ResponseHandler(){}
+  public:
+    ResponseHandler()
+    {
+    }
 
-	virtual void handleResponse(uint8_t* data, std::size_t length){}
+    virtual void handleResponse(uint8_t* data, std::size_t length)
+    {
+    }
 
-	virtual std::size_t handleResponseHead(uint8_t* data, std::size_t length){ return 10; }
+    virtual std::size_t handleResponseHead(uint8_t* data, std::size_t length)
+    {
+        return 10;
+    }
 
-	virtual ~ResponseHandler()
-	{
-
-	}
+    virtual ~ResponseHandler()
+    {
+    }
 };
 
 class RequestResponseHandler : public RequestHandler, public ResponseHandler
@@ -51,32 +57,31 @@ class RequestResponseHandler : public RequestHandler, public ResponseHandler
 
 class ConnectionInterface
 {
-public:
-	virtual ~ConnectionInterface() = default;
+  public:
+    virtual ~ConnectionInterface() = default;
 
-	virtual void sendRequest(const SensorMessage& message, std::size_t response_size, bool has_response_head_and_body = false) = 0;
+    virtual void sendRequest(const SensorMessage& message,
+                             std::size_t response_size,
+                             bool has_response_head_and_body = false) = 0;
 
-	virtual void sendRequest(const SensorMessage& message, char delimiter, bool has_response_head_and_body = false) = 0;
+    virtual void sendRequest(const SensorMessage& message, char delimiter, bool has_response_head_and_body = false) = 0;
 
-	virtual	void addRequestHandler(std::shared_ptr<RequestHandler> request_handler)
-	{
+    virtual void addRequestHandler(std::shared_ptr<RequestHandler> request_handler)
+    {
         request_handler_.reset();
         request_handler_.swap(request_handler);
-	}
+    }
 
-	virtual	void addResponseHandler(std::shared_ptr<ResponseHandler> response_handler)
-	{
+    virtual void addResponseHandler(std::shared_ptr<ResponseHandler> response_handler)
+    {
         response_handler_.reset();
         response_handler_.swap(response_handler);
-	}
-protected:
+    }
+
+  protected:
     std::shared_ptr<RequestHandler> request_handler_;
     std::shared_ptr<ResponseHandler> response_handler_;
 };
-
 }
-
-
-
 
 #endif /* SRC_CONNECTIONINTERFACE_HPP_ */

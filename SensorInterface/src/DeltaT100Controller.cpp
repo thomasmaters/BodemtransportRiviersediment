@@ -10,15 +10,18 @@
 
 #include "SwitchDataCommand.hpp"
 
+#include <iostream>
 #include <random>
 #include <string>
-#include <iostream>
 #include <thread>
 
 namespace Controller::DeltaT100
 {
-
-DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service, const std::string& host, const std::string& local_port, const std::string& remote_port): io_service_(io_service), sensor_communication_(io_service_, host, std::atoi(local_port.c_str()))
+DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
+                                         const std::string& host,
+                                         const std::string& local_port,
+                                         const std::string& remote_port)
+  : io_service_(io_service), sensor_communication_(io_service_, host, std::atoi(local_port.c_str()))
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     sensor_communication_.addRequestHandler(std::shared_ptr<RequestHandler>(this));

@@ -12,30 +12,29 @@
 #include <cstdint>
 #include <memory>
 
-
 class SensorMessage
 {
 public:
-	SensorMessage(std::size_t size): data(new uint8_t[size]), size(size)
+	SensorMessage(std::size_t size): data_(new uint8_t[size]), size_(size)
 	{
 	}
 
-	SensorMessage(uint8_t data, std::size_t size): data(new uint8_t[size]), size(size)
+	SensorMessage(uint8_t data, std::size_t size): data_(new uint8_t[size]), size_(size)
 	{
 	}
 
 	uint8_t* getData() const
 	{
-		return &(data.get()[0]);
+		return &(data_.get()[0]);
 	}
 
 	std::size_t getDataLength() const
 	{
-		return size;
+		return size_;
 	}
 protected:
-	std::shared_ptr<uint8_t[]> data;
-	std::size_t size;
+	std::shared_ptr<uint8_t[]> data_;
+	std::size_t size_;
 };
 
 

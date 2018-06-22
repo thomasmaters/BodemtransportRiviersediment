@@ -39,7 +39,7 @@ public:
 
 	Mode getMode() const
 	{
-		if(data[1] == 0x55)
+		if(data_[1] == 0x55)
 		{
 			return Mode::IUX;
 		}
@@ -48,103 +48,103 @@ public:
 
 	SerialStatus getSerialStatus() const
 	{
-		return static_cast<SerialStatus>(data[4]);
+		return static_cast<SerialStatus>(data_[4]);
 	}
 
 	uint8_t getPacketNumber() const
 	{
-		return data[5];
+		return data_[5];
 	}
 
 	uint8_t getFirmwareVersion() const
 	{
-		return data[6]; //TODO should this be parsed as an enum?
+		return data_[6]; //TODO should this be parsed as an enum?
 	}
 
 	Range getRange()
 	{
-		return static_cast<Range>(data[7]);
+		return static_cast<Range>(data_[7]);
 	}
 
 	uint16_t getNumberOfDataBytes()
 	{
-		return (data[10] << 8) | data[11];
+		return (data_[10] << 8) | data_[11];
 	}
 
 	uint8_t getExternalTriggerStatus()
 	{
-		return data[12]; //TODO should this be parsed as an enum?
+		return data_[12]; //TODO should this be parsed as an enum?
 	}
 
 	uint8_t getInternalSensorStatus()
 	{
-		return data[13]; //TODO should this be parsed as an enum?
+		return data_[13]; //TODO should this be parsed as an enum?
 	}
 
 	uint16_t getPitch()
 	{
-		if((data[15] & 0b10000000) == 0)
+		if((data_[15] & 0b10000000) == 0)
 		{
-			return ((data[15] << 8) | data[14]) * 360 / 65536;
+			return ((data_[15] << 8) | data_[14]) * 360 / 65536;
 		}
 		else
 		{
-			return (((data[15] << 8) | data[14]) - 65536) * 360 / 65536;
+			return (((data_[15] << 8) | data_[14]) - 65536) * 360 / 65536;
 		}
 	}
 
 	uint16_t getRoll()
 	{
-		if((data[17] & 0b10000000) == 0)
+		if((data_[17] & 0b10000000) == 0)
 		{
-			return ((data[17] << 8) | data[16]) * 360 / 65536;
+			return ((data_[17] << 8) | data_[16]) * 360 / 65536;
 		}
 		else
 		{
-			return (((data[17] << 8) | data[16]) - 65536) * 360 / 65536;
+			return (((data_[17] << 8) | data_[16]) - 65536) * 360 / 65536;
 		}
 	}
 
 	uint16_t getHeading()
 	{
-		if((data[19] & 0b10000000) == 0)
+		if((data_[19] & 0b10000000) == 0)
 		{
-			return ((data[19] << 8) | data[18]) * 360 / 65536;
+			return ((data_[19] << 8) | data_[18]) * 360 / 65536;
 		}
 		else
 		{
-			return (((data[19] << 8) | data[18]) - 65536) * 360 / 65536;
+			return (((data_[19] << 8) | data_[18]) - 65536) * 360 / 65536;
 		}
 	}
 
 	uint16_t getTimerTicks()
 	{
-		return (data[21] << 8) | data[20];
+		return (data_[21] << 8) | data_[20];
 	}
 
 	RunMode getRunMode()
 	{
-		return static_cast<RunMode>(data[22]);
+		return static_cast<RunMode>(data_[22]);
 	}
 
 	uint8_t getGain()
 	{
-		return data[24];//TODO: Should this variable be made in a enum?
+		return data_[24];//TODO: Should this variable be made in a enum?
 	}
 
 	uint16_t getAgcRange()
 	{
-		return ((data[25] << 8) | data[26]);
+		return ((data_[25] << 8) | data_[26]);
 	}
 
 	uint16_t getAgcMaximum()
 	{
-		return ((data[27] << 8) | data[28]);
+		return ((data_[27] << 8) | data_[28]);
 	}
 
 	uint8_t* getEchoData()
 	{
-		return &data[32];
+		return &data_[32];
 	}
 
 	virtual ~SonarReturnData()

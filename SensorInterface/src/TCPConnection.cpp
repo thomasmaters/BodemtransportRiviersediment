@@ -156,7 +156,7 @@ namespace Communication::TCP
     {
         if (!error)
         {
-            new_connection->handleIncommingConnection(requestHandler);
+            new_connection->handleIncommingConnection(request_handler_);
             start_accept();
         }
     }
@@ -185,7 +185,7 @@ namespace Communication::TCP
         if (!error)
         {
             std::cout << "CONNECTED TO HOST" << std::endl;
-            session->handleOutgoingConnection(message_buffer, response_indentifier, has_response_head_and_body, responseHandler);
+            session->handleOutgoingConnection(message_buffer, response_indentifier, has_response_head_and_body, response_handler_);
         }
         else
         {

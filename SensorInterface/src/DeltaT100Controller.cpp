@@ -17,19 +17,18 @@
 
 namespace Controller::DeltaT100
 {
-DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& aService, const std::string& host,
-                                         const std::string& localPort, const std::string& remotePort)
-  : service(aService), com(service, host, std::atoi(localPort.c_str()))
+
+DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service, const std::string& host, const std::string& local_port, const std::string& remote_port): io_service_(io_service), sensor_communication_(io_service_, host, std::atoi(local_port.c_str()))
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
-    com.addRequestHandler(std::shared_ptr<RequestHandler>(this));
-    com.addResponseHandler(std::shared_ptr<ResponseHandler>(this));
+    sensor_communication_.addRequestHandler(std::shared_ptr<RequestHandler>(this));
+    sensor_communication_.addResponseHandler(std::shared_ptr<ResponseHandler>(this));
     std::random_device rd;
     std::mt19937 generator(rd());
 
     std::thread a(std::thread([&] {
         SensorMessage temp = Controller::DeltaT100::SwitchDataCommand::getDefaultInstance();
-        com.sendRequest(temp, (std::size_t)5, true);
+        sensor_communication_.sendRequest(temp, (std::size_t)5, true);
         std::this_thread::sleep_for(std::chrono::seconds(5));
         while (1)
         {
@@ -39,13 +38,13 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& aService, cons
 
                 std::shuffle(str.begin(), str.end(), generator);
 
-                com.sendRequest(str.substr(0, 5), 10);
+                sensor_communication_.sendRequest(str.substr(0, 5), 10);
             }
             std::this_thread::sleep_for(std::chrono::seconds(15));
         }
     }));
-    auto work = std::make_shared<boost::asio::io_service::work>(service);
-    service.run();
+    auto work = std::make_shared<boost::asio::io_service::work>(io_service_);
+    io_service_.run();
     std::cout << "Preemptive exit" << std::endl;
     a.join();
 }

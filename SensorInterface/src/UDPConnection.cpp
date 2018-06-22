@@ -107,9 +107,9 @@ namespace Communication::UDP
     		return;
     	}
 
-        if (responseHandler.use_count() != 0)
+        if (response_handler_.use_count() != 0)
         {
-			responseHandler->handleResponse(data_.data(), bytes_transferred);
+			response_handler_->handleResponse(data_.data(), bytes_transferred);
         }
     }
 
@@ -126,9 +126,9 @@ namespace Communication::UDP
         std::cout << "Received: " << bytes_transferred << " bytes" << std::endl;
         if (!error || error == boost::asio::error::eof)
         {
-            if (requestHandler.use_count() != 0)
+            if (request_handler_.use_count() != 0)
             {
-                requestHandler->handleRequest(data_.data(), bytes_transferred);
+                request_handler_->handleRequest(data_.data(), bytes_transferred);
             }
 
             socket_incomming_.async_send_to(boost::asio::buffer(data_, bytes_transferred), local_endpoint_,

@@ -104,7 +104,36 @@ class SwitchDataCommand : public SensorMessage
         KHZ1700 = 68
     };
 
-    SwitchDataCommand();
+    SwitchDataCommand() : SensorMessage(27)
+    {
+    	data_[0] = 0xFE;
+    	data_[1] = 0x44;
+    	data_[2] = 0x10; //Are there multiple heads?
+    	//Range
+    	data_[4] = 0;
+    	//Nadir
+    	//Nadir
+    	data_[7] = 0;
+    	//Gain
+    	data_[9] = 1;
+    	//Absorption
+    	//AgcThreshold
+    	data_[12] = 0;
+    	//PacketNumberRequest
+    	//PulseLength
+    	data_[15] = 0;
+    	data_[16] = 0;//ExternalTriggerControl //User defined default value
+    	//ExternalTransmitDelay
+    	//ExternalTransmitDelay
+    	//DataPoints
+    	//DataBits
+    	//PrhCommand
+    	//RunMode
+    	data_[23] = 0;
+    	//SwitchDelay
+    	//Frequency
+    	data_[26] = 0xFD;
+    }
 
     static SwitchDataCommand getDefaultInstance()
     {
@@ -130,7 +159,7 @@ class SwitchDataCommand : public SensorMessage
 
     void setRange(Controller::DeltaT100::Range value)
     {
-        data[3] = static_cast<uint8_t>(value);
+        data_[3] = static_cast<uint8_t>(value);
     }
 
     void setNadirOffsetAngle(int16_t value)
@@ -140,8 +169,8 @@ class SwitchDataCommand : public SensorMessage
         {
             offsetAngle |= 0x8000;
         }
-        data[5] = (offsetAngle & 0xFF00) >> 8;
-        data[6] = offsetAngle & 0x00FF;
+        data_[5] = (offsetAngle & 0xFF00) >> 8;
+        data_[6] = offsetAngle & 0x00FF;
     }
 
     void setStartGain(uint8_t value)
@@ -150,12 +179,12 @@ class SwitchDataCommand : public SensorMessage
         {
             throw std::runtime_error("Gain not between valid values.[0-20]");
         }
-        data[8] = value;
+        data_[8] = value;
     }
 
     void setAbsorption(uint8_t value)
     {
-        data[10] = value;
+        data_[10] = value;
     }
 
     void setAgcThreshold(uint8_t value)
@@ -164,45 +193,45 @@ class SwitchDataCommand : public SensorMessage
         {
             throw std::runtime_error("AgcThreshold not between valid values.[10-250]");
         }
-        data[11] = value;
+        data_[11] = value;
     }
 
     void setPacketNumberRequest(uint8_t value)
     {
-        if (data[19] == static_cast<std::underlying_type<Mode>::type>(Mode::IUX))  // IUX mode
+        if (data_[19] == static_cast<std::underlying_type<Mode>::type>(Mode::IUX))  // IUX mode
         {
             if (value <= 7)
             {
-                data[13] = value;
+                data_[13] = value;
             }
         }
-        else if (data[19] == static_cast<std::underlying_type<Mode>::type>(Mode::IVX))
+        else if (data_[19] == static_cast<std::underlying_type<Mode>::type>(Mode::IVX))
         {
             if (value <= 15)
             {
-                data[13] = value;
+                data_[13] = value;
             }
         }
     }
 
     void setPulseLength(uint8_t value)
     {
-        data[14] = value;
+        data_[14] = value;
     }
 
     void setPulseLength(const PulseLength& value)
     {
-        data[14] = static_cast<uint8_t>(value);
+        data_[14] = static_cast<uint8_t>(value);
     }
 
     void setExternalTriggerControlEdge(const ExternalTriggerControlEdge& value)
     {
-        data[16] |= static_cast<uint8_t>(value);
+        data_[16] |= static_cast<uint8_t>(value);
     }
 
     void enableExternalTriggerControl(bool enable)
     {
-        data[16] ^= (-enable ^ data[16]) & (1UL << 1);
+        data_[16] ^= (-enable ^ data_[16]) & (1UL << 1);
     }
 
     void setExternalTransmitDelay(uint16_t value)
@@ -217,33 +246,33 @@ class SwitchDataCommand : public SensorMessage
         }
 
         // TODO: how is the byte orderning? Has it to be flipped?
-        data[17] = value & 0xff;
-        data[18] = (value >> 8) & 0xff;
+        data_[17] = value & 0xff;
+        data_[18] = (value >> 8) & 0xff;
     }
 
     void setDataPoints(const Mode& value)
     {
-        data[19] = static_cast<std::underlying_type<Mode>::type>(value);
+        data_[19] = static_cast<std::underlying_type<Mode>::type>(value);
     }
 
     void setDataBits(uint8_t value = static_cast<std::underlying_type<Mode>::type>(DataBits::BITS8))
     {
-        data[20] = value;
+        data_[20] = value;
     }
 
     void setDataBits(const DataBits& value)
     {
-        data[20] = static_cast<std::underlying_type<Mode>::type>(value);
+        data_[20] = static_cast<std::underlying_type<Mode>::type>(value);
     }
 
     void setPrhCommand(const PrhCommand& value)
     {
-        data[21] = static_cast<std::underlying_type<Mode>::type>(value);
+        data_[21] = static_cast<std::underlying_type<Mode>::type>(value);
     }
 
     void setRunMode(const RunMode& value)
     {
-        data[22] = static_cast<std::underlying_type<Mode>::type>(value);
+        data_[22] = static_cast<std::underlying_type<Mode>::type>(value);
     }
 
     // Calculates the single byte value for the switch delay;
@@ -254,21 +283,24 @@ class SwitchDataCommand : public SensorMessage
         {
             throw std::runtime_error("SwitchDelay not in a valid range.[0-254]");
         }
-        data[24] = aValue;
+        data_[24] = aValue;
     }
 
     // Sets the switch delay directly to this value.
     void setSwitchDelay(uint8_t value)
     {
-        data[24] = value;
+        data_[24] = value;
     }
 
     void setFrequency(const Frequency& value)
     {
-        data[25] = static_cast<std::underlying_type<Mode>::type>(value);
+        data_[25] = static_cast<std::underlying_type<Mode>::type>(value);
     }
 
-    virtual ~SwitchDataCommand();
+    virtual ~SwitchDataCommand()
+    {
+    }
+
 };
 
 } /* namespace Delta100 */

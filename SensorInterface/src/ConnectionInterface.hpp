@@ -9,9 +9,9 @@
 #ifndef SRC_CONNECTIONINTERFACE_HPP_
 #define SRC_CONNECTIONINTERFACE_HPP_
 
-#include <cstdint>
-
 #include "SensorMessage.hpp"
+
+#include <cstdint>
 
 namespace Communication
 {
@@ -54,24 +54,24 @@ class ConnectionInterface
 public:
 	virtual ~ConnectionInterface() = default;
 
-	virtual void sendRequest(const SensorMessage& message, std::size_t responseSize, bool hasResponseHeadAndBody = false) = 0;
+	virtual void sendRequest(const SensorMessage& message, std::size_t response_size, bool has_response_head_and_body = false) = 0;
 
-	virtual void sendRequest(const SensorMessage& message, char delimiter, bool hasResponseHeadAndBody = false) = 0;
+	virtual void sendRequest(const SensorMessage& message, char delimiter, bool has_response_head_and_body = false) = 0;
 
-	virtual	void addRequestHandler(std::shared_ptr<RequestHandler> aRequestHandler)
+	virtual	void addRequestHandler(std::shared_ptr<RequestHandler> request_handler)
 	{
-        requestHandler.reset();
-        requestHandler.swap(aRequestHandler);
+        request_handler_.reset();
+        request_handler_.swap(request_handler);
 	}
 
-	virtual	void addResponseHandler(std::shared_ptr<ResponseHandler> aResponseHandler)
+	virtual	void addResponseHandler(std::shared_ptr<ResponseHandler> response_handler)
 	{
-        responseHandler.reset();
-        responseHandler.swap(aResponseHandler);
+        response_handler_.reset();
+        response_handler_.swap(response_handler);
 	}
 protected:
-    std::shared_ptr<RequestHandler> requestHandler;
-    std::shared_ptr<ResponseHandler> responseHandler;
+    std::shared_ptr<RequestHandler> request_handler_;
+    std::shared_ptr<ResponseHandler> response_handler_;
 };
 
 }

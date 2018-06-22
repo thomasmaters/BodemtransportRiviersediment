@@ -1,5 +1,5 @@
 /*
- * UDPServer.hpp
+ * UDPConnection.hpp
  *
  *  Created on: 13 Jun 2018
  *      Author: Thomas Maters

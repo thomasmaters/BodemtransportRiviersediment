@@ -14,7 +14,7 @@ AlwaysBreakTemplateDeclarations: true
 AlwaysBreakBeforeMultilineStrings: false
 BreakBeforeBinaryOperators: false
 BreakBeforeTernaryOperators: false
-BreakConstructorInitializersBeforeComma: true
+BreakConstructorInitializersBeforeComma: false
 BinPackParameters: true
 ColumnLimit:    120
 ConstructorInitializerAllOnOneLineOrOnePerLine: true

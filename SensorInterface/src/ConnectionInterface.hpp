@@ -10,10 +10,8 @@
 #define SRC_CONNECTIONINTERFACE_HPP_
 
 #include <cstdint>
-#include <iostream>
 
 #include "SensorMessage.hpp"
-#include "boost/asio.hpp"
 
 namespace Communication
 {

@@ -12,6 +12,8 @@
 
 #include <random>
 #include <string>
+#include <iostream>
+#include <thread>
 
 namespace Controller::DeltaT100
 {
@@ -39,7 +41,7 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& aService, cons
 
                 com.sendRequest(str.substr(0, 5), 10);
             }
-            std::this_thread::sleep_for(std::chrono::seconds(2));
+            std::this_thread::sleep_for(std::chrono::seconds(15));
         }
     }));
     auto work = std::make_shared<boost::asio::io_service::work>(service);

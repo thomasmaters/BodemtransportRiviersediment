@@ -19,9 +19,9 @@
 class SensorMessage
 {
   public:
-	/**
-	 * Constructor
-	 */
+    /**
+     * Constructor
+     */
     SensorMessage(std::size_t size) : size_(size), data_(new uint8_t[size])
     {
     }
@@ -36,20 +36,19 @@ class SensorMessage
     /**
      * Copy constructor
      */
-    SensorMessage(const SensorMessage& rhs): size_(rhs.size_), data_(rhs.data_)
-	{
-
-	}
+    SensorMessage(const SensorMessage& rhs) : size_(rhs.size_), data_(rhs.data_)
+    {
+    }
 
     SensorMessage& operator=(const SensorMessage& rhs)
-	{
-		if( this != &rhs )
-		{
-			size_ = rhs.size_;
-			data_ = rhs.data_;
-		}
-		return *this;
-	}
+    {
+        if (this != &rhs)
+        {
+            size_ = rhs.size_;
+            data_ = rhs.data_;
+        }
+        return *this;
+    }
 
     uint8_t* getData() const
     {

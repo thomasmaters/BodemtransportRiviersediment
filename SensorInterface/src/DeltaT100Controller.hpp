@@ -10,9 +10,9 @@
 #define SRC_DELTAT100CONTROLLER_HPP_
 
 #include "ConnectionInterface.hpp"
+#include "DataBuffer.hpp"
 #include "SwitchDataCommand.hpp"
 #include "TCPConnection.hpp"
-#include "DataBuffer.hpp"
 
 namespace Controller::DeltaT100
 {

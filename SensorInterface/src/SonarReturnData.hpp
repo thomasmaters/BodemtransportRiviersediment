@@ -16,29 +16,27 @@
 
 namespace Controller::DeltaT100
 {
-    enum class SerialStatus : uint8_t
-    {
-        SWITCHOK         = 0b00000000,
-        SWITCHERROR      = 0b00000001,
-        PRHOK            = 0b00000000,
-        PRHERROR         = 0b00000100,
-        SWITCHESACCEPTED = 0b01000000,
-        CHARSOVERRUN     = 0b10000000
-    };
+enum class SerialStatus : uint8_t
+{
+    SWITCHOK         = 0b00000000,
+    SWITCHERROR      = 0b00000001,
+    PRHOK            = 0b00000000,
+    PRHERROR         = 0b00000100,
+    SWITCHESACCEPTED = 0b01000000,
+    CHARSOVERRUN     = 0b10000000
+};
 
 /*
  *
  */
 class SonarReturnData : public SensorMessage
 {
-public:
-
-
-    SonarReturnData() : SensorMessage(1032)
+  public:
+    SonarReturnData() : SensorMessage(1033)
     {
     }
 
-    SonarReturnData(uint8_t* data, std::size_t length) : SensorMessage(data, 1032)
+    SonarReturnData(uint8_t* data, std::size_t length) : SensorMessage(data, 1033)
     {
     }
 
@@ -159,20 +157,20 @@ public:
 
 } /* namespace Delta100 */
 
-Controller::DeltaT100::SerialStatus operator&(Controller::DeltaT100::SerialStatus lhs,
-                                                   Controller::DeltaT100::SerialStatus rhs)
+constexpr Controller::DeltaT100::SerialStatus operator&(Controller::DeltaT100::SerialStatus lhs,
+                                                        Controller::DeltaT100::SerialStatus rhs)
 {
     using underlying = typename std::underlying_type<Controller::DeltaT100::SerialStatus>::type;
-    return static_cast<Controller::DeltaT100::SerialStatus>(static_cast<underlying>(lhs) & static_cast<underlying>(rhs));
+    return static_cast<Controller::DeltaT100::SerialStatus>(static_cast<underlying>(lhs) &
+                                                            static_cast<underlying>(rhs));
 }
-
 
 constexpr Controller::DeltaT100::SerialStatus operator|(Controller::DeltaT100::SerialStatus lhs,
-                                                   Controller::DeltaT100::SerialStatus rhs)
+                                                        Controller::DeltaT100::SerialStatus rhs)
 {
     using underlying = typename std::underlying_type<Controller::DeltaT100::SerialStatus>::type;
-    return static_cast<Controller::DeltaT100::SerialStatus>(static_cast<underlying>(lhs) | static_cast<underlying>(rhs));
+    return static_cast<Controller::DeltaT100::SerialStatus>(static_cast<underlying>(lhs) |
+                                                            static_cast<underlying>(rhs));
 }
-
 
 #endif /* SRC_SONARRETURNDATA_HPP_ */

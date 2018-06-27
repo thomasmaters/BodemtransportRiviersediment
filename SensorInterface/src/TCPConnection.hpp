@@ -14,7 +14,7 @@
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
-#define TCP_BUFFER_SIZE 1024
+#define TCP_BUFFER_SIZE 4096
 
 using boost::asio::ip::tcp;
 namespace Communication::TCP
@@ -55,7 +55,7 @@ class TCPSession : public std::enable_shared_from_this<TCPSession>
 
   private:
     boost::asio::ip::tcp::socket socket_;
-    char data_[TCP_BUFFER_SIZE];
+    std::array<uint8_t, TCP_BUFFER_SIZE> data_;
 };
 
 class TCPServerClient : public ConnectionInterface, public std::enable_shared_from_this<TCPServerClient>

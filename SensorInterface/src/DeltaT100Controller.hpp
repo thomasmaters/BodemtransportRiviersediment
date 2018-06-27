@@ -10,9 +10,9 @@
 #define SRC_DELTAT100CONTROLLER_HPP_
 
 #include "ConnectionInterface.hpp"
-#include "SerialConnection.hpp"
+#include "SwitchDataCommand.hpp"
 #include "TCPConnection.hpp"
-#include "UDPConnection.hpp"
+#include "DataBuffer.hpp"
 
 namespace Controller::DeltaT100
 {
@@ -33,11 +33,19 @@ class DeltaT100Controller : public Communication::RequestHandler, public Communi
 
     SensorMessage handleRequest(uint8_t* data, std::size_t length);
 
+    void requestSensorPing(const SwitchDataCommand& command);
+
     virtual ~DeltaT100Controller();
 
   private:
+    void cosntructSensorPing(Mode mode);
+
     boost::asio::io_service& io_service_;
-    Communication::Serial::SerialClientServer sensor_communication_;
+    Communication::TCP::TCPServerClient sensor_communication_;
+
+    SwitchDataCommand switch_data_command_;
+
+    DataBuffer<1536> data_buffer_;
 };
 
 } /* namespace Controller */

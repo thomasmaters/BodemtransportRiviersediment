@@ -67,7 +67,7 @@ void TCPSession::handleResponse(Type response_indentifier,
             constexpr(std::is_same<Type, char>::value)
             {
                 boost::asio::async_read_until(getSocket(),
-                                              aBuffer,
+                								aBuffer,
                                               response_indentifier,
                                               boost::bind(&TCPSession::handleReceivedResponse,
                                                           shared_from_this(),
@@ -103,7 +103,8 @@ void TCPSession::handleReceivedResponse(bool has_response_head_and_body,
     {
         if (has_response_head_and_body)
         {
-            std::size_t bodySize = response_handler->handleResponseHead(data_.data(), bytes_transferd);
+            std::size_t bodySize =
+                response_handler->handleResponseHead(data_.data(), bytes_transferd);
             handleResponse(bodySize, false, boost::system::error_code(), 0, response_handler);
         }
         else
@@ -124,7 +125,7 @@ void TCPSession::handleRequest(const boost::system::error_code& error,
         {
             request_handler->handleRequest(data_.data(), bytes_transferd);
         }
-        // TODO; request response size.
+        //TODO; request response size.
         boost::asio::async_write(getSocket(),
                                  boost::asio::buffer(data_.data(), 5),
                                  [&](const boost::system::error_code& error, std::size_t byteWritten) {

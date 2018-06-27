@@ -21,7 +21,7 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
                                          const std::string& host,
                                          const std::string& local_port,
                                          const std::string& remote_port)
-  : io_service_(io_service), sensor_communication_(io_service_, host, local_port, remote_port)
+  : io_service_(io_service), sensor_communication_(io_service_, host, local_port, remote_port), data_buffer_(DataBuffer<>())
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     sensor_communication_.addRequestHandler(std::shared_ptr<RequestHandler>(this));
@@ -56,16 +56,20 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
 
 void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
 {
-    if (length == 1033)
-    {
-        std::unique_ptr<uint8_t*>& stored_data = data_buffer_.moveToBuffer(data, length);
-        // TODO: possible memory leak.
-        SonarReturnData sonar_data(stored_data.get()[0], length);
-
-        if ((sonar_data.getSerialStatus() & SerialStatus::SWITCHESACCEPTED) == SerialStatus::SWITCHESACCEPTED)
-        {
+	std::cout << __PRETTY_FUNCTION__ << std::endl;
+//    if (length == 1033)
+//    {
+        std::unique_ptr<uint8_t[]>& stored_data = data_buffer_.moveToBuffer(data, length);
+//        // TODO: possible memory leak.
+//        std::cout << "Stored data" << std::endl;
+        SonarReturnData sonar_data(&(stored_data.get()[0]), length);
+        std::cout << "Got sonar_data" << std::endl;
+//        if ((sonar_data.getSerialStatus() & SerialStatus::SWITCHESACCEPTED) == SerialStatus::SWITCHESACCEPTED)
+//        {
             Mode mode             = sonar_data.getMode();
+            std::cout << "Got mode" << std::endl;
             uint8_t packet_number = sonar_data.getPacketNumber();
+            std::cout << "Package mode: " << std::to_string((uint8_t)mode) << " package number: " << std::to_string(packet_number) << std::endl;
             if ((mode == Mode::IUX && packet_number < static_cast<std::underlying_type<Mode>::type>(Mode::IUX) - 1) ||
                 (mode == Mode::IVX && packet_number < static_cast<std::underlying_type<Mode>::type>(Mode::IVX) - 1))
             {
@@ -76,16 +80,18 @@ void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
             {
                 cosntructSensorPing(mode);
             }
-        }
-        else
-        {
-            // TODO: Error!!!
-        }
-    }
+//        }
+//        else
+//        {
+//        	std::cout << "We hebben een error! Switches niet accepted." << std::endl;
+//            // TODO: Error!!!
+//        }
+//    }
 }
 
 void DeltaT100Controller::cosntructSensorPing(Mode mode)
 {
+	std::cout << __PRETTY_FUNCTION__ << std::endl;
 }
 
 SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t length)

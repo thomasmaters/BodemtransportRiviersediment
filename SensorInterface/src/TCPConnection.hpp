@@ -22,7 +22,12 @@ namespace Communication::TCP
 class TCPSession : public std::enable_shared_from_this<TCPSession>
 {
   public:
-    TCPSession(boost::asio::io_service& io_service);
+    TCPSession(boost::asio::io_service& io_service, bool keep_alive = false);
+
+    inline bool isOpen()
+    {
+        return socket_.is_open();
+    }
 
     inline boost::asio::ip::tcp::socket& getSocket()
     {
@@ -56,6 +61,7 @@ class TCPSession : public std::enable_shared_from_this<TCPSession>
   private:
     boost::asio::ip::tcp::socket socket_;
     std::array<uint8_t, TCP_BUFFER_SIZE> data_;
+    bool keep_alive_;
 };
 
 class TCPServerClient : public ConnectionInterface, public std::enable_shared_from_this<TCPServerClient>
@@ -85,8 +91,7 @@ class TCPServerClient : public ConnectionInterface, public std::enable_shared_fr
                      bool has_response_head_and_body);
 
     template <typename Type>
-    void handleConnect(std::shared_ptr<TCPSession> session,
-                       const boost::asio::mutable_buffer& message_buffer,
+    void handleConnect(const boost::asio::mutable_buffer& message_buffer,
                        Type response_indentifier,
                        bool has_response_head_and_body,
                        const boost::system::error_code& error);
@@ -97,6 +102,8 @@ class TCPServerClient : public ConnectionInterface, public std::enable_shared_fr
 
     boost::asio::ip::tcp::acceptor acceptor_;
     boost::asio::io_service& io_service_;
+
+    std::shared_ptr<TCPSession> active_sesion_;
 };
 }
 

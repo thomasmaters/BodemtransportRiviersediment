@@ -10,7 +10,6 @@
 #define SRC_SWITCHDATACOMMAND_HPP_
 
 #include <cstdint>
-#include <stdexcept>
 
 #include "SensorMessage.hpp"
 
@@ -58,6 +57,8 @@ enum class RunMode : uint8_t
 class SwitchDataCommand : public SensorMessage
 {
   public:
+    constexpr static std::size_t command_length_ = 27;
+
     enum class PulseLength : uint8_t
     {
         M5   = 3,
@@ -104,47 +105,47 @@ class SwitchDataCommand : public SensorMessage
         KHZ1700 = 68
     };
 
-    SwitchDataCommand() : SensorMessage(27)
+    SwitchDataCommand() : SensorMessage(command_length_)
     {
         data_[0] = 0xFE;
         data_[1] = 0x44;
         data_[2] = 0x10;  // Are there multiple heads?
-        // Range
+        setRange(Range::M20);
         data_[4] = 0;
-        // Nadir
+        setNadirOffsetAngle(0);
         // Nadir
         data_[7] = 0;
-        // Gain
+        setStartGain(3);  // Gain
         data_[9] = 1;
-        // Absorption
-        // AgcThreshold
+        setAbsorption(20);    // Absorption
+        setAgcThreshold(10);  // AgcThreshold
         data_[12] = 0;
-        // PacketNumberRequest
-        // PulseLength
+        setPacketNumberRequest(0);        // PacketNumberRequest
+        setPulseLength(PulseLength::M5);  // PulseLength
         data_[15] = 0;
         data_[16] = 0;  // ExternalTriggerControl //User defined default value
-        // ExternalTransmitDelay
-        // ExternalTransmitDelay
-        // DataPoints
-        // DataBits
-        // PrhCommand
-        // RunMode
+        setExternalTriggerControlEdge(ExternalTriggerControlEdge::NEG);
+        setExternalTransmitDelay(0);
+        setDataPoints(Mode::IVX);          // DataPoints
+        setDataBits(DataBits::BITS8);      // DataBits
+        setPrhCommand(PrhCommand::NOPRH);  // PrhCommand
+        setRunMode(RunMode::DISABLEALL);   // RunMode
         data_[23] = 0;
-        // SwitchDelay
-        // Frequency
+        setSwitchDelay((uint8_t)0);       // SwitchDelay
+        setFrequency(Frequency::KHZ120);  // Frequency
         data_[26] = 0xFD;
     }
 
     static SwitchDataCommand getDefaultInstance()
     {
         SwitchDataCommand temp;
-        temp.setRange(Range::M30);
+        temp.setRange(Range::M20);
         temp.setNadirOffsetAngle(0);
-        temp.setStartGain(10);
-        temp.setAbsorption(0);
+        temp.setStartGain(3);
+        temp.setAbsorption(20);
         temp.setAgcThreshold(10);
         temp.setPacketNumberRequest(0);
-        temp.setPulseLength(PulseLength::M30);
+        temp.setPulseLength(PulseLength::M5);
         temp.setExternalTriggerControlEdge(ExternalTriggerControlEdge::NEG);
         temp.enableExternalTriggerControl(false);
         temp.setExternalTransmitDelay(0);
@@ -295,6 +296,11 @@ class SwitchDataCommand : public SensorMessage
     void setFrequency(const Frequency& value)
     {
         data_[25] = static_cast<std::underlying_type<Mode>::type>(value);
+    }
+
+    void toString()
+    {
+        std::cout << "" << std::endl;
     }
 
     virtual ~SwitchDataCommand()

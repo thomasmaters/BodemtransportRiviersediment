@@ -19,7 +19,8 @@
 
 namespace Communication::TCP
 {
-TCPSession::TCPSession(boost::asio::io_service& io_service) : socket_(io_service)
+TCPSession::TCPSession(boost::asio::io_service& io_service, bool keep_alive)
+  : socket_(io_service), keep_alive_(keep_alive)
 {
 }
 
@@ -40,7 +41,7 @@ void TCPSession::handleOutgoingConnection(const boost::asio::mutable_buffer& mes
                                           bool has_response_head_and_body,
                                           std::shared_ptr<ResponseHandler> response_handler)
 {
-    std::cout << "STARTED SENDING REQUEST: " << (char*)message.data() << std::endl;
+    std::cout << "SEND( " << message.size() << ")" << std::endl;
     boost::asio::async_write(getSocket(),
                              boost::asio::buffer(message),
                              boost::bind(&TCPSession::handleResponse<Type>,
@@ -67,7 +68,7 @@ void TCPSession::handleResponse(Type response_indentifier,
             constexpr(std::is_same<Type, char>::value)
             {
                 boost::asio::async_read_until(getSocket(),
-                								aBuffer,
+                                              aBuffer,
                                               response_indentifier,
                                               boost::bind(&TCPSession::handleReceivedResponse,
                                                           shared_from_this(),
@@ -93,18 +94,18 @@ void TCPSession::handleResponse(Type response_indentifier,
         std::cout << "FAILED TO GET RESPONSE: " << error.message() << std::endl;
     }
 }
+
 void TCPSession::handleReceivedResponse(bool has_response_head_and_body,
                                         const boost::system::error_code& error,
                                         std::size_t bytes_transferd,
                                         std::shared_ptr<ResponseHandler> response_handler)
 {
-    std::cout << "GOT RESPONSE(" << bytes_transferd << "): " << (char*)data_.data() << std::endl;
+    std::cout << "RESPONSE(" << bytes_transferd << "): " << std::endl;
     if (response_handler.use_count() > 0)
     {
         if (has_response_head_and_body)
         {
-            std::size_t bodySize =
-                response_handler->handleResponseHead(data_.data(), bytes_transferd);
+            std::size_t bodySize = response_handler->handleResponseHead(data_.data(), bytes_transferd);
             handleResponse(bodySize, false, boost::system::error_code(), 0, response_handler);
         }
         else
@@ -125,11 +126,11 @@ void TCPSession::handleRequest(const boost::system::error_code& error,
         {
             request_handler->handleRequest(data_.data(), bytes_transferd);
         }
-        //TODO; request response size.
+        // TODO; request response size.
         boost::asio::async_write(getSocket(),
                                  boost::asio::buffer(data_.data(), 5),
                                  [&](const boost::system::error_code& error, std::size_t byteWritten) {
-                                     std::cout << "Written response: " << (char*)data_.data() << std::endl;
+                                     std::cout << "Written response(" << byteWritten << ")" << std::endl;
                                  });
     }
     else
@@ -205,27 +206,34 @@ void TCPServerClient::sendMessage(const boost::asio::mutable_buffer& message_buf
 {
     static_assert(std::is_same<Type, char>::value || std::is_same<Type, std::size_t>::value,
                   "Message responsetype has to be char or std::size_t.");
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
-    std::shared_ptr<TCPSession> session = std::shared_ptr<TCPSession>(new TCPSession(io_service_));
+    if (active_sesion_.use_count() == 0 || !active_sesion_->isOpen())
+    {
+        active_sesion_ = std::shared_ptr<TCPSession>(new TCPSession(io_service_));
+    }
 
-    boost::asio::ip::tcp::resolver resolver(io_service_);
-    boost::asio::ip::tcp::resolver::query query(boost::asio::ip::tcp::v4(), host_, remote_port_);
-    boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
-    boost::asio::ip::tcp::endpoint endpoint                    = *endpoint_iterator;
+    if (!active_sesion_->isOpen())
+    {
+        boost::asio::ip::tcp::resolver resolver(io_service_);
+        boost::asio::ip::tcp::resolver::query query(boost::asio::ip::tcp::v4(), host_, remote_port_);
+        boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
+        boost::asio::ip::tcp::endpoint endpoint                    = *endpoint_iterator;
 
-    session->getSocket().async_connect(endpoint,
-                                       boost::bind(&TCPServerClient::handleConnect<Type>,
-                                                   this,
-                                                   session,
-                                                   message_buffer,
-                                                   response_indentifier,
-                                                   has_response_head_and_body,
-                                                   boost::asio::placeholders::error));
+        active_sesion_->getSocket().async_connect(endpoint,
+                                                  boost::bind(&TCPServerClient::handleConnect<Type>,
+                                                              this,
+                                                              message_buffer,
+                                                              response_indentifier,
+                                                              has_response_head_and_body,
+                                                              boost::asio::placeholders::error));
+    }
+    else
+    {
+        handleConnect(message_buffer, response_indentifier, has_response_head_and_body, boost::system::error_code());
+    }
 }
 
 template <typename Type>
-void TCPServerClient::handleConnect(std::shared_ptr<TCPSession> session,
-                                    const boost::asio::mutable_buffer& message_buffer,
+void TCPServerClient::handleConnect(const boost::asio::mutable_buffer& message_buffer,
                                     Type response_indentifier,
                                     bool has_response_head_and_body,
                                     const boost::system::error_code& error)
@@ -233,7 +241,7 @@ void TCPServerClient::handleConnect(std::shared_ptr<TCPSession> session,
     if (!error)
     {
         std::cout << "CONNECTED TO HOST" << std::endl;
-        session->handleOutgoingConnection(
+        active_sesion_->handleOutgoingConnection(
             message_buffer, response_indentifier, has_response_head_and_body, response_handler_);
     }
     else

@@ -10,9 +10,11 @@
 #define SRC_SONARRETURNDATA_HPP_
 
 #include <cstdint>
-#include <memory>
+
 #include "SensorMessage.hpp"
-#include "SwitchDataCommand.hpp"
+
+// Remove these includes:
+#include <bitset>
 
 namespace Controller::DeltaT100
 {
@@ -32,11 +34,13 @@ enum class SerialStatus : uint8_t
 class SonarReturnData : public SensorMessage
 {
   public:
-    SonarReturnData() : SensorMessage(1033)
+    constexpr static std::size_t command_length_ = 1033;
+
+    SonarReturnData() : SensorMessage(command_length_)
     {
     }
 
-    SonarReturnData(uint8_t* data, std::size_t length) : SensorMessage(data, 1033)
+    SonarReturnData(uint8_t* data) : SensorMessage(data, command_length_)
     {
     }
 
@@ -130,7 +134,7 @@ class SonarReturnData : public SensorMessage
         return static_cast<RunMode>(data_[22]);
     }
 
-    uint8_t getGain()
+    uint8_t getGain() const
     {
         return data_[24];  // TODO: Should this variable be made in a enum?
     }
@@ -145,9 +149,19 @@ class SonarReturnData : public SensorMessage
         return ((data_[27] << 8) | data_[28]);
     }
 
-    uint8_t* getEchoData()
+    std::pair<uint8_t*, uint16_t> getEchoData()
     {
-        return &data_[32];
+        return std::make_pair(&data_[32], getNumberOfDataBytes());
+    }
+
+    void toString()
+    {
+        std::cout << "Mode: " << (getMode() == Mode::IUX ? "IUX" : "IVX") << std::endl;
+        std::cout << "SerialStatus: "
+                  << std::bitset<8>(static_cast<std::underlying_type<SerialStatus>::type>(getSerialStatus()))
+                  << std::endl;
+        std::cout << "PacketNumber: " << std::to_string(getPacketNumber()) << std::endl;
+        std::cout << "Internal sensor status: " << std::bitset<8>(getInternalSensorStatus()) << std::endl;
     }
 
     virtual ~SonarReturnData()

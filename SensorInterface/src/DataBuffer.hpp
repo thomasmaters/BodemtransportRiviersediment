@@ -12,6 +12,7 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+#include <mutex>
 
 #define RESERVED_STORE_RESIZE_THRESHOLD 1
 #define RESERVED_STORE_RESIZE_TO_AMOUNT 10
@@ -21,14 +22,13 @@ template <std::size_t ChunckSize = 2048>
 class DataBuffer
 {
   public:
-    DataBuffer(): data_store_(std::vector<store_type>()),reserved_data_store_(std::vector<store_type>())
-  {
-
-  }
+    DataBuffer() : data_store_(std::vector<store_type>()), reserved_data_store_(std::vector<store_type>())
+    {
+    }
 
     std::unique_ptr<uint8_t[]>& getFreeStorage(std::size_t size)
     {
-    	std::cout << __PRETTY_FUNCTION__ << std::endl;
+//    	data_store_mutex_.lock();
         if (size < ChunckSize)
         {
             return getFromReservedStore(size);
@@ -36,30 +36,29 @@ class DataBuffer
         else
         {
             // Allocate custom size
-            data_store_.emplace_back(std::move(store_type(std::make_pair(std::unique_ptr<uint8_t[]>(new uint8_t[size]), size))));
+            data_store_.emplace_back(
+                std::move(store_type(std::make_pair(std::unique_ptr<uint8_t[]>(new uint8_t[size]), size))));
+//        	data_store_mutex_.unlock();
             return data_store_.back().first;
         }
     }
 
     std::unique_ptr<uint8_t[]>& moveToBuffer(uint8_t* data, std::size_t size)
     {
-    	std::cout << __PRETTY_FUNCTION__ << std::endl;
+//    	data_store_mutex_.lock();
         std::unique_ptr<uint8_t[]>& store = getFreeStorage(size);
-    	try {
-
-std::cout << "before memmove" << std::endl;
-            // TODO: or should we use memcopy?
-    //        memcpy(store.get(), data, size);
+        try
+        {
             memmove(store.get(), data, size);
-            std::cout << "after memmove" << std::endl;
-//            delete data;
-            std::cout << "after delete" << std::endl;
-            std::cout << __PRETTY_FUNCTION__ << std::endl;
-		} catch (std::exception& e) {
-			std::cerr << "Error: " << e.what() << std::endl;
-		}
+            //            delete data;
+        }
+        catch (std::exception& e)
+        {
+            std::cerr << "Error: " << e.what() << std::endl;
+        }
 
-		return store;
+//    	data_store_mutex_.unlock();
+        return store;
     }
 
     const store_type& get(std::size_t index) const
@@ -72,14 +71,28 @@ std::cout << "before memmove" << std::endl;
         return data_store_.at(index).first;
     }
 
-    void eraseAtIndex(std::size_t index)
+    void erase(std::size_t index)
     {
+//    	data_store_mutex_.lock();
         data_store_.erase(data_store_.begin() + index);
+//    	data_store_mutex_.unlock();
     }
 
-    void erase()
+    SensorMessage asMessage(std::size_t index) const
     {
+        return SensorMessage(&(data_store_.at(index).first.get()[0]), data_store_.at(index).second);
+    }
+
+    std::size_t size() const
+    {
+        return data_store_.size();
+    }
+
+    void clear()
+    {
+//    	data_store_mutex_.lock();
         data_store_.clear();
+//    	data_store_mutex_.unlock();
     }
 
     virtual ~DataBuffer()
@@ -100,6 +113,7 @@ std::cout << "before memmove" << std::endl;
         data_store_.emplace_back(std::move(reserved_data_store_.back()));
         reserved_data_store_.resize(reserved_data_store_.size() - 1);
         data_store_.back().second = actual_size;
+
         return data_store_.back().first;
     }
 
@@ -107,7 +121,6 @@ std::cout << "before memmove" << std::endl;
     {
         while (reserved_data_store_.size() < RESERVED_STORE_RESIZE_TO_AMOUNT)
         {
-        	std::cout << "Datastore size: "  << reserved_data_store_.size() << std::endl;
             reserved_data_store_.emplace_back(
                 store_type(std::move(std::make_pair(std::unique_ptr<uint8_t[]>(new uint8_t[ChunckSize]), ChunckSize))));
         }
@@ -116,6 +129,8 @@ std::cout << "before memmove" << std::endl;
   private:
     std::vector<store_type> data_store_;
     std::vector<store_type> reserved_data_store_;
+
+//    std::mutex data_store_mutex_;
 };
 
 #endif /* SRC_DATABUFFER_HPP_ */

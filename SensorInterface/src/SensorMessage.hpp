@@ -60,6 +60,10 @@ class SensorMessage
         return size_;
     }
 
+    virtual ~SensorMessage()
+    {
+    }
+
   protected:
     std::size_t size_;
     uint8_t* data_;

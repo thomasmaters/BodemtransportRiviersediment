@@ -11,8 +11,8 @@
 #include <cstdint>
 #include <iostream>
 #include <memory>
-#include <vector>
 #include <mutex>
+#include <vector>
 
 #define RESERVED_STORE_RESIZE_THRESHOLD 1
 #define RESERVED_STORE_RESIZE_TO_AMOUNT 10
@@ -26,9 +26,25 @@ class DataBuffer
     {
     }
 
+    DataBuffer(const DataBuffer& rhs) = delete;
+    //    {
+    //    	std::cout << __PRETTY_FUNCTION__ << std::endl;
+    //    	rhs.data_store_ = std::move(data_store_);
+    //    	rhs.reserved_data_store_ = std::move(reserved_data_store_);
+    //    }
+
+    DataBuffer& operator=(const DataBuffer& rhs)
+    {
+        if (this != &rhs)
+        {
+            rhs.data_store_          = std::move(data_store_);
+            rhs.reserved_data_store_ = std::move(reserved_data_store_);
+        }
+        return *this;
+    }
     std::unique_ptr<uint8_t[]>& getFreeStorage(std::size_t size)
     {
-//    	data_store_mutex_.lock();
+        //    	data_store_mutex_.lock();
         if (size < ChunckSize)
         {
             return getFromReservedStore(size);
@@ -38,14 +54,14 @@ class DataBuffer
             // Allocate custom size
             data_store_.emplace_back(
                 std::move(store_type(std::make_pair(std::unique_ptr<uint8_t[]>(new uint8_t[size]), size))));
-//        	data_store_mutex_.unlock();
+            //        	data_store_mutex_.unlock();
             return data_store_.back().first;
         }
     }
 
     std::unique_ptr<uint8_t[]>& moveToBuffer(uint8_t* data, std::size_t size)
     {
-//    	data_store_mutex_.lock();
+        //    	data_store_mutex_.lock();
         std::unique_ptr<uint8_t[]>& store = getFreeStorage(size);
         try
         {
@@ -57,7 +73,7 @@ class DataBuffer
             std::cerr << "Error: " << e.what() << std::endl;
         }
 
-//    	data_store_mutex_.unlock();
+        //    	data_store_mutex_.unlock();
         return store;
     }
 
@@ -73,9 +89,9 @@ class DataBuffer
 
     void erase(std::size_t index)
     {
-//    	data_store_mutex_.lock();
+        //    	data_store_mutex_.lock();
         data_store_.erase(data_store_.begin() + index);
-//    	data_store_mutex_.unlock();
+        //    	data_store_mutex_.unlock();
     }
 
     SensorMessage asMessage(std::size_t index) const
@@ -90,9 +106,9 @@ class DataBuffer
 
     void clear()
     {
-//    	data_store_mutex_.lock();
+        //    	data_store_mutex_.lock();
         data_store_.clear();
-//    	data_store_mutex_.unlock();
+        //    	data_store_mutex_.unlock();
     }
 
     virtual ~DataBuffer()
@@ -130,7 +146,7 @@ class DataBuffer
     std::vector<store_type> data_store_;
     std::vector<store_type> reserved_data_store_;
 
-//    std::mutex data_store_mutex_;
+    //    std::mutex data_store_mutex_;
 };
 
 #endif /* SRC_DATABUFFER_HPP_ */

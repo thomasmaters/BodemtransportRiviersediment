@@ -8,9 +8,9 @@
 
 #include "DeltaT100Controller.hpp"
 
-#include "SonarReturnData.hpp"
-#include "DepthProfiler.hpp"
 #include "DeltaT100Ping.hpp"
+#include "DepthProfiler.hpp"
+#include "SonarReturnData.hpp"
 
 #include <iostream>
 #include <random>
@@ -25,7 +25,7 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
                                          const std::string& remote_port)
   : io_service_(io_service),
     sensor_communication_(io_service_, host, local_port, remote_port),
-    data_buffer_(DataBuffer<>())
+    data_buffer_(std::unique_ptr<DataBuffer<>>(new DataBuffer<>()))
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     sensor_communication_.addRequestHandler(std::shared_ptr<RequestHandler>(this));
@@ -60,11 +60,11 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
 
 void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
 {
-	std::cout << __PRETTY_FUNCTION__ << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
     if (length == SonarReturnData::command_length_)
     {
         // TODO: should we check if we are in bounds of a SonarReturnData message. length == SonarReturnData::length?
-        std::unique_ptr<uint8_t[]>& stored_data = data_buffer_.moveToBuffer(data, length);
+        std::unique_ptr<uint8_t[]>& stored_data = data_buffer_->moveToBuffer(data, length);
         SonarReturnData sonar_data(&(stored_data.get()[0]));
 
         sonar_data.toString();
@@ -94,16 +94,22 @@ void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
     }
     else
     {
-    	std::cout << "Length mismatch expected: " << std::to_string(SonarReturnData::command_length_) << " got: " << std::to_string(length) << std::endl;
+        std::cout << "Length mismatch expected: " << std::to_string(SonarReturnData::command_length_)
+                  << " got: " << std::to_string(length) << std::endl;
     }
 }
 
 void DeltaT100Controller::cosntructSensorPing(Mode mode)
 {
-    std::cout << "RECEIVED A PING" << std::endl;
-    DeltaT100Ping ping(data_buffer_, (Mode)switch_data_command_.getData()[19]);
+    // Construct a ping by moving the buffer into the ping.
+    DeltaT100Ping ping(data_buffer_);
+    // Create a new buffer.
+    data_buffer_ = std::unique_ptr<DataBuffer<>>(new DataBuffer<>());
+
+    // Add the ping to the profiler.
     DepthProfiler::getInstance().addSensorPing(ping);
-    data_buffer_.clear();
+
+    // Send new request for the next ping. TODO: Loop forever?
     sensor_communication_.sendRequest(switch_data_command_, SonarReturnData::command_length_, false);
 }
 

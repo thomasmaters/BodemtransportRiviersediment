@@ -32,6 +32,18 @@ class SensorPing
     {
     }
 
+    SensorPing(const SensorPing& rhs)
+    {
+    }
+
+    SensorPing& operator=(const SensorPing& rhs)
+    {
+        if (this != &rhs)
+        {
+        }
+        return *this;
+    }
+
     virtual void getFileHeader()
     {
     }

@@ -45,7 +45,7 @@ class DeltaT100Controller : public Communication::RequestHandler, public Communi
 
     SwitchDataCommand switch_data_command_;
 
-    DataBuffer<2048> data_buffer_;
+    std::unique_ptr<DataBuffer<2048>> data_buffer_;
 };
 
 } /* namespace Controller */

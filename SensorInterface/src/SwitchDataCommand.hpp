@@ -110,7 +110,7 @@ class SwitchDataCommand : public SensorMessage
         data_[0] = 0xFE;
         data_[1] = 0x44;
         data_[2] = 0x10;  // Are there multiple heads?
-        setRange(Range::M20);
+        setRange(Range::M30);
         data_[4] = 0;
         setNadirOffsetAngle(0);
         // Nadir
@@ -124,6 +124,7 @@ class SwitchDataCommand : public SensorMessage
         setPulseLength(PulseLength::M5);  // PulseLength
         data_[15] = 0;
         data_[16] = 0;  // ExternalTriggerControl //User defined default value
+        enableExternalTriggerControl(true);
         setExternalTriggerControlEdge(ExternalTriggerControlEdge::NEG);
         setExternalTransmitDelay(0);
         setDataPoints(Mode::IVX);          // DataPoints
@@ -132,7 +133,7 @@ class SwitchDataCommand : public SensorMessage
         setRunMode(RunMode::DISABLEALL);   // RunMode
         data_[23] = 0;
         setSwitchDelay((uint8_t)0);       // SwitchDelay
-        setFrequency(Frequency::KHZ120);  // Frequency
+        setFrequency(Frequency::KHZ260);  // Frequency
         data_[26] = 0xFD;
     }
 

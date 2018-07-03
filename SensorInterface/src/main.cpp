@@ -10,11 +10,16 @@
 #include "SensorPing.hpp"
 
 #include <boost/asio.hpp>
+#include <boost/format.hpp>
 #include <iostream>
 #include <random>
+#include <iomanip>
 
 int main(int argc, char* argv[])
 {
+	std::stringstream ss3;
+    ss3 << boost::format(".%|02|\0")% 595;
+    std::cout << "Milis: " << ss3.str().substr(0, 3) + '\0' << std::endl;
     try
     {
         if (argc == 5)

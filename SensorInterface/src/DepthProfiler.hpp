@@ -29,14 +29,15 @@ class DepthProfiler
         return instance;
     }
 
-    void addSensorPing(SensorPing ping)
+    void addSensorPing(SensorPing& ping)
     {
         depth_data_.push_back(ping);
         try
         {
             DeltaT100::DeltaT100Ping& a = dynamic_cast<DeltaT100::DeltaT100Ping&>(ping);
             std::cout << "Writing to output" << std::endl;
-            a.toDeltaT837(output_stream_);
+            toFormat<DeltaT837>(output_stream_, a);
+            ////            a.toFormat<DeltaT837>(output_stream_);
         }
         catch (std::exception& e)
         {

@@ -110,54 +110,54 @@ class SwitchDataCommand : public SensorMessage
         data_[0] = 0xFE;
         data_[1] = 0x44;
         data_[2] = 0x10;  // Are there multiple heads?
-        setRange(Range::M30);
+        setRange(Range::M5);
         data_[4] = 0;
         setNadirOffsetAngle(0);
         // Nadir
         data_[7] = 0;
-        setStartGain(3);  // Gain
+        setStartGain(30);  // Gain
         data_[9] = 1;
-        setAbsorption(20);    // Absorption
-        setAgcThreshold(10);  // AgcThreshold
+        setAbsorption(20);     // Absorption
+        setAgcThreshold(120);  // AgcThreshold
         data_[12] = 0;
         setPacketNumberRequest(0);        // PacketNumberRequest
         setPulseLength(PulseLength::M5);  // PulseLength
         data_[15] = 0;
         data_[16] = 0;  // ExternalTriggerControl //User defined default value
-        enableExternalTriggerControl(true);
+        enableExternalTriggerControl(false);
         setExternalTriggerControlEdge(ExternalTriggerControlEdge::NEG);
         setExternalTransmitDelay(0);
-        setDataPoints(Mode::IVX);          // DataPoints
+        setDataPoints(Mode::IUX);          // DataPoints
         setDataBits(DataBits::BITS8);      // DataBits
         setPrhCommand(PrhCommand::NOPRH);  // PrhCommand
         setRunMode(RunMode::DISABLEALL);   // RunMode
         data_[23] = 0;
         setSwitchDelay((uint8_t)0);       // SwitchDelay
-        setFrequency(Frequency::KHZ260);  // Frequency
+        setFrequency(Frequency::KHZ675);  // Frequency
         data_[26] = 0xFD;
     }
 
-    static SwitchDataCommand getDefaultInstance()
-    {
-        SwitchDataCommand temp;
-        temp.setRange(Range::M20);
-        temp.setNadirOffsetAngle(0);
-        temp.setStartGain(3);
-        temp.setAbsorption(20);
-        temp.setAgcThreshold(10);
-        temp.setPacketNumberRequest(0);
-        temp.setPulseLength(PulseLength::M5);
-        temp.setExternalTriggerControlEdge(ExternalTriggerControlEdge::NEG);
-        temp.enableExternalTriggerControl(false);
-        temp.setExternalTransmitDelay(0);
-        temp.setDataPoints(Mode::IUX);
-        temp.setDataBits(DataBits::BITS8);
-        temp.setPrhCommand(PrhCommand::NOPRH);
-        temp.setRunMode(RunMode::DISABLEALL);
-        temp.setSwitchDelay((uint8_t)0);
-        temp.setFrequency(Frequency::KHZ120);
-        return temp;
-    }
+    //    static SwitchDataCommand getDefaultInstance()
+    //    {
+    //        SwitchDataCommand temp;
+    //        temp.setRange(Range::M20);
+    //        temp.setNadirOffsetAngle(0);
+    //        temp.setStartGain(3);
+    //        temp.setAbsorption(20);
+    //        temp.setAgcThreshold(10);
+    //        temp.setPacketNumberRequest(0);
+    //        temp.setPulseLength(PulseLength::M5);
+    //        temp.setExternalTriggerControlEdge(ExternalTriggerControlEdge::NEG);
+    //        temp.enableExternalTriggerControl(false);
+    //        temp.setExternalTransmitDelay(0);
+    //        temp.setDataPoints(Mode::IUX);
+    //        temp.setDataBits(DataBits::BITS8);
+    //        temp.setPrhCommand(PrhCommand::NOPRH);
+    //        temp.setRunMode(RunMode::DISABLEALL);
+    //        temp.setSwitchDelay((uint8_t)0);
+    //        temp.setFrequency(Frequency::KHZ120);
+    //        return temp;
+    //    }
 
     void setRange(Controller::DeltaT100::Range value)
     {
@@ -171,13 +171,16 @@ class SwitchDataCommand : public SensorMessage
         {
             offsetAngle |= 0x8000;
         }
-        data_[5] = (offsetAngle & 0xFF00) >> 8;
-        data_[6] = offsetAngle & 0x00FF;
+        //        data_[5] = (offsetAngle & 0xFF00) >> 8;
+        //        data_[6] = offsetAngle & 0x00FF;
+
+        data_[5] = 0;
+        data_[6] = 0;
     }
 
     void setStartGain(uint8_t value)
     {
-        if (!(value >= 0 && value <= 20))
+        if (!(value >= 0 && value <= 30))
         {
             throw std::runtime_error("Gain not between valid values.[0-20]");
         }

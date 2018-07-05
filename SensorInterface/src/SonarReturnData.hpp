@@ -83,6 +83,17 @@ class SonarReturnData : public SensorMessage
         return data_[12];  // TODO should this be parsed as an enum?
     }
 
+    /**
+     * Gets internal sensor status, only when packetnumber is 0.
+     * 0 = No sensor installed
+     * 1 = PRH Sensor Installed (837A)
+     * 2 = PRH Sensor Installed (837B, signs are reversed)
+     * 3 = Reserved
+     * 4 = Reserved
+     * 5 = PRH Sensor Installed (837)
+     * 6 = Reserved
+     * @return The internal sensor status.
+     */
     uint8_t getInternalSensorStatus()
     {
         return data_[13];  // TODO should this be parsed as an enum?
@@ -134,7 +145,7 @@ class SonarReturnData : public SensorMessage
         return static_cast<RunMode>(data_[22]);
     }
 
-    uint8_t getGain() const
+    uint8_t getCurrentSensorGain() const
     {
         return data_[24];  // TODO: Should this variable be made in a enum?
     }

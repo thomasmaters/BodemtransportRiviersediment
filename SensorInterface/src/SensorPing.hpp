@@ -14,25 +14,31 @@
 #include <chrono>
 #include <cstdint>
 
-template <class B, class = void>
-struct is_good : std::false_type
+/**
+ * Template so a function call in the form of toFormat<FileType,PingType>(ostream, PingType)
+ */
+template <typename PingType, typename FileType>
+void toFormat(std::ostream& stream, PingType& ping, FileType)
 {
-};
+}
 
-template <class B>
-struct is_good<B, std::void_t<decltype(std::declval<B&>() = std::declval<B>().toTest(std::declval<uint8_t*>()))>>
-    : std::true_type
+/**
+ * Confenieance template function so a user can call it in this form: toFormat<FileType>(ostream, pingInstance)
+ */
+template <typename FileType, typename PingType>
+void toFormat(std::ostream& stream, PingType& ping)
 {
-};
+    toFormat<PingType, FileType>(stream, ping, {});
+}
 
 class SensorPing
 {
   public:
-    SensorPing()
+    SensorPing() : time_of_ping_(std::chrono::system_clock::now())
     {
     }
 
-    SensorPing(const SensorPing& rhs)
+    SensorPing(const SensorPing& rhs) : time_of_ping_(rhs.time_of_ping_)
     {
     }
 
@@ -40,48 +46,21 @@ class SensorPing
     {
         if (this != &rhs)
         {
+            time_of_ping_ = rhs.time_of_ping_;
         }
         return *this;
     }
 
-    virtual void getFileHeader()
+    virtual void getTimeOfPing()
     {
     }
-
-    virtual void getFileDataPortion()
-    {
-    }
-
-    //	template<typename Astruct>
-    //	Astruct toStruct(std::size_t size, std::size_t number)
-    //	{
-    //		static_assert(is_good<Astruct>::value,"Struct is no good");
-    //		Astruct kaas;
-    //		return kaas.toTest(&data_[0]);
-    //	}
 
     virtual ~SensorPing()
     {
     }
-};
 
-struct FouteTest
-{
-};
-
-struct Test
-{
-    float x, y, z;
-    uint32_t empty;
-
-    Test& toTest(uint8_t* data)
-    {
-        x     = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
-        y     = (data[4] << 24) | (data[5] << 16) | (data[6] << 8) | data[7];
-        z     = (data[8] << 24) | (data[9] << 16) | (data[10] << 8) | data[11];
-        empty = 0;
-        return *this;
-    }
+  private:
+    std::chrono::_V2::system_clock::time_point time_of_ping_;
 };
 
 #endif /* SRC_SENSORPING_HPP_ */

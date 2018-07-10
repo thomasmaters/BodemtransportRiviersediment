@@ -51,7 +51,7 @@ class DepthProfiler
   private:
     DepthProfiler()
     {
-        output_stream_.open("frituur.837", std::ios::app | std::ios::binary);
+
     }
 
     virtual ~DepthProfiler()

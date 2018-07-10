@@ -12,6 +12,7 @@
 #include "SensorPing.hpp"
 #include "SonarReturnData.hpp"
 #include "SwitchDataCommand.hpp"
+#include "ProfilePointOutput.hpp"
 
 #include <boost/format.hpp>
 
@@ -42,10 +43,6 @@ class DeltaT100Ping : public SensorPing
 
     DeltaT100Ping(const DeltaT100Ping& rhs) = delete;
     DeltaT100Ping& operator=(const DeltaT100Ping& rhs) = delete;
-
-    void getTimeOfPing()
-    {
-    }
 
     virtual ~DeltaT100Ping()
     {

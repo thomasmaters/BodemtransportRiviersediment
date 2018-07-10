@@ -25,37 +25,18 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
                                          const std::string& remote_port)
   : io_service_(io_service),
     sensor_communication_(io_service_, host, local_port, remote_port),
+	deltat_communication_(io_service_, "localhost", local_port, remote_port),
     data_buffer_(std::unique_ptr<DataBuffer<>>(new DataBuffer<>()))
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
-    sensor_communication_.addRequestHandler(std::shared_ptr<RequestHandler>(this));
+    deltat_communication_.addRequestHandler(std::shared_ptr<RequestHandler>(this));
     sensor_communication_.addResponseHandler(std::shared_ptr<ResponseHandler>(this));
-    //    std::random_device rd;
-    //    std::mt19937 generator(rd());
-    //
-    //    std::thread a(std::thread([&] {
-    //        SensorMessage temp = Controller::DeltaT100::SwitchDataCommand::getDefaultInstance();
-    //        sensor_communication_.sendRequest(temp, (std::size_t)5, true);
-    //        std::this_thread::sleep_for(std::chrono::seconds(5));
-    //        while (1)
-    //        {
-    //            if (true)
-    //            {
-    //                std::string str("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
-    //
-    //                std::shuffle(str.begin(), str.end(), generator);
-    //
-    //                sensor_communication_.sendRequest(str.substr(0, 5), 10);
-    //            }
-    //            std::this_thread::sleep_for(std::chrono::seconds(15));
-    //        }
-    //    }));
+
+    auto work = std::make_shared<boost::asio::io_service::work>(io_service_);
+
     switch_data_command_ = SwitchDataCommand();
     sensor_communication_.sendRequest(switch_data_command_, SonarReturnData::command_length_, false);
-    auto work = std::make_shared<boost::asio::io_service::work>(io_service_);
     io_service_.run();
-    std::cout << "Preemptive exit" << std::endl;
-    //    a.join();
 }
 
 void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
@@ -115,13 +96,13 @@ void DeltaT100Controller::cosntructSensorPing(Mode mode)
 
 SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t length)
 {
-    std::cout << __PRETTY_FUNCTION__ << ": " << (char*)data << std::endl;
-    std::cout << "data[0] = " << std::to_string(data[0]) << std::endl;
-    if (data[0] == 65)
-    {
-        exit(0);
-    }
-    return SensorMessage(0);
+    std::cout << __PRETTY_FUNCTION__ << ": " << length<< std::endl;
+    std::unique_ptr<DataBuffer<>> profile_point_buffer = std::unique_ptr<DataBuffer<>>(new DataBuffer<>());
+    std::unique_ptr<uint8_t[]>& stored_data = profile_point_buffer->moveToBuffer(data, length);
+    ProfilePointOutput sonar_data(&(stored_data.get()[0]));
+
+    //Return a message with 1 byte to reinitiate a connection.
+    return SensorMessage(1);
 }
 
 void DeltaT100Controller::requestSensorPing(const SwitchDataCommand& command)

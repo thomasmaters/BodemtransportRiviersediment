@@ -13,6 +13,7 @@
 #include "DataBuffer.hpp"
 #include "SwitchDataCommand.hpp"
 #include "TCPConnection.hpp"
+#include "UDPConnection.hpp"
 
 namespace Controller::DeltaT100
 {
@@ -42,6 +43,7 @@ class DeltaT100Controller : public Communication::RequestHandler, public Communi
 
     boost::asio::io_service& io_service_;
     Communication::TCP::TCPServerClient sensor_communication_;
+    Communication::UDP::UDPServerClient deltat_communication_;
 
     SwitchDataCommand switch_data_command_;
 

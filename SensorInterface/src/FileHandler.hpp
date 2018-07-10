@@ -28,7 +28,10 @@ class FileHandler
     FileHandler(FileHandler const&) = delete;
     void operator=(FileHandler const&) = delete;
 
-    void createNewFile(const std::string& fileName);
+    void createNewFile(const std::string& fileName)
+    {
+
+    }
     void openFile(const std::string& path);
     void appendToFile(const std::string& data);
 

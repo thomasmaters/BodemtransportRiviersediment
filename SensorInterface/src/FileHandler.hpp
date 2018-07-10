@@ -10,6 +10,7 @@
 #define SRC_FILEHANDLER_HPP_
 
 #include <string>
+#include <iostream>
 
 namespace Controller
 {
@@ -19,10 +20,18 @@ namespace Controller
 class FileHandler
 {
   public:
-    static FileHandler& getInstance()
+    FileHandler()
+	{
+	}
+
+    FileHandler(const std::string& fileName)
+	{
+    	openFile(fileName);
+	}
+
+    virtual ~FileHandler()
     {
-        static FileHandler instance;
-        return instance;
+        output_stream_.close();
     }
 
     FileHandler(FileHandler const&) = delete;
@@ -30,14 +39,28 @@ class FileHandler
 
     void createNewFile(const std::string& fileName)
     {
-
+        output_stream_.open(fileName, std::ios::trunc | std::ios::binary);
     }
-    void openFile(const std::string& path);
-    void appendToFile(const std::string& data);
+
+    void openFile(const std::string& fileName)
+    {
+        output_stream_.open(fileName, std::ios::app | std::ios::binary);
+    }
+
+    void writeToFile(const std::string& data)
+    {
+    	if(!output_stream_.is_open()){ throw std::runtime_error("Outputstream hasn't been opened!");}
+    	output_stream_ << data;
+    }
+
+    std::ofstream& getOutputStream()
+    {
+    	if(!output_stream_.is_open()){ throw std::runtime_error("Outputstream hasn't been opened!");}
+    	return output_stream_;
+    }
 
   private:
-    FileHandler();
-    virtual ~FileHandler();
+    std::ofstream output_stream_;
 };
 
 } /* namespace Controller */

@@ -10,6 +10,7 @@
 
 #include "DeltaT100Ping.hpp"
 #include "DepthProfiler.hpp"
+#include "SonarReturnDataPacket.hpp"
 #include "SonarReturnData.hpp"
 
 #include <iostream>
@@ -35,18 +36,18 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
     auto work = std::make_shared<boost::asio::io_service::work>(io_service_);
 
     switch_data_command_ = SwitchDataCommand();
-    sensor_communication_.sendRequest(switch_data_command_, SonarReturnData::command_length_, false);
+    sensor_communication_.sendRequest(switch_data_command_, SonarReturnDataPacket::command_length_, false);
     io_service_.run();
 }
 
 void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
-    if (length == SonarReturnData::command_length_)
+    if (length == SonarReturnDataPacket::command_length_)
     {
         // TODO: should we check if we are in bounds of a SonarReturnData message. length == SonarReturnData::length?
         std::unique_ptr<uint8_t[]>& stored_data = data_buffer_->moveToBuffer(data, length);
-        SonarReturnData sonar_data(&(stored_data.get()[0]));
+        SonarReturnDataPacket sonar_data(&(stored_data.get()[0]));
 
         sonar_data.toString();
 
@@ -59,7 +60,7 @@ void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
                 (mode == Mode::IVX && packet_number < static_cast<std::underlying_type<Mode>::type>(Mode::IVX) - 1))
             {
                 switch_data_command_.setPacketNumberRequest(packet_number + 1);
-                sensor_communication_.sendRequest(switch_data_command_, SonarReturnData::command_length_, false);
+                sensor_communication_.sendRequest(switch_data_command_, SonarReturnDataPacket::command_length_, false);
             }
             else
             {
@@ -75,7 +76,7 @@ void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
     }
     else
     {
-        std::cout << "Length mismatch expected: " << std::to_string(SonarReturnData::command_length_)
+        std::cout << "Length mismatch expected: " << std::to_string(SonarReturnDataPacket::command_length_)
                   << " got: " << std::to_string(length) << std::endl;
     }
 }
@@ -83,15 +84,15 @@ void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
 void DeltaT100Controller::cosntructSensorPing(Mode mode)
 {
     // Construct a ping by moving the buffer into the ping.
-    DeltaT100Ping ping(data_buffer_);
+    SonarReturnData ping(data_buffer_);
     // Create a new buffer.
     data_buffer_ = std::unique_ptr<DataBuffer<>>(new DataBuffer<>());
 
     // Add the ping to the profiler.
-    DepthProfiler::getInstance().addSensorPing(ping);
+//    DepthProfiler::getInstance().addSensorPing(ping);
 
     // Send new request for the next ping. TODO: Loop forever?
-    sensor_communication_.sendRequest(switch_data_command_, SonarReturnData::command_length_, false);
+    sensor_communication_.sendRequest(switch_data_command_, SonarReturnDataPacket::command_length_, false);
 }
 
 SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t length)
@@ -108,7 +109,7 @@ SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t leng
 void DeltaT100Controller::requestSensorPing(const SwitchDataCommand& command)
 {
     sensor_communication_.sendRequest(
-        dynamic_cast<const SensorMessage&>(command), SonarReturnData::command_length_, false);
+        dynamic_cast<const SensorMessage&>(command), SonarReturnDataPacket::command_length_, false);
 }
 
 DeltaT100Controller::~DeltaT100Controller()

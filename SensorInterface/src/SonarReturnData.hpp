@@ -9,193 +9,53 @@
 #ifndef SRC_SONARRETURNDATA_HPP_
 #define SRC_SONARRETURNDATA_HPP_
 
-#include <cstdint>
-
 #include "SensorMessage.hpp"
+#include "SonarReturnDataPacket.hpp"
+#include "DataBuffer.hpp"
 
-// Remove these includes:
-#include <bitset>
+#include <string>
 
 namespace Controller::DeltaT100
 {
-enum class SerialStatus : uint8_t
-{
-    SWITCHOK         = 0b00000000,
-    SWITCHERROR      = 0b00000001,
-    PRHOK            = 0b00000000,
-    PRHERROR         = 0b00000100,
-    SWITCHESACCEPTED = 0b01000000,
-    CHARSOVERRUN     = 0b10000000
-};
+	//Also known as raw sonar data aka .837 format.
+	class SonarReturnData : public SensorMessage
+	{
+public:
+		SonarReturnData(): SensorMessage(SonarReturnDataPacket::command_length_* 16)
+		{
 
-/*
- *
- */
-class SonarReturnData : public SensorMessage
-{
-  public:
-    constexpr static std::size_t command_length_ = 1033;
+		}
 
-    SonarReturnData() : SensorMessage(command_length_)
-    {
-    }
+		SonarReturnData(std::unique_ptr<DataBuffer<>>& buffer): SensorMessage(SonarReturnDataPacket::command_length_* 16)
+		{
+		    for (std::size_t i = 0; i < buffer->size(); ++i)
+		    {
+		        SensorMessage message                               = buffer->asMessage(i);
+		        Controller::DeltaT100::SonarReturnDataPacket sonar_return = (Controller::DeltaT100::SonarReturnDataPacket&)message;
+		        std::pair<uint8_t*, uint16_t> a = sonar_return.getEchoData();
+		        if (i == 7)
+		        {
+		            std::memcpy(&data_[100], sonar_return.getData(), 12);
+		        }
+		        std::memcpy(&data_[112 + i * 1000], a.first, a.second);
+		    }
+		}
 
-    SonarReturnData(uint8_t* data) : SensorMessage(data, command_length_)
-    {
-    }
+		void addPacket(SonarReturnDataPacket& packet)
+		{
+			std::pair<uint8_t*, uint16_t> a = packet.getEchoData();
+			uint8_t packet_number = packet.getPacketNumber();
+	        if (packet_number == 7)
+	        {
+	            std::memcpy(&data_[100], packet.getData(), 12);
+	        }
+			std::memcpy(&data_[112 + packet_number * 1000], a.first, a.second);
+		}
+private:
+	};
 
-    Mode getMode() const
-    {
-        if (data_[1] == 0x55)
-        {
-            return Mode::IUX;
-        }
-        return Mode::IVX;
-    }
-
-    SerialStatus getSerialStatus() const
-    {
-        return static_cast<SerialStatus>(data_[4]);
-    }
-
-    uint8_t getPacketNumber() const
-    {
-        return data_[5];
-    }
-
-    uint8_t getFirmwareVersion() const
-    {
-        return data_[6];  // TODO should this be parsed as an enum?
-    }
-
-    Range getRange()
-    {
-        return static_cast<Range>(data_[7]);
-    }
-
-    uint16_t getNumberOfDataBytes()
-    {
-        return (data_[10] << 8) | data_[11];
-    }
-
-    uint8_t getExternalTriggerStatus()
-    {
-        return data_[12];  // TODO should this be parsed as an enum?
-    }
-
-    /**
-     * Gets internal sensor status, only when packetnumber is 0.
-     * 0 = No sensor installed
-     * 1 = PRH Sensor Installed (837A)
-     * 2 = PRH Sensor Installed (837B, signs are reversed)
-     * 3 = Reserved
-     * 4 = Reserved
-     * 5 = PRH Sensor Installed (837)
-     * 6 = Reserved
-     * @return The internal sensor status.
-     */
-    uint8_t getInternalSensorStatus()
-    {
-        return data_[13];  // TODO should this be parsed as an enum?
-    }
-
-    uint16_t getPitch()
-    {
-        if ((data_[15] & 0b10000000) == 0)
-        {
-            return ((data_[15] << 8) | data_[14]) * 360 / 65536;
-        }
-        else
-        {
-            return (((data_[15] << 8) | data_[14]) - 65536) * 360 / 65536;
-        }
-    }
-
-    uint16_t getRoll()
-    {
-        if ((data_[17] & 0b10000000) == 0)
-        {
-            return ((data_[17] << 8) | data_[16]) * 360 / 65536;
-        }
-        else
-        {
-            return (((data_[17] << 8) | data_[16]) - 65536) * 360 / 65536;
-        }
-    }
-
-    uint16_t getHeading()
-    {
-        if ((data_[19] & 0b10000000) == 0)
-        {
-            return ((data_[19] << 8) | data_[18]) * 360 / 65536;
-        }
-        else
-        {
-            return (((data_[19] << 8) | data_[18]) - 65536) * 360 / 65536;
-        }
-    }
-
-    uint16_t getTimerTicks()
-    {
-        return (data_[21] << 8) | data_[20];
-    }
-
-    RunMode getRunMode()
-    {
-        return static_cast<RunMode>(data_[22]);
-    }
-
-    uint8_t getCurrentSensorGain() const
-    {
-        return data_[24];  // TODO: Should this variable be made in a enum?
-    }
-
-    uint16_t getAgcRange()
-    {
-        return ((data_[25] << 8) | data_[26]);
-    }
-
-    uint16_t getAgcMaximum()
-    {
-        return ((data_[27] << 8) | data_[28]);
-    }
-
-    std::pair<uint8_t*, uint16_t> getEchoData()
-    {
-        return std::make_pair(&data_[32], getNumberOfDataBytes());
-    }
-
-    void toString()
-    {
-        std::cout << "Mode: " << (getMode() == Mode::IUX ? "IUX" : "IVX") << std::endl;
-        std::cout << "SerialStatus: "
-                  << std::bitset<8>(static_cast<std::underlying_type<SerialStatus>::type>(getSerialStatus()))
-                  << std::endl;
-        std::cout << "PacketNumber: " << std::to_string(getPacketNumber()) << std::endl;
-        std::cout << "Internal sensor status: " << std::bitset<8>(getInternalSensorStatus()) << std::endl;
-    }
-
-    virtual ~SonarReturnData()
-    {
-    }
-};
-
-} /* namespace Delta100 */
-
-constexpr Controller::DeltaT100::SerialStatus operator&(Controller::DeltaT100::SerialStatus lhs,
-                                                        Controller::DeltaT100::SerialStatus rhs)
-{
-    using underlying = typename std::underlying_type<Controller::DeltaT100::SerialStatus>::type;
-    return static_cast<Controller::DeltaT100::SerialStatus>(static_cast<underlying>(lhs) &
-                                                            static_cast<underlying>(rhs));
 }
 
-constexpr Controller::DeltaT100::SerialStatus operator|(Controller::DeltaT100::SerialStatus lhs,
-                                                        Controller::DeltaT100::SerialStatus rhs)
-{
-    using underlying = typename std::underlying_type<Controller::DeltaT100::SerialStatus>::type;
-    return static_cast<Controller::DeltaT100::SerialStatus>(static_cast<underlying>(lhs) |
-                                                            static_cast<underlying>(rhs));
-}
+
 
 #endif /* SRC_SONARRETURNDATA_HPP_ */

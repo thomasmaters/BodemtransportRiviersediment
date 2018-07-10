@@ -10,7 +10,7 @@
 #define SRC_DELTAT100PING_HPP_
 
 #include "SensorPing.hpp"
-#include "SonarReturnData.hpp"
+#include "SonarReturnDataPacket.hpp"
 #include "SwitchDataCommand.hpp"
 #include "ProfilePointOutput.hpp"
 
@@ -66,7 +66,7 @@ void toFormat<DeltaT837, Controller::DeltaT100::DeltaT100Ping>(std::ostream& o,
     std::size_t length;
 
     SensorMessage message                             = ping.buffer_->asMessage(0);
-    Controller::DeltaT100::SonarReturnData sonar_data = (Controller::DeltaT100::SonarReturnData&)message;
+    Controller::DeltaT100::SonarReturnDataPacket sonar_data = (Controller::DeltaT100::SonarReturnDataPacket&)message;
 
     if (sonar_data.getMode() == Controller::DeltaT100::Mode::IUX)
     {
@@ -122,9 +122,9 @@ void toFormat<DeltaT837, Controller::DeltaT100::DeltaT100Ping>(std::ostream& o,
     for (std::size_t i = 0; i < ping.buffer_->size(); ++i)
     {
         SensorMessage message                               = ping.buffer_->asMessage(i);
-        Controller::DeltaT100::SonarReturnData sonar_return = (Controller::DeltaT100::SonarReturnData&)message;
+        Controller::DeltaT100::SonarReturnDataPacket sonar_return = (Controller::DeltaT100::SonarReturnDataPacket&)message;
         std::pair<uint8_t*, uint16_t> a = sonar_return.getEchoData();
-        if (i == 0)
+        if (i == 7)
         {
             std::memcpy(&data[100 + i * 1000], sonar_return.getData(), 12);
         }

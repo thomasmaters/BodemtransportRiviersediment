@@ -11,6 +11,7 @@
 
 #include "DataBuffer.hpp"
 #include "SensorPing.hpp"
+#include "FileHandler.hpp"
 
 #include <thread>
 #include <vector>
@@ -36,7 +37,7 @@ class DepthProfiler
         {
             DeltaT100::DeltaT100Ping& a = dynamic_cast<DeltaT100::DeltaT100Ping&>(ping);
             std::cout << "Writing to output" << std::endl;
-            toFormat<DeltaT837>(output_stream_, a);
+            toFormat<DeltaT837>(file_instance_.getOutputStream(), a);
             ////            a.toFormat<DeltaT837>(output_stream_);
         }
         catch (std::exception& e)
@@ -56,11 +57,10 @@ class DepthProfiler
 
     virtual ~DepthProfiler()
     {
-        output_stream_.close();
     }
 
   private:
-    std::ofstream output_stream_;
+    FileHandler file_instance_;
     std::vector<SensorPing> depth_data_;
     std::thread profiler_thread_;
 };

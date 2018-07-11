@@ -53,7 +53,7 @@ class SensorPing
 
     virtual std::chrono::_V2::system_clock::time_point getTimeOfPing()
     {
-    	return time_of_ping_;
+        return time_of_ping_;
     }
 
     virtual ~SensorPing()

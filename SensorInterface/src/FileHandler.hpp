@@ -9,8 +9,8 @@
 #ifndef SRC_FILEHANDLER_HPP_
 #define SRC_FILEHANDLER_HPP_
 
+#include <fstream>
 #include <string>
-#include <iostream>
 
 namespace Controller
 {
@@ -21,13 +21,13 @@ class FileHandler
 {
   public:
     FileHandler()
-	{
-	}
+    {
+    }
 
     FileHandler(const std::string& fileName)
-	{
-    	openFile(fileName);
-	}
+    {
+        openFile(fileName);
+    }
 
     virtual ~FileHandler()
     {
@@ -49,14 +49,20 @@ class FileHandler
 
     void writeToFile(const std::string& data)
     {
-    	if(!output_stream_.is_open()){ throw std::runtime_error("Outputstream hasn't been opened!");}
-    	output_stream_ << data;
+        if (!output_stream_.is_open())
+        {
+            throw std::runtime_error("Outputstream hasn't been opened!");
+        }
+        output_stream_ << data;
     }
 
     std::ofstream& getOutputStream()
     {
-    	if(!output_stream_.is_open()){ throw std::runtime_error("Outputstream hasn't been opened!");}
-    	return output_stream_;
+        if (!output_stream_.is_open())
+        {
+            throw std::runtime_error("Outputstream hasn't been opened!");
+        }
+        return output_stream_;
     }
 
   private:

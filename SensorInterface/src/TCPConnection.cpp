@@ -184,14 +184,16 @@ TCPServerClient::~TCPServerClient()
 void TCPServerClient::start_accept()
 {
     std::shared_ptr<TCPSession> session = std::shared_ptr<TCPSession>(new TCPSession(io_service_));
-    try {
+    try
+    {
         acceptor_.async_accept(
             session->getSocket(),
             boost::bind(&TCPServerClient::handle_accept, this, session, boost::asio::placeholders::error));
-	} catch (std::exception& e) {
-		std::cout << "Could not connect: " << e.what() << std::endl;
-	}
-
+    }
+    catch (std::exception& e)
+    {
+        std::cout << "Could not connect: " << e.what() << std::endl;
+    }
 }
 
 void TCPServerClient::handle_accept(std::shared_ptr<TCPSession> new_connection, const boost::system::error_code& error)

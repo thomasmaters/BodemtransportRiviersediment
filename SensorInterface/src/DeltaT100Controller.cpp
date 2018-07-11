@@ -8,10 +8,10 @@
 
 #include "DeltaT100Controller.hpp"
 
-#include "DeltaT100Ping.hpp"
 #include "DepthProfiler.hpp"
-#include "SonarReturnDataPacket.hpp"
+#include "ProfilePointOutput.hpp"
 #include "SonarReturnData.hpp"
+#include "SonarReturnDataPacket.hpp"
 
 #include <iostream>
 #include <random>
@@ -26,7 +26,7 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
                                          const std::string& remote_port)
   : io_service_(io_service),
     sensor_communication_(io_service_, host, local_port, remote_port),
-	deltat_communication_(io_service_, "localhost", local_port, remote_port),
+    deltat_communication_(io_service_, "localhost", local_port, remote_port),
     data_buffer_(std::unique_ptr<DataBuffer<>>(new DataBuffer<>()))
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
@@ -89,7 +89,7 @@ void DeltaT100Controller::cosntructSensorPing(Mode mode)
     data_buffer_ = std::unique_ptr<DataBuffer<>>(new DataBuffer<>());
 
     // Add the ping to the profiler.
-//    DepthProfiler::getInstance().addSensorPing(ping);
+    //    DepthProfiler::getInstance().addSensorPing(ping);
 
     // Send new request for the next ping. TODO: Loop forever?
     sensor_communication_.sendRequest(switch_data_command_, SonarReturnDataPacket::command_length_, false);
@@ -97,12 +97,15 @@ void DeltaT100Controller::cosntructSensorPing(Mode mode)
 
 SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t length)
 {
-    std::cout << __PRETTY_FUNCTION__ << ": " << length<< std::endl;
-    std::unique_ptr<DataBuffer<>> profile_point_buffer = std::unique_ptr<DataBuffer<>>(new DataBuffer<>());
-    std::unique_ptr<uint8_t[]>& stored_data = profile_point_buffer->moveToBuffer(data, length);
-    ProfilePointOutput sonar_data(&(stored_data.get()[0]));
+    std::cout << __PRETTY_FUNCTION__ << ": " << length << std::endl;
+    //    std::unique_ptr<DataBuffer<>> profile_point_buffer = std::unique_ptr<DataBuffer<>>(new DataBuffer<>());
+    //    std::unique_ptr<uint8_t[]>& stored_data = profile_point_buffer->moveToBuffer(data, length);
+    //    ProfilePointOutput sonar_data(&(stored_data.get()[0]));
 
-    //Return a message with 1 byte to reinitiate a connection.
+    ProfilePointOutput sonar_data(data);
+    sonar_data.asMatrix();
+
+    // Return a message with 1 byte to reinitiate a connection.
     return SensorMessage(1);
 }
 

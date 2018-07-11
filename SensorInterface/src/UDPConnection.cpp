@@ -27,7 +27,7 @@ UDPServerClient::UDPServerClient(boost::asio::io_service& io_service,
     socket_incomming_(io_service, udp::endpoint(udp::v4(), std::atoi(local_port.c_str()))),
     io_service_(io_service)
 {
-	std::cout << __PRETTY_FUNCTION__ << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
     start_receive();
 }
 
@@ -132,7 +132,7 @@ void UDPServerClient::gotResponse(bool has_response_head_and_body,
 
 void UDPServerClient::start_receive()
 {
-	std::cout << __PRETTY_FUNCTION__ << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
     socket_incomming_.async_receive_from(boost::asio::buffer(data_, UDP_BUFFER_SIZE),
                                          local_endpoint_,
                                          boost::bind(&UDPServerClient::handle_receive,
@@ -150,7 +150,7 @@ void UDPServerClient::handle_receive(const boost::system::error_code& error, std
         if (request_handler_.use_count() != 0)
         {
             SensorMessage response = request_handler_->handleRequest(data_.data(), bytes_transferred);
-            if(response.getDataLength() > 0)
+            if (response.getDataLength() > 0)
             {
                 socket_incomming_.async_send_to(boost::asio::buffer(response.getData(), response.getDataLength()),
                                                 local_endpoint_,
@@ -161,13 +161,13 @@ void UDPServerClient::handle_receive(const boost::system::error_code& error, std
             }
             else
             {
-            	std::cout << "Response to message is empty, stopping contact with client" << std::endl;
+                std::cout << "Response to message is empty, stopping contact with client" << std::endl;
             }
         }
     }
     else
     {
-    	std::cout << "Error occurred: " << error.message() << std::endl;
+        std::cout << "Error occurred: " << error.message() << std::endl;
     }
 }
 

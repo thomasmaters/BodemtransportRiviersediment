@@ -11,6 +11,8 @@
 
 #include "ConnectionInterface.hpp"
 #include "DataBuffer.hpp"
+#include "DepthProfiler.hpp"
+#include "ProfilePointOutput.hpp"
 #include "SwitchDataCommand.hpp"
 #include "TCPConnection.hpp"
 #include "UDPConnection.hpp"
@@ -46,6 +48,12 @@ class DeltaT100Controller : public Communication::RequestHandler, public Communi
     Communication::UDP::UDPServerClient deltat_communication_;
 
     SwitchDataCommand switch_data_command_;
+    ProfilePointOutput profile_point_output_;
+
+    uint16_t display_gain_;
+    uint16_t current_display_gain_;
+
+    DepthProfiler<480, float> depth_profiler_;
 
     std::unique_ptr<DataBuffer<2048>> data_buffer_;
 };

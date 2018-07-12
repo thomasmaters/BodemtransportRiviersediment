@@ -12,6 +12,7 @@
 #include "Matrix.hpp"
 #include "SensorMessage.hpp"
 
+#include <cstring>
 #include <iomanip>
 
 #define TOTAL_BYTES_LOW 5
@@ -63,83 +64,132 @@ class ProfilePointOutput : public SensorMessage
 
     ProfilePointOutput() : SensorMessage(command_length_)
     {
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
     }
 
     ProfilePointOutput(uint8_t* data) : SensorMessage(data, command_length_)
     {
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
     }
 
-    uint16_t getTotalBytes()
+    ProfilePointOutput(const ProfilePointOutput& rhs) : SensorMessage(rhs)
+    {
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
+    }
+
+    virtual ~ProfilePointOutput()
+    {
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
+    }
+
+    ProfilePointOutput& operator=(const ProfilePointOutput& rhs)
+    {
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
+        if (this != &rhs)
+        {
+            //			std::mem
+            std::memcpy(data_, rhs.data_, command_length_);
+            //			data_ = rhs.data_;
+            size_ = rhs.size_;
+        }
+        return *this;
+    }
+
+    ProfilePointOutput& operator+=(const ProfilePointOutput& rhs)
+    {
+        uint16_t amount_of_beams          = 480;
+        std::size_t amount_zero           = 0;
+        std::size_t amount_other_not_zero = 0;
+        for (std::size_t i = 0; i < amount_of_beams; ++i)
+        {
+            if (getBeamRangeRaw(i) == 0 /* && rhs.getBeamRangeRaw(i) != 0*/)
+            {
+                amount_zero++;
+                data_[256 + i * 2] = rhs.getData()[256 + i * 2];
+                data_[257 + i * 2] = rhs.getData()[257 + i * 2];
+                if (rhs.getBeamRangeRaw(i) != 0)
+                {
+                    amount_other_not_zero++;
+                }
+            }
+        }
+
+        std::cout << "Amount 0: " << amount_zero << " beams: " << amount_of_beams
+                  << " Assigned: " << amount_other_not_zero << std::endl;
+        return *this;
+    }
+
+    uint16_t getTotalBytes() const
     {
         return ((data_[TOTAL_BYTES_HIGH] << 8) | data_[TOTAL_BYTES_LOW]);
     }
 
-    uint16_t getNumberOfBeams()
+    uint16_t getNumberOfBeams() const
     {
         return ((data_[NR_OF_BEAMS_HIGH] << 8) | data_[NR_OF_BEAMS_LOW]);
     }
 
-    uint16_t getSamplesPerBeam()
+    uint16_t getSamplesPerBeam() const
     {
         return ((data_[SAMPLES_PER_BEAM_HIGH] << 8) | data_[SAMPLES_PER_BEAM_LOW]);
     }
 
-    uint16_t getSectorSize()
+    uint16_t getSectorSize() const
     {
         return ((data_[SECTOR_SIZE_HIGH] << 8) | data_[SECTOR_SIZE_LOW]);
     }
 
     // Beam 0 angle
-    int16_t getStartAngle()
+    int16_t getStartAngle() const
     {
         return (((uint16_t)(data_[START_ANGLE_HIGH] << 8) | data_[START_ANGLE_LOW]) / 100) - 180;
     }
 
     // I assume this is a floating point value.
-    float getAngleIncrement()
+    float getAngleIncrement() const
     {
         return (float)data_[ANGLE_INCREMENT] / 100;
     }
 
-    uint16_t getSoundVelocity()
+    uint16_t getSoundVelocity() const
     {
         if ((data_[SOUND_VELOCITY_LOW] & 0x80) == 0)
             return 1500;
         return (((data_[SOUND_VELOCITY_LOW] & 0x7F) << 8) | data_[SOUND_VELOCITY_HIGHT]) / 10;
     }
 
-    uint16_t getRangeResolution()
+    uint16_t getRangeResolution() const
     {
         return ((data_[RANGE_RESOLUTION_HIGH] << 8) | data_[RANGE_RESOLUTION_LOW]);
     }
 
-    uint16_t getRepititionRate()
+    uint16_t getRepititionRate() const
     {
         return ((data_[REPETITION_RATE_HIGH] << 8) | data_[REPETITION_RATE_LOW]);
     }
 
-    uint32_t getPingNumber()
+    uint32_t getPingNumber() const
     {
         return (data_[PING_NUMBER_0] << 24) | (data_[PING_NUMBER_1] << 16) | (data_[PING_NUMBER_2] << 8) |
                data_[PING_NUMBER_3];
     }
 
-    bool hasIntensity()
+    bool hasIntensity() const
     {
         return data_[INTENSITY_INCLUDED] == 1;
     }
 
-    SampleRate getSampleRate()
+    SampleRate getSampleRate() const
     {
         return data_[SAMPLE_RATE] == 0 ? SampleRate::STANDARD : SampleRate::HIGH;
     }
 
-    uint8_t getAverageNumberOfPings()
+    uint8_t getAverageNumberOfPings() const
     {
         return data_[AVERAGE_PINGS];
     }
 
-    float getBeamRange(uint16_t beam)
+    float getBeamRange(uint16_t beam) const
     {
         if (!(beam >= 0 && beam < MAX_BEAMS))
         {
@@ -149,7 +199,7 @@ class ProfilePointOutput : public SensorMessage
         return getBeamRangeRaw(beam);
     }
 
-    float getCorrectedBeamRange(uint16_t beam)
+    float getCorrectedBeamRange(uint16_t beam) const
     {
         if (!(beam >= 0 && beam < MAX_BEAMS))
         {
@@ -158,7 +208,7 @@ class ProfilePointOutput : public SensorMessage
         return getCorrectedBeamRangeRaw(beam);
     }
 
-    std::array<float, 3> getBeamPosition(uint16_t beam)
+    std::array<float, 3> getBeamPosition(uint16_t beam) const
     {
         if (!(beam >= 0 && beam < MAX_BEAMS))
         {
@@ -174,7 +224,7 @@ class ProfilePointOutput : public SensorMessage
         return std::array<float, 3>{ x, 0, z };
     }
 
-    Matrix<MAX_BEAMS, 3, float> asMatrix()
+    Matrix<MAX_BEAMS, 3, float> asMatrix() const
     {
         uint16_t number_of_beams = getNumberOfBeams();
         Matrix<MAX_BEAMS, 3, float> matrix;
@@ -188,16 +238,23 @@ class ProfilePointOutput : public SensorMessage
     }
 
   private:
-    float getBeamRangeRaw(uint16_t beam)
+    float getBeamRangeRaw(uint16_t beam) const
     {
         return ((data_[PROFILE_RANGE_START_HIGH + beam * 2] << 8) | data_[PROFILE_RANGE_START_LOW + beam * 2]) *
                getRangeResolution() / 1000;
     }
 
-    float getCorrectedBeamRangeRaw(uint16_t beam)
+    float getCorrectedBeamRangeRaw(uint16_t beam) const
     {
         return getBeamRangeRaw(beam) * getSoundVelocity() / 1500;
     }
+
+    //    void setBeamRange(uint16_t beam, float range, float resolution = getRangeResolution())
+    //    {
+    //    	uint16_t converted_range = range / resolution * 1000;
+    //    	data_[PROFILE_RANGE_START_HIGH + beam * 2] = (converted_range >> 8);
+    //    	data_[PROFILE_RANGE_START_LOW + beam * 2] = (converted_range & 0xFF);
+    //    }
 };
 }
 

@@ -9,7 +9,6 @@
 #include "DeltaT100Controller.hpp"
 
 #include "DepthProfiler.hpp"
-#include "ProfilePointOutput.hpp"
 #include "SonarReturnData.hpp"
 #include "SonarReturnDataPacket.hpp"
 
@@ -27,7 +26,9 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
   : io_service_(io_service),
     sensor_communication_(io_service_, host, local_port, remote_port),
     deltat_communication_(io_service_, "localhost", local_port, remote_port),
-    data_buffer_(std::unique_ptr<DataBuffer<>>(new DataBuffer<>()))
+    data_buffer_(std::unique_ptr<DataBuffer<>>(new DataBuffer<>())),
+    display_gain_(50),
+    current_display_gain_(0)
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     deltat_communication_.addRequestHandler(std::shared_ptr<RequestHandler>(this));
@@ -101,9 +102,19 @@ SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t leng
     //    std::unique_ptr<DataBuffer<>> profile_point_buffer = std::unique_ptr<DataBuffer<>>(new DataBuffer<>());
     //    std::unique_ptr<uint8_t[]>& stored_data = profile_point_buffer->moveToBuffer(data, length);
     //    ProfilePointOutput sonar_data(&(stored_data.get()[0]));
-
-    ProfilePointOutput sonar_data(data);
-    sonar_data.asMatrix();
+    if (current_display_gain_ < display_gain_)
+    {
+        ProfilePointOutput sonar_data(data);
+        profile_point_output_ += sonar_data;
+        current_display_gain_++;
+    }
+    else
+    {
+        ProfilePointOutput sonar_data(data);
+        std::cout << profile_point_output_.asMatrix().to_string() << std::endl;
+        profile_point_output_ = sonar_data;
+        current_display_gain_ = 0;
+    }
 
     // Return a message with 1 byte to reinitiate a connection.
     return SensorMessage(1);

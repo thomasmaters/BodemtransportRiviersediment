@@ -12,6 +12,7 @@
 #include "SensorMessage.hpp"
 
 #include <cstdint>
+#include <memory>
 
 namespace Communication
 {

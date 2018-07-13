@@ -12,7 +12,6 @@
 #include "Matrix.hpp"
 #include "SensorMessage.hpp"
 
-#include <cstring>
 #include <iomanip>
 
 #define TOTAL_BYTES_LOW 5
@@ -85,19 +84,13 @@ class ProfilePointOutput : public SensorMessage
     ProfilePointOutput& operator=(const ProfilePointOutput& rhs)
     {
         std::cout << __PRETTY_FUNCTION__ << std::endl;
-        if (this != &rhs)
-        {
-            //			std::mem
-            std::memcpy(data_, rhs.data_, command_length_);
-            //			data_ = rhs.data_;
-            size_ = rhs.size_;
-        }
+        SensorMessage::operator=(rhs);
         return *this;
     }
 
     ProfilePointOutput& operator+=(const ProfilePointOutput& rhs)
     {
-        uint16_t amount_of_beams          = 480;
+        uint16_t amount_of_beams          = getNumberOfBeams();
         std::size_t amount_zero           = 0;
         std::size_t amount_other_not_zero = 0;
         for (std::size_t i = 0; i < amount_of_beams; ++i)
@@ -105,12 +98,12 @@ class ProfilePointOutput : public SensorMessage
             if (getBeamRangeRaw(i) == 0 /* && rhs.getBeamRangeRaw(i) != 0*/)
             {
                 amount_zero++;
+            }
+            if (rhs.getBeamRangeRaw(i) != 0)
+            {
                 data_[256 + i * 2] = rhs.getData()[256 + i * 2];
                 data_[257 + i * 2] = rhs.getData()[257 + i * 2];
-                if (rhs.getBeamRangeRaw(i) != 0)
-                {
-                    amount_other_not_zero++;
-                }
+                amount_other_not_zero++;
             }
         }
 
@@ -214,14 +207,14 @@ class ProfilePointOutput : public SensorMessage
         {
             return std::array<float, 3>{ 0, 0, 0 };
         }
-        float beam_range = getCorrectedBeamRangeRaw(beam);
+        float beam_range = getBeamRangeRaw(beam);
         float beam_angle = toRadians(getStartAngle() + getAngleIncrement() * beam);
 
-        float z = beam_range * std::cos(beam_angle);
-        float x = beam_range * std::sin(beam_angle);
+        float x = beam_range * std::cos(-beam_angle);
+        float y = beam_range * std::sin(beam_angle);
         // std::cout << "Beam range: " << std::setw(8) << beam_range << " angle: " << std::setw(8) << beam_angle << " x:
         // " << std::setw(6) << x << " z: " << std::setw(6) << z << std::endl;
-        return std::array<float, 3>{ x, 0, z };
+        return std::array<float, 3>{ x, beam_range, y };
     }
 
     Matrix<MAX_BEAMS, 3, float> asMatrix() const

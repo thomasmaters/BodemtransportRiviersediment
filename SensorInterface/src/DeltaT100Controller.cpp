@@ -9,6 +9,7 @@
 #include "DeltaT100Controller.hpp"
 
 #include "DepthProfiler.hpp"
+#include "Filter.hpp"
 #include "SonarReturnData.hpp"
 #include "SonarReturnDataPacket.hpp"
 
@@ -27,7 +28,7 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
     sensor_communication_(io_service_, host, local_port, remote_port),
     deltat_communication_(io_service_, "localhost", local_port, remote_port),
     data_buffer_(std::unique_ptr<DataBuffer<>>(new DataBuffer<>())),
-    display_gain_(50),
+    display_gain_(20),
     current_display_gain_(0)
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
@@ -87,36 +88,33 @@ void DeltaT100Controller::cosntructSensorPing(Mode mode)
     // Construct a ping by moving the buffer into the ping.
     SonarReturnData ping(data_buffer_);
     // Create a new buffer.
+    //    FileHandler file;
+    //    file.openFile("output");
     data_buffer_ = std::unique_ptr<DataBuffer<>>(new DataBuffer<>());
-
-    // Add the ping to the profiler.
-    //    DepthProfiler::getInstance().addSensorPing(ping);
-
-    // Send new request for the next ping. TODO: Loop forever?
     sensor_communication_.sendRequest(switch_data_command_, SonarReturnDataPacket::command_length_, false);
 }
 
 SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t length)
 {
     std::cout << __PRETTY_FUNCTION__ << ": " << length << std::endl;
-    //    std::unique_ptr<DataBuffer<>> profile_point_buffer = std::unique_ptr<DataBuffer<>>(new DataBuffer<>());
-    //    std::unique_ptr<uint8_t[]>& stored_data = profile_point_buffer->moveToBuffer(data, length);
-    //    ProfilePointOutput sonar_data(&(stored_data.get()[0]));
+    ProfilePointOutput sonar_data(data);
+    depth_profiler_.addRawPoint(sonar_data.asMatrix());
+
     if (current_display_gain_ < display_gain_)
     {
-        ProfilePointOutput sonar_data(data);
         profile_point_output_ += sonar_data;
         current_display_gain_++;
     }
     else
     {
-        ProfilePointOutput sonar_data(data);
-        std::cout << profile_point_output_.asMatrix().to_string() << std::endl;
+        auto matrix = profile_point_output_.asMatrix();
+        ZeroFilter::applyFilter(matrix);
+        depth_profiler_.addProcessedPoint(matrix);
         profile_point_output_ = sonar_data;
         current_display_gain_ = 0;
     }
 
-    // Return a message with 1 byte to reinitiate a connection.
+    // Return a message with 1 byte to reopen a connection.
     return SensorMessage(1);
 }
 

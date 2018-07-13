@@ -36,6 +36,17 @@ class DepthProfiler
     {
     }
 
+    void addRawPoint(Matrix<N, 3, T> matrix)
+    {
+        raw_depth_data_.push_back(matrix);
+    }
+
+    void addProcessedPoint(Matrix<N, 3, T> matrix)
+    {
+        std::cout << matrix << std::endl;
+        depth_data_.push_back(matrix);
+    }
+
     Matrix<N, 3, T> getPointsWithDisplayGain(std::size_t index, uint16_t gain)
     {
         if (gain == 0)
@@ -101,7 +112,7 @@ class DepthProfiler
   private:
     FileHandler file_instance_;
     std::vector<Matrix<N, 3, T>> raw_depth_data_;
-    //    std::vector<Matrix<N, 3, T>> depth_data_;
+    std::vector<Matrix<N, 3, T>> depth_data_;
 
     std::size_t gain;
 };

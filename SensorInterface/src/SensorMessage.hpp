@@ -9,8 +9,8 @@
 #ifndef SRC_SENSORMESSAGE_HPP_
 #define SRC_SENSORMESSAGE_HPP_
 
+#include <algorithm>
 #include <cstdint>
-#include <memory>
 
 /**
  * Base class that can be converted to every protocol derived from it.
@@ -36,8 +36,9 @@ class SensorMessage
     /**
      * Copy constructor
      */
-    SensorMessage(const SensorMessage& rhs) : size_(rhs.size_), data_(rhs.data_)
+    SensorMessage(const SensorMessage& rhs) : size_(rhs.size_), data_(nullptr)
     {
+        std::copy(rhs.data_, rhs.data_ + size_, data_);
     }
 
     SensorMessage& operator=(const SensorMessage& rhs)
@@ -45,7 +46,7 @@ class SensorMessage
         if (this != &rhs)
         {
             size_ = rhs.size_;
-            data_ = rhs.data_;
+            std::copy(rhs.data_, rhs.data_ + size_, data_);
         }
         return *this;
     }

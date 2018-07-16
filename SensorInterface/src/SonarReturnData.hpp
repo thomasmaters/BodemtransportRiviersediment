@@ -30,19 +30,22 @@ class SonarReturnData : public SensorMessage
     {
     }
 
-    SonarReturnData(std::unique_ptr<DataBuffer<>>& buffer) : SensorMessage(SonarReturnDataPacket::command_length_ * 16)
+    SonarReturnData(std::unique_ptr<DataBuffer<>>& buffer, SwitchDataCommand& command) : SensorMessage(SonarReturnDataPacket::command_length_ * 16)
     {
         for (std::size_t i = 0; i < buffer->size(); ++i)
         {
             SensorMessage message = buffer->asMessage(i);
-            Controller::DeltaT100::SonarReturnDataPacket packet =
+            Controller::DeltaT100::SonarReturnDataPacket& packet =
                 (Controller::DeltaT100::SonarReturnDataPacket&)message;
-
-            addPacket(packet);
+            addPacket(packet, command);
+            if(i == 0)
+            {
+            	std::cout << std::bitset<8>(static_cast<std::underlying_type<SerialStatus>::type>(packet.getSerialStatus())) << "-";
+            }
         }
     }
 
-    void addPacket(SonarReturnDataPacket& packet)
+    void addPacket(SonarReturnDataPacket& packet, SwitchDataCommand& command)
     {
         std::pair<uint8_t*, uint16_t> a = packet.getEchoData();
         uint8_t packet_number = packet.getPacketNumber();
@@ -52,13 +55,22 @@ class SonarReturnData : public SensorMessage
         }
         if (packet_number == 0)
         {
-            initDataHeader(packet);
+            initDataHeader(packet, command);
         }
         std::memcpy(&data_[112 + packet_number * 1000], a.first, a.second);
     }
 
+    std::size_t getDataSize()
+    {
+    	if(data_[3] == 10)
+    	{
+    		return IUX_PACKET_SIZE;
+    	}
+    	return IVX_PACKET_SIZE;
+    }
+
   private:
-    void initDataHeader(SonarReturnDataPacket& packet)
+    void initDataHeader(SonarReturnDataPacket& packet, SwitchDataCommand& command)
     {
         std::memcpy(&data_[0], "837", 3);
 
@@ -84,8 +96,26 @@ class SonarReturnData : public SensorMessage
         data_[38] = packet.getCurrentSensorGain();
         std::memcpy(&data_[48], " dd.mm.xxxxx N", 14);
         std::memcpy(&data_[62], "ddd.mm.xxxxx E", 14);
-        data_[80] = (675 >> 8) & 0xFF;  // Operating frequency
-        data_[81] = (675 & 0xFF);       // Operating frequency
+        if(command.getData()[25] == 58)
+        {
+            data_[80] = (120 >> 8) & 0xFF;  // Operating frequency
+            data_[81] = (120 & 0xFF);       // Operating frequency
+        }
+        else if(command.getData()[25] == 86)
+        {
+            data_[80] = (260 >> 8) & 0xFF;  // Operating frequency
+            data_[81] = (260 & 0xFF);       // Operating frequency
+        }
+        else if(command.getData()[25] == 169)
+        {
+            data_[80] = (675 >> 8) & 0xFF;  // Operating frequency
+            data_[81] = (675 & 0xFF);       // Operating frequency
+        }
+        else
+		{
+            data_[80] = (1700 >> 8) & 0xFF;  // Operating frequency
+            data_[81] = (1700 & 0xFF);       // Operating frequency
+		}
         data_[88] = 0;                  // Repetition rate (This one is important for file playback)
         data_[89] = 76;                 // Repetition rate (This one is important for file playback)
         data_[90] = 86;                 // Display gain

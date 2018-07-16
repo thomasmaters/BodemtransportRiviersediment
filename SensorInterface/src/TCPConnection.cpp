@@ -41,7 +41,7 @@ void TCPSession::handleOutgoingConnection(const boost::asio::mutable_buffer& mes
                                           bool has_response_head_and_body,
                                           std::shared_ptr<ResponseHandler> response_handler)
 {
-    std::cout << "SEND( " << message.size() << ")" << std::endl;
+//    std::cout << "SEND( " << message.size() << ")" << std::endl;
     boost::asio::async_write(getSocket(),
                              boost::asio::buffer(message),
                              boost::bind(&TCPSession::handleResponse<Type>,
@@ -60,7 +60,7 @@ void TCPSession::handleResponse(Type response_indentifier,
                                 std::size_t bytes_transferd,
                                 std::shared_ptr<ResponseHandler> response_handler)
 {
-    std::cout << "Send: " << bytes_transferd << " bytes." << std::endl;
+//    std::cout << "Send: " << bytes_transferd << " bytes." << std::endl;
     if (!error)
     {
         boost::asio::streambuf aBuffer;
@@ -100,7 +100,7 @@ void TCPSession::handleReceivedResponse(bool has_response_head_and_body,
                                         std::size_t bytes_transferd,
                                         std::shared_ptr<ResponseHandler> response_handler)
 {
-    std::cout << "RESPONSE(" << bytes_transferd << "): " << std::endl;
+//    std::cout << "RESPONSE(" << bytes_transferd << "): " << std::endl;
     if (response_handler.use_count() > 0)
     {
         if (has_response_head_and_body)
@@ -246,7 +246,7 @@ void TCPServerClient::handleConnect(const boost::asio::mutable_buffer& message_b
 {
     if (!error)
     {
-        std::cout << "CONNECTED TO HOST" << std::endl;
+//        std::cout << "CONNECTED TO HOST" << std::endl;
         active_sesion_->handleOutgoingConnection(
             message_buffer, response_indentifier, has_response_head_and_body, response_handler_);
     }

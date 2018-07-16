@@ -14,7 +14,6 @@
 #include "SonarReturnDataPacket.hpp"
 
 #include <iostream>
-#include <random>
 #include <string>
 #include <thread>
 
@@ -29,7 +28,9 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
     deltat_communication_(io_service_, "localhost", local_port, remote_port),
     data_buffer_(std::unique_ptr<DataBuffer<>>(new DataBuffer<>())),
     display_gain_(20),
-    current_display_gain_(0)
+    current_display_gain_(0),
+	received_pings_(0),
+	current_setting_(0)
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     deltat_communication_.addRequestHandler(std::shared_ptr<RequestHandler>(this));
@@ -44,14 +45,12 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
 
 void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
 {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+//    std::cout << __PRETTY_FUNCTION__ << std::endl;
     if (length == SonarReturnDataPacket::command_length_)
     {
         // TODO: should we check if we are in bounds of a SonarReturnData message. length == SonarReturnData::length?
         std::unique_ptr<uint8_t[]>& stored_data = data_buffer_->moveToBuffer(data, length);
         SonarReturnDataPacket sonar_data(&(stored_data.get()[0]));
-
-        sonar_data.toString();
 
         if ((sonar_data.getSerialStatus() & SerialStatus::SWITCHOK) == SerialStatus::SWITCHOK)
         {
@@ -85,12 +84,29 @@ void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
 
 void DeltaT100Controller::cosntructSensorPing(Mode mode)
 {
+	if(received_pings_ > 30)
+	{
+		switch_data_command_.setPulseLength(kaas[current_setting_][0]);
+		switch_data_command_.setFrequency((Controller::DeltaT100::SwitchDataCommand::Frequency)kaas[current_setting_][1]);
+		switch_data_command_.setRange((Controller::DeltaT100::Range)kaas[current_setting_][2]);
+		switch_data_command_.setDataPoints((Controller::DeltaT100::Mode)kaas[current_setting_][3]);
+		switch_data_command_.setStartGain(kaas[current_setting_][4]);
+		switch_data_command_.setAbsorption(kaas[current_setting_][5]);
+		switch_data_command_.setAgcThreshold(kaas[current_setting_][6]);
+		std::cout << std::endl << "---------------TRYING SETTING: " << current_setting_ << "/8192 -----------------" << std::endl;
+		current_setting_++;
+		received_pings_ = 0;
+	}
+	received_pings_++;
     // Construct a ping by moving the buffer into the ping.
-    SonarReturnData ping(data_buffer_);
+    SonarReturnData ping(data_buffer_, switch_data_command_);
     // Create a new buffer.
-    //    FileHandler file;
-    //    file.openFile("output");
+	FileHandler file;
+	file.openFile("output.837");
+	file.getOutputStream().write((char*)ping.getData(), ping.getDataSize());
+//    file.getOutputStream() << ping.getData();
     data_buffer_ = std::unique_ptr<DataBuffer<>>(new DataBuffer<>());
+
     sensor_communication_.sendRequest(switch_data_command_, SonarReturnDataPacket::command_length_, false);
 }
 

@@ -7,24 +7,16 @@
  */
 
 #include "DeltaT100Controller.hpp"
-#include "SensorPing.hpp"
 
 #include <boost/asio.hpp>
-#include <boost/format.hpp>
-#include <iomanip>
 #include <iostream>
-#include <random>
 
 int main(int argc, char* argv[])
 {
-    std::stringstream ss3;
     try
     {
         if (argc == 5)
         {
-            std::random_device rd;
-            std::mt19937 generator(rd());
-
             boost::asio::io_service io_service;
             std::string arg1 = std::string(argv[1]);
             std::string arg2 = std::string(argv[2]);

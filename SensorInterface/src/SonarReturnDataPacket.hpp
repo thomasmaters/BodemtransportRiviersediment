@@ -24,7 +24,9 @@ enum class SerialStatus : uint8_t
     SWITCHERROR      = 0b00000001,
     PRHOK            = 0b00000000,
     PRHERROR         = 0b00000100,
+	SWITCHESDENIED   = 0b00000000,
     SWITCHESACCEPTED = 0b01000000,
+	CHARSOK			 = 0b00000000,
     CHARSOVERRUN     = 0b10000000
 };
 

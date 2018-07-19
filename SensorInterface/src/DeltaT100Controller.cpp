@@ -22,7 +22,8 @@ namespace Controller::DeltaT100
 DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
                                          const std::string& host,
                                          const std::string& local_port,
-                                         const std::string& remote_port)
+                                         const std::string& remote_port,
+										 std::size_t setting_start)
   : io_service_(io_service),
     sensor_communication_(io_service_, host, local_port, remote_port),
     deltat_communication_(io_service_, "localhost", local_port, remote_port),
@@ -30,7 +31,7 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
     display_gain_(20),
     current_display_gain_(0),
 	received_pings_(0),
-	current_setting_(0)
+	current_setting_(setting_start)
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     deltat_communication_.addRequestHandler(std::shared_ptr<RequestHandler>(this));
@@ -51,6 +52,25 @@ void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
         // TODO: should we check if we are in bounds of a SonarReturnData message. length == SonarReturnData::length?
         std::unique_ptr<uint8_t[]>& stored_data = data_buffer_->moveToBuffer(data, length);
         SonarReturnDataPacket sonar_data(&(stored_data.get()[0]));
+        if((sonar_data.getSerialStatus() & SerialStatus::SWITCHERROR) == SerialStatus::SWITCHERROR ||
+		(sonar_data.getSerialStatus() & SerialStatus::CHARSOVERRUN) == SerialStatus::CHARSOVERRUN ||
+		(sonar_data.getSerialStatus() & SerialStatus::PRHERROR) == SerialStatus::PRHERROR)
+        {
+			switch_data_command_.setPulseLength(kaas[current_setting_][0]);
+			switch_data_command_.setFrequency((Controller::DeltaT100::SwitchDataCommand::Frequency)kaas[current_setting_][1]);
+			switch_data_command_.setRange((Controller::DeltaT100::Range)kaas[current_setting_][2]);
+			switch_data_command_.setDataPoints((Controller::DeltaT100::Mode)kaas[current_setting_][3]);
+			switch_data_command_.setStartGain(kaas[current_setting_][4]);
+			switch_data_command_.setAbsorption(kaas[current_setting_][5]);
+			switch_data_command_.setAgcThreshold(kaas[current_setting_][6]);
+			std::cout << std::endl << "---------------TRYING SETTING: " << current_setting_ << "/8192 -----------------" << std::endl;
+			current_setting_++;
+			received_pings_ = 0;
+			switch_data_command_.setPacketNumberRequest(0);
+			cosntructSensorPing(sonar_data.getMode());
+			return;
+        }
+
 
         if ((sonar_data.getSerialStatus() & SerialStatus::SWITCHOK) == SerialStatus::SWITCHOK)
         {

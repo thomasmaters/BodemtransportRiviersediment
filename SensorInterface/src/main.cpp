@@ -25,7 +25,8 @@ int main(int argc, char* argv[])
             std::string arg1 = std::string(argv[1]);
             std::string arg2 = std::string(argv[2]);
             std::string arg3 = std::string(argv[3]);
-            Controller::DeltaT100::DeltaT100Controller asdf(io_service, arg1, arg2, arg3);
+            std::size_t arg4 = atoi(argv[4]);
+            Controller::DeltaT100::DeltaT100Controller asdf(io_service, arg1, arg2, arg3, arg4);
         }
         else
         {

@@ -56,6 +56,22 @@ Matrix<H, W, T>::Matrix(const Matrix<H, W, T>& rhs) : innerMatrix(rhs.innerMatri
 {
 }
 
+template <std::size_t H, std::size_t W, typename T>
+template <std::size_t aH, std::size_t aW>
+Matrix<H, W, T>::Matrix(const Matrix<aH,aW,T>& rhs, std::size_t heightStart, std::size_t widthStart)
+{
+	assert(heightStart + H <= aH);
+	assert(widthStart + W <= aW);
+
+    for (std::size_t i = 0; i < H; ++i)
+    {
+        for (std::size_t j = 0; j < W; ++j)
+        {
+        	innerMatrix.at(i).at(j) = rhs.at(heightStart + i, widthStart + j);
+        }
+    }
+}
+
 /************************************************************
  * Acces operators.
  ************************************************************/

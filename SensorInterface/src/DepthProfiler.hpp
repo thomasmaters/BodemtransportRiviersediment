@@ -16,6 +16,9 @@
 #include <thread>
 #include <vector>
 
+#define MAX_ITERATIONS 100
+#define STEP_SIZE 1e-5
+
 namespace Controller
 {
 /*
@@ -28,12 +31,23 @@ class DepthProfiler
     static_assert(std::is_arithmetic<T>::value, "Type must be aritmatic.");
 
   public:
-    DepthProfiler() : gain(1)
+    DepthProfiler()
     {
-    	Matrix<1,5,T> inputs({{0,1,2,3,4,5}});
-    	Matrix<1,5,T> outputs({{5,6,3,3,4,1}});
-    	Matrix<1,4,T> params({{1,1,5,1}});
-    	GaussNewton(inputs, outputs, params);
+    	try {
+            Matrix<31, 1, T> inputs({ 0,      0.1695, 0.376,  0.6165, 0.888,  1.1875, 1.512,  1.8585, 2.224,  2.6055, 3,
+                                      3.4235, 3.888,  4.3845, 4.904,  5.4375, 5.976,  6.5105, 7.032,  7.5315, 8,      8.445,
+                                      8.88,   9.305,  9.72,   10.125, 10.52,  10.905, 11.28,  11.645, 12 });
+            Matrix<31, 1, T> outputs({ 4,     4.03875, 4.1,   4.17625, 4.26,  4.34375, 4.42,  4.48125,
+                                       4.52,  4.52875, 4.5,   4.41975, 4.288, 4.11825, 3.924, 3.71875,
+                                       3.516, 3.32925, 3.172, 3.05775, 3,     3.001,   3.048, 3.132,
+                                       3.244, 3.375,   3.516, 3.658,   3.792, 3.909,   4 });
+            Matrix<4, 1, T> params({ 1, 1, 1, 1 });
+            gaussNewton(inputs, outputs, params);
+            std::cout << params << std::endl;
+		} catch (std::exception& e) {
+			std::cout << e.what() << std::endl;
+		}
+
     }
 
     virtual ~DepthProfiler()
@@ -151,89 +165,115 @@ class DepthProfiler
         std::vector<std::size_t> dalen;
         for (std::size_t i = 0; i < peaks_and_valleys.size() - 1; ++i)
         {
-
         }
     }
 
-    const float DERIV_STEP = 1e-5;
-    const std::size_t MAX_ITER = 100;
-
-    template<std::size_t H, std::size_t aH>
-    T Func(const Matrix<H,1,T>& input, const Matrix<aH,1,T>& params)
+    /**
+     * Function that the GaussNewton tries to calculate the parameters for.
+     */
+    template <std::size_t H, std::size_t aH>
+    T baseFunction(const Matrix<H, 1, T>& input, const Matrix<aH, 1, T>& params)
     {
+        T x = input.at(0, 0);
 
-    	T A = params.at(0,0);
-    	T B = params.at(1,0);
-    	T C = params.at(2,0);
-    	T D = params.at(3,0);
-
-    	T x = input.at(0,0);
-
-        return A*sin(B*x) + C*cos(D*x);
+        return params.at(0, 0) * std::pow(x, 3) + params.at(1, 0) * std::pow(x, 2) + params.at(2, 0) * x +
+               params.at(3, 0);
     }
 
-    template<std::size_t H, std::size_t aH>
-    T Deriv(const Matrix<H,1,T> &input, const Matrix<aH,1,T> &params, std::size_t n)
+    /**
+     * Calculated derivative using: (y1 - y0)/(x1-x0).
+     * But when doing so, it will change a parameter with a slight amount (DERIV_STEP).
+     */
+    template <std::size_t H, std::size_t aH>
+    T calculateDerivative(const Matrix<H, 1, T>& input, const Matrix<aH, 1, T>& params, std::size_t param_number)
     {
-    	// Assumes input is a single row matrix
+        // Make copy of the current parameters.
+        Matrix<aH, 1, T> params1(params);
+        Matrix<aH, 1, T> params2(params);
 
-    	// Returns the derivative of the nth parameter
-    	Matrix<aH,1,T> params1(params);
-    	Matrix<aH,1,T> params2(params);
+        // Use central difference  to get derivative.
+        params1.at(param_number, 0) -= STEP_SIZE;
+        params2.at(param_number, 0) += STEP_SIZE;
 
-    	// Use central difference  to get derivative
-    	params1.at(n,0) -= DERIV_STEP;
-    	params2.at(n,0) += DERIV_STEP;
+        T p1 = baseFunction(input, params1);
+        T p2 = baseFunction(input, params2);
 
-    	T p1 = Func(input, params1);
-    	T p2 = Func(input, params2);
-
-    	return (p2 - p1) / (2*DERIV_STEP);
+        return (p2 - p1) / (2 * STEP_SIZE);
     }
 
-    template<std::size_t H, std::size_t aH>
-    void GaussNewton(const Matrix<H,1,T> &inputs, const Matrix<H,1,T> &outputs, Matrix<aH,1,T> &params)
+    /**
+     * Solve the non-linear least square problem using the Gauss-Newton algorithme.
+     * https://en.wikipedia.org/wiki/Gauss%E2%80%93Newton_algorithm
+     */
+    template <std::size_t H, std::size_t W, std::size_t aH>
+    void gaussNewton(const Matrix<H, W, T>& inputs, const Matrix<H, W, T>& outputs, Matrix<aH, 1, T>& params, const float precision = 1e-8)
     {
-        std::size_t m = inputs.getHeight();
-        std::size_t n = inputs.getWidth();
-        std::size_t num_params = params.getHeight();
+        assert(H >= W);
 
-        Matrix<H,1,T> r; // residual matrix
-        Matrix<H,aH,T> Jf; // Jacobian of Func()
-        Matrix<1,1,T> input; // single row input
+        Matrix<H, 1, T> residuals;  // Residual matrix
+        Matrix<H, aH, T> jacobian;  // Jacobian matrix
+        Matrix<1, 1, T> input;      // Single row input
 
-        T last_mse = 0;
+        float last_deviation = 0;
 
-        for(std::size_t i=0; i < MAX_ITER; i++) {
-            T mse = 0;
+        for (std::size_t i = 0; i < MAX_ITERATIONS; i++)
+        {
+            float total_deviation = 0;
 
-            for(std::size_t j=0; j < m; j++) {
-            	for(std::size_t k=0; k < n; k++) {
-            		input.at(0,k) = inputs.at(j,k);
-            	}
+            for (std::size_t j = 0; j < H; j++)
+            {
+            	//Some compile time optimalisations.
+                if
+                    constexpr(W == 1)
+                    {
+                        input.at(0, 0) = inputs.at(j, 0);
+                    }
+                else
+                {
+                    for (std::size_t k = 0; k < W; k++)
+                    {
+                        input.at(0, k) = inputs.at(j, k);
+                    }
+                }
 
-                r.at(j,0) = outputs.at(j,0) - Func(input, params);
+                // r_i(beta)= y_i - f(x_i, \beta).
+                residuals.at(j, 0) = outputs.at(j, 0) - baseFunction(input, params);
+                // Add the square difference of the last derived parameter and the wanted value to the total deviation.
+                total_deviation += residuals.at(j, 0) * residuals.at(j, 0);
 
-                mse += r.at(j,0)*r.at(j,0);
-
-                for(std::size_t k=0; k < num_params; k++) {
-                	Jf.at(j,k) = Deriv(input, params, k);
+                for (std::size_t k = 0; k < aH; k++)
+                {
+                    jacobian.at(j, k) = calculateDerivative(input, params, k);
                 }
             }
 
-            mse /= m;
+            // Mean deviation over all the inputs.
+            total_deviation /= H;
 
-            // The difference in mse is very small, so quit
-            if(fabs(mse - last_mse) < 1e-8) {
-            	break;
+            //TODO: Maybe change this check to only check for the current deviation |total_deviation| < precision
+            //If the deviation is since last iteration is smaller then precision, we have found the best optimal value.
+            if (std::abs(total_deviation - last_deviation) < precision)
+            {
+                break;
             }
 
-            auto delta = (Jf.transpose() * Jf).inverse() * Jf.transpose() *r;
+            // beta^(s+1) = beta^s - (Jf.T * Jf)^-1 * Jf.T * r(beta^s)
+            auto jacobijnTranspose = jacobian.transpose();
+            auto delta             = (jacobijnTranspose * jacobian).inverse() * jacobijnTranspose * residuals;
+            last_deviation         = total_deviation;
+
             params += delta;
 
-            std::cout << "I: " << i << " " << mse << std::endl;
+            if (std::isnan(total_deviation))
+            {
+                throw std::runtime_error("NaN is found");
+            }
+            if (i + 1 == MAX_ITERATIONS)
+            {
+                throw std::runtime_error("Took to many iterations");
+            }
 
-            last_mse = mse;
+            std::cout << "Iteration: " << i << " " << total_deviation << std::endl;
         }
     }
 
@@ -241,8 +281,6 @@ class DepthProfiler
     FileHandler file_instance_;
     std::vector<Matrix<N, 3, T>> raw_depth_data_;
     std::vector<Matrix<N, 3, T>> depth_data_;
-
-    std::size_t gain;
 };
 
 } /* namespace Controller */

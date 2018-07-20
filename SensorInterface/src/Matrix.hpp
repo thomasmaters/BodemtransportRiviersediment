@@ -32,6 +32,9 @@ class Matrix
     // cppcheck-suppress noExplicitConstructor
     Matrix(const Matrix<H, W, T>& rhs);
 
+    template <std::size_t aH, std::size_t aW>
+    Matrix(const Matrix<aH,aW,T>& rhs, std::size_t heightStart, std::size_t widthStart);
+
     /************************************************
      * Access operators
      ************************************************/

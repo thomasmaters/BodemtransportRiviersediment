@@ -223,7 +223,10 @@ class ProfilePointOutput : public SensorMessage
         Matrix<MAX_BEAMS, 3, float> matrix;
         for (std::size_t i = 0; i < number_of_beams; ++i)
         {
-            matrix.at(i) = getBeamPosition(i);
+        	std::array<float,3> beam_pos = getBeamPosition(i);
+            matrix.at(i,0) = beam_pos.at(0);
+            matrix.at(i,1) = beam_pos.at(0);
+            matrix.at(i,2) = beam_pos.at(0);
         }
 
         return matrix;

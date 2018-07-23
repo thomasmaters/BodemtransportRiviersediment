@@ -98,7 +98,6 @@ SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t leng
 {
     std::cout << __PRETTY_FUNCTION__ << ": " << length << std::endl;
     ProfilePointOutput sonar_data(data);
-    depth_profiler_.addRawPoint(sonar_data.asMatrix());
 
     if (current_display_gain_ < display_gain_)
     {

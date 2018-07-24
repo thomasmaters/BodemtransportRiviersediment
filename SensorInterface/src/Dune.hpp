@@ -16,9 +16,9 @@
 
 struct Dune
 {
-    std::size_t start_;
-    std::size_t size_;
-    Matrix<4, 1, float> signature_;
+    std::size_t start_;              // Start in Matrix
+    std::size_t size_;               // Size in Matrix
+    Matrix<4, 1, float> signature_;  // ax^3 + bx^2 + cx + d values.
     float area_;
 
     std::string toString()

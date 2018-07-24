@@ -16,15 +16,15 @@
 
 struct Dune
 {
-    std::size_t start_;              // Start in Matrix
+    std::size_t start_index_;              // Start in Matrix
     std::size_t size_;               // Size in Matrix
     Matrix<4, 1, float> signature_;  // ax^3 + bx^2 + cx + d values.
-    float area_;
+    float surface_area_;
 
     std::string toString()
     {
-        return "start: " + std::to_string(start_) + " size: " + std::to_string(size_) + " area:" +
-               std::to_string(area_);
+        return "start: " + std::to_string(start_index_) + " size: " + std::to_string(size_) + " area:" +
+               std::to_string(surface_area_);
     }
 };
 
@@ -33,6 +33,39 @@ struct BottomProfile
 {
     Matrix<H, W, T> raw_data_;
     std::vector<Dune> dunes_;
+
+    std::vector<Dune> getSimularDune(const BottomProfile& profile, float precision)
+	{
+    	std::vector<Dune> result;
+
+    	for( const Dune& other_dune: profile.dunes_)
+    	{
+    		for( const Dune& dune : dunes_)
+    		{
+    			//TODO: Magic numbers
+    			//TODO; Remove debug and compact
+    			std::cout << "other: " << other_dune.start_index_ << " this: " << dune.start_index_ << std::endl;
+    			if(other_dune.start_index_ >= dune.start_index_)
+    			{
+    				std::cout << "Index same or bigger" << std::endl;
+    				if(std::abs((int32_t)other_dune.size_ - (int32_t)dune.size_) <= 5)
+					{
+    					std::cout << "Dune size simular" << std::endl;
+						if(std::abs(dune.surface_area_ - other_dune.surface_area_) <= 5)
+						{
+							std::cout << "Dune area simular" << std::endl;
+						}
+					}
+    			}
+    			else
+    			{
+    				std::cout << "Wave not simular" << std::endl;
+    				continue;
+    			}
+    		}
+    	}
+    	return result;
+	}
 };
 
 #endif /* SRC_DUNE_HPP_ */

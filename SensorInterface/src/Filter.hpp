@@ -42,12 +42,12 @@ class ZeroFilter : public Filter
                 if (i - index_first_not_zero > 1)
                 {
                     float diff0 = matrix.at(i, 0) - matrix.at(index_first_not_zero, 0);
-                    float diff2 = matrix.at(i, 2) - matrix.at(index_first_not_zero, 2);
+                    float diff2 = matrix.at(i, 1) - matrix.at(index_first_not_zero, 1);
 
                     for (std::size_t k = index_first_not_zero + 1; k < i; ++k)
                     {
                         matrix.at(k, 0) = matrix.at(i, 0) + diff0 / (i - index_first_not_zero) * (i - k + 1);
-                        matrix.at(k, 2) = matrix.at(i, 2) + diff2 / (i - index_first_not_zero) * (i - k + 1);
+                        matrix.at(k, 1) = matrix.at(i, 1) + diff2 / (i - index_first_not_zero) * (i - k + 1);
                     }
                 }
                 index_first_not_zero = i;
@@ -57,11 +57,27 @@ class ZeroFilter : public Filter
                 for (std::size_t k = index_first_not_zero + 1; k < H; ++k)
                 {
                     matrix.at(k, 0) = matrix.at(index_first_not_zero, 0);
-                    matrix.at(k, 2) = matrix.at(index_first_not_zero, 2);
+                    matrix.at(k, 1) = matrix.at(index_first_not_zero, 1);
                 }
             }
         }
     }
 };
+
+class PeakFilter : public Filter
+{
+    template <std::size_t H, typename T>
+    static void applyFilter(Matrix<H, 3, T>& matrix, float percentage)
+    {
+        for (std::size_t i = 0; i < H - 1; ++i)
+        {
+        	if(matrix.at(i,1) != 0 && matrix.at(i + 1,1) != 0 && std::abs((matrix.at(i+1,1) - matrix.at(i,1)) / matrix.at(i,1)) * 100 > percentage)
+        	{
+        		matrix.at(i + 1,1) = matrix.at(i,1);
+        	}
+        }
+    }
+};
+
 
 #endif /* SRC_FILTER_HPP_ */

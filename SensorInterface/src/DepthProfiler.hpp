@@ -20,6 +20,8 @@
 
 #define MAX_ITERATIONS 200
 #define STEP_SIZE 1e-5
+#define PRECISION 1e-6
+#define EPSILON 1e-14
 
 namespace Controller
 {
@@ -999,6 +1001,7 @@ class DepthProfiler
     	addRawPoint(input1);
     	addRawPoint(input2);
     	followWaveOverTime();
+//    	calculateRoot();
     }
 
     virtual ~DepthProfiler()
@@ -1011,13 +1014,62 @@ class DepthProfiler
         addProcessedPoint(matrix);
     }
 
+    /**
+     * Intersection with zero.
+     * Using Newtons method.
+     * https://en.wikipedia.org/wiki/Newton%27s_method
+     */
+    template<std::size_t H>
+    T calculateRoot(const Matrix<H,1,T>& params, T inital_guess = 1.0, float precision = PRECISION) const
+    {
+    	std::cout << __PRETTY_FUNCTION__ << std::endl;
+    	T guess = inital_guess;
+    	T new_guess = 0;
+
+    	for (std::size_t i = 0; i < MAX_ITERATIONS; ++i)
+    	{
+			T y = baseFunction(guess, params);
+			T yp = baseDerivtive(guess, params);
+
+			if(std::abs(yp) < EPSILON)
+			{
+				throw std::runtime_error("Determinat ~= 0");
+			}
+
+			//Wikipedia says its 'guess - y/yp' but that will diverge from the correct answer.
+			new_guess = guess + y/yp;
+			std::cout << "error: " << std::abs(new_guess - guess) << " guess: " << guess << " y: " << y << std::endl;
+			if(std::abs(new_guess - guess) <= precision * abs(new_guess))
+			{
+				std::cout << "Found intersection at: " << new_guess << std::endl;
+		    	return new_guess;
+			}
+
+			guess = new_guess;
+		}
+    	throw std::runtime_error("Took to many iterations.");
+    }
+
+    float calculateMovedArea(Dune& aDune, Dune& bDune)
+    {
+    	Matrix<4,1,T> input({-0.003143,0.007429,0.330888,2.789048});
+    	//Where input2 is shifted to the right by 'h'.
+    	Matrix<4,1,T> input2({-0.003143,0.007429,0.330888,2.789048});
+    	float area_of_b = calculateArea(bDune.signature_, 0, 6);
+    	float area_of_a = calculateArea(aDune.signature_, 6, 12);
+    	float moved_area = aDune.surface_area_ - (area_of_a + area_of_b);
+    	return moved_area;
+    }
+
     float calculateArea(const Matrix<4, 1, T>& params, T start, T end)
     {
-        float y1 = ((1.0 / 4) * params.at(0, 0) * std::pow(start, 4)) +
-                   ((1.0 / 3) * params.at(1, 0) * std::pow(start, 3)) +
-                   ((1.0 / 2) * params.at(2, 0) * std::pow(start, 2)) + params.at(3, 0) * start;
-        float y2 = ((1.0 / 4) * params.at(0, 0) * std::pow(end, 4)) + ((1.0 / 3) * params.at(1, 0) * std::pow(end, 3)) +
-                   ((1.0 / 2) * params.at(2, 0) * std::pow(end, 2)) + params.at(3, 0) * end;
+    	float y1 = baseDerivtive(start, params);
+    	float y2 = baseDerivtive(end, params);
+//        float y1 = ((1.0 / 4) * params.at(0, 0) * std::pow(start, 4)) +
+//                   ((1.0 / 3) * params.at(1, 0) * std::pow(start, 3)) +
+//                   ((1.0 / 2) * params.at(2, 0) * std::pow(start, 2)) + params.at(3, 0) * start;
+//        float y2 = ((1.0 / 4) * params.at(0, 0) * std::pow(end, 4)) + ((1.0 / 3) * params.at(1, 0) * std::pow(end, 3)) +
+//                   ((1.0 / 2) * params.at(2, 0) * std::pow(end, 2)) + params.at(3, 0) * end;
         return std::abs(y2 - y1);
     }
 
@@ -1048,14 +1100,16 @@ class DepthProfiler
                 {
                     return;
                 }
-                Matrix<60, 2, float> single_dune_matrix(matrix, dune.size_, 0);
+                Matrix<60, 2, float> single_dune_matrix(matrix, dune.start_index_, 0);
 
                 // Translate x values so they start from 0. (This helps the Gausse-Newton algorithme find a result.)
                 T start_x = single_dune_matrix.at(0, 0);
+                std::cout << "Start x: " << start_x << std::endl;
                 for (std::size_t i = 0; i < dune.size_ + 1; ++i)
                 {
                     single_dune_matrix.at(i, 0) -= start_x;
                 }
+                std::cout << single_dune_matrix << std::endl;
 
                 Matrix<4, 1, T> params({ 1, 1, 1, 1 });
                 gaussNewton(single_dune_matrix, params, dune.size_);
@@ -1158,6 +1212,21 @@ class DepthProfiler
 
         return params.at(0, 0) * std::pow(x, 3) + params.at(1, 0) * std::pow(x, 2) + params.at(2, 0) * x +
                params.at(3, 0);
+    }
+
+    template <std::size_t H>
+    T baseFunction(T x, const Matrix<H, 1, T>& params) const
+    {
+        return params.at(0, 0) * std::pow(x, 3) + params.at(1, 0) * std::pow(x, 2) + params.at(2, 0) * x +
+               params.at(3, 0);
+    }
+
+    template <std::size_t H>
+    T baseDerivtive(T x, const Matrix<H,1,T>& params) const
+    {
+    	  return ((1.0 / 4) * params.at(0, 0) * std::pow(x, 4)) +
+    	                   ((1.0 / 3) * params.at(1, 0) * std::pow(x, 3)) +
+    	                   ((1.0 / 2) * params.at(2, 0) * std::pow(x, 2)) + params.at(3, 0) * x;
     }
 
     /**

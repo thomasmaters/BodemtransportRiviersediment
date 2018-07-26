@@ -71,13 +71,13 @@ class PeakFilter : public Filter
     {
         for (std::size_t i = 0; i < H - 1; ++i)
         {
-        	if(matrix.at(i,1) != 0 && matrix.at(i + 1,1) != 0 && std::abs((matrix.at(i+1,1) - matrix.at(i,1)) / matrix.at(i,1)) * 100 > percentage)
-        	{
-        		matrix.at(i + 1,1) = matrix.at(i,1);
-        	}
+            if (matrix.at(i, 1) != 0 && matrix.at(i + 1, 1) != 0 &&
+                std::abs((matrix.at(i + 1, 1) - matrix.at(i, 1)) / matrix.at(i, 1)) * 100 > percentage)
+            {
+                matrix.at(i + 1, 1) = matrix.at(i, 1);
+            }
         }
     }
 };
-
 
 #endif /* SRC_FILTER_HPP_ */

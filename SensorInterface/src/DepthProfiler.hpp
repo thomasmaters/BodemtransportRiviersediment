@@ -1000,7 +1000,6 @@ class DepthProfiler
 
         addRawPoint(input1);
         addRawPoint(input2);
-        followWaveOverTime();
         //    	calculateRoot();
     }
 
@@ -1087,27 +1086,28 @@ class DepthProfiler
     }
 
     // https://math.stackexchange.com/questions/1300934/intersection-of-two-parabolas-where-one-is-vertex-shifted
-    float calculateMovedArea(Dune& aDune, Dune& bDune)
+    float calculateMovedArea(const Dune& dune_left, const Dune& dune_right) const
     {
         std::cout << __PRETTY_FUNCTION__ << std::endl;
         //Calculate the how much our dune has moved across the x axis.
-        T x_diff = bDune.start_x_ - aDune.start_x_;
+        T x_diff = dune_right.start_x_ - dune_left.start_x_;
         //Calculate intersection between the dunes.
         //TODO: better inital guess based on dune length.
-        T root = calculateRoot(aDune.signature_, bDune.signature_, 10.0, x_diff);
+        T root = calculateRoot(dune_left.signature_, dune_right.signature_, 10.0, x_diff);
 
         //Calculate how much of the dune has stayed in place
-        float area_of_a  = calculateArea(aDune.signature_, root, 12);
-        float area_of_b  = calculateArea(bDune.signature_, x_diff, root);
-        float moved_area = bDune.surface_area_ - (area_of_a + area_of_b);
+        float area_of_a  = calculateArea(dune_left.signature_, root, 12);
+        float area_of_b  = calculateArea(dune_right.signature_, x_diff, root);
+        float moved_area = dune_right.surface_area_ - (area_of_a + area_of_b);
+
         std::cout << "x_diff: " << x_diff << " Root: " << root << " Moved area: " << moved_area << std::endl;
         return moved_area;
     }
 
-    float calculateArea(const Matrix<4, 1, T>& params, T start, T end)
+    T calculateArea(const Matrix<4, 1, T>& params, T start, T end) const
     {
-        float y1 = baseIntergral(start, params);
-        float y2 = baseIntergral(end, params);
+        T y1 = baseIntergral(start, params);
+        T y2 = baseIntergral(end, params);
         return std::abs(y2 - y1);
     }
 
@@ -1142,13 +1142,7 @@ class DepthProfiler
                 Matrix<60, 2, float> single_dune_matrix(matrix, dune.start_index_, 0);
 
                 // Translate x values so they start from 0. (This helps the Gausse-Newton algorithme find a result.)
-                T start_x = single_dune_matrix.at(0, 0);
-                std::cout << "Start x: " << start_x << std::endl;
-                for (std::size_t i = 0; i < dune.size_index_ + 1; ++i)
-                {
-                    single_dune_matrix.at(i, 0) -= start_x;
-                }
-                std::cout << single_dune_matrix << std::endl;
+                shiftWaveToZero(single_dune_matrix, dune.size_index_ + 1);
 
                 Matrix<4, 1, T> params({ 1, 1, 1, 1 });
                 gaussNewton(single_dune_matrix, params, dune.size_index_);
@@ -1160,6 +1154,12 @@ class DepthProfiler
                 std::cout << params << std::endl;
             }
 
+            //Calculate the transport!
+            if(depth_data_.size() > 0)
+            {
+            	getTransportOverTime(depth_data_.back(), bottom_profile);
+            }
+
             depth_data_.push_back(bottom_profile);
         }
         catch (std::exception& e)
@@ -1168,7 +1168,18 @@ class DepthProfiler
         }
     }
 
-    void followWaveOverTime()
+    template<std::size_t H, std::size_t W>
+    void shiftWaveToZero(Matrix<H,W,T>& matrix, std::size_t dune_size) const
+    {
+        T start_x = matrix.at(0, 0);
+        std::cout << "Start x: " << start_x << std::endl;
+        for (std::size_t i = 0; i < dune_size + 1; ++i)
+        {
+        	matrix.at(i, 0) -= start_x;
+        }
+    }
+
+    void getTransportForAllData() const
     {
         if (depth_data_.size() < 2)
         {
@@ -1177,10 +1188,29 @@ class DepthProfiler
 
         for (std::size_t i = 0; i < depth_data_.size() - 1; ++i)
         {
-            depth_data_.at(i).getSimularDune(depth_data_.at(i + 1), 0.01);
+        	getTransportOverTime(depth_data_.at(i), depth_data_.at(i+1));
         }
+    }
 
-        calculateMovedArea(depth_data_.at(0).dunes_.at(0), depth_data_.at(1).dunes_.at(0));
+    template<std::size_t H, std::size_t W>
+    void getTransportOverTime(const BottomProfile<H,W,T>& profile_first, BottomProfile<H,W,T>& profile_second) const
+    {
+    	std::cout << __PRETTY_FUNCTION__ << std::endl;
+    	std::vector<std::pair<Dune,Dune>> simular_dunes = profile_first.getSimularDune(profile_second, 0.01);
+		if(simular_dunes.size() > 0)
+		{
+			float total_transport = 0;
+			for(const auto& i : simular_dunes)
+			{
+				total_transport += calculateMovedArea(i.first, i.second);
+			}
+			profile_second.average_transport_ = total_transport/simular_dunes.size();
+		}
+		else
+		{
+			profile_second.average_transport_ = 0;
+		}
+		std::cout << "Average transport: " << profile_second.average_transport_ << std::endl;
     }
 
     template <std::size_t H, std::size_t W>
@@ -1188,7 +1218,6 @@ class DepthProfiler
     {
         Matrix<H - 1, 2, T> result;
 
-        // TODO: Do we get the correct matrix values?
         for (std::size_t i = 0; i < H - 1; ++i)
         {
             result[i][0] = matrix[i][0];
@@ -1211,7 +1240,7 @@ class DepthProfiler
                 abs(afgeleide[i][0] - last_found_x) > minimal_x_diff)
             {
                 last_found_x = afgeleide[i][0];
-                result.push_back(i);
+                result.push_back(i+1);
             }
         }
         std::cout << "Found: " << result.size() << " peaks or valleys" << std::endl;
@@ -1271,7 +1300,6 @@ class DepthProfiler
             T c = params.at(2, 0);
             T d = params.at(3, 0);
 
-            //    		return a*std::pow(x-h,3) + b*std::pow(x-h,2) + c*(x-h) + d;
             return (-a) * std::pow(h, 3) + 3 * a * std::pow(h, 2) * x - 3 * a * h * std::pow(x, 2) +
                    a * std::pow(x, 3) + b * std::pow(h, 2) - 2 * b * h * x + b * std::pow(x, 2) - c * h + c * x + d;
         }
@@ -1310,7 +1338,6 @@ class DepthProfiler
         }
         else
         {
-            //    		return 3 * params.at(0,0) * std::pow(x-h,2) + 2 * params.at(1,0) * (x-h) + params.at(2,0);
             return (h - x) * (3 * params.at(0, 0) * (h - x) - 2 * params.at(1, 0)) + params.at(2, 0);
         }
     }

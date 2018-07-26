@@ -26,9 +26,11 @@ class SerialClientServer : public Communication::ConnectionInterface,
   public:
     SerialClientServer(boost::asio::io_service& io_service, const std::string& port_name, uint32_t baudrate);
 
-    void sendRequest(const SensorMessage& message, std::size_t response_size, bool has_response_head_and_body = false);
+    void sendRequest(const SensorMessage& message,
+                     std::size_t response_size,
+                     bool has_response_head_and_body = false) override;
 
-    void sendRequest(const SensorMessage& message, char delimiter, bool has_response_head_and_body = false);
+    void sendRequest(const SensorMessage& message, char delimiter, bool has_response_head_and_body = false) override;
 
     void sendRequest(std::string message, std::size_t response_size);
 

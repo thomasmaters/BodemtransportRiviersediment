@@ -25,9 +25,9 @@ class UDPServerClient : public ConnectionInterface, public std::enable_shared_fr
 {
   public:
     UDPServerClient(boost::asio::io_service& io_service,
-                    std::string host,
-                    std::string remote_port,
-                    std::string local_port);
+                    const std::string& host,
+                    const std::string& remote_port,
+                    const std::string& local_port);
 
     void sendRequest(const SensorMessage& message, std::size_t response_size, bool has_response_head_and_body = false);
 

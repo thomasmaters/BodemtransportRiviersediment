@@ -63,6 +63,7 @@ class SensorMessage
 
     virtual ~SensorMessage()
     {
+        delete[] data_;
     }
 
   protected:

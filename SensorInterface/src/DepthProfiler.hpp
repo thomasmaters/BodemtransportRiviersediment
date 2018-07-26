@@ -1089,17 +1089,18 @@ class DepthProfiler
     float calculateMovedArea(const Dune& dune_left, const Dune& dune_right) const
     {
         std::cout << __PRETTY_FUNCTION__ << std::endl;
-        //Calculate the how much our dune has moved across the x axis.
+        // Calculate the how much our dune has moved across the x axis.
         T x_diff = dune_right.start_x_ - dune_left.start_x_;
-        //Calculate intersection between the dunes.
-        //TODO: better inital guess based on dune length.
+        // Calculate intersection between the dunes.
+        // TODO: better initial guess based on dune length.
         T root = calculateRoot(dune_left.signature_, dune_right.signature_, 10.0, x_diff);
 
-        //Calculate how much of the dune has stayed in place
+        // Calculate how much of the dune has stayed in place
         float area_of_a  = calculateArea(dune_left.signature_, root, 12);
-        float area_of_b  = calculateArea(dune_right.signature_, x_diff, root);
+        float area_of_b  = calculateArea(dune_right.signature_, 0, root + x_diff);
         float moved_area = dune_right.surface_area_ - (area_of_a + area_of_b);
 
+        std::cout << "area_a: " << area_of_a << " area_b: " << area_of_b << std::endl;
         std::cout << "x_diff: " << x_diff << " Root: " << root << " Moved area: " << moved_area << std::endl;
         return moved_area;
     }
@@ -1116,7 +1117,8 @@ class DepthProfiler
         try
         {
             BottomProfile<N, 3, T> bottom_profile;
-            bottom_profile.raw_data_ = matrix;
+            bottom_profile.raw_data_          = matrix;
+            bottom_profile.average_transport_ = 0;
 
             // Calculate ax^3 + bx^2 + cx + d
             auto afgeleide                             = calculateAfgeleide(matrix);
@@ -1154,10 +1156,10 @@ class DepthProfiler
                 std::cout << params << std::endl;
             }
 
-            //Calculate the transport!
-            if(depth_data_.size() > 0)
+            // Calculate the transport!
+            if (depth_data_.size() > 0)
             {
-            	getTransportOverTime(depth_data_.back(), bottom_profile);
+                getTransportOverTime(depth_data_.back(), bottom_profile);
             }
 
             depth_data_.push_back(bottom_profile);
@@ -1168,14 +1170,14 @@ class DepthProfiler
         }
     }
 
-    template<std::size_t H, std::size_t W>
-    void shiftWaveToZero(Matrix<H,W,T>& matrix, std::size_t dune_size) const
+    template <std::size_t H, std::size_t W>
+    void shiftWaveToZero(Matrix<H, W, T>& matrix, std::size_t dune_size) const
     {
         T start_x = matrix.at(0, 0);
         std::cout << "Start x: " << start_x << std::endl;
         for (std::size_t i = 0; i < dune_size + 1; ++i)
         {
-        	matrix.at(i, 0) -= start_x;
+            matrix.at(i, 0) -= start_x;
         }
     }
 
@@ -1188,29 +1190,38 @@ class DepthProfiler
 
         for (std::size_t i = 0; i < depth_data_.size() - 1; ++i)
         {
-        	getTransportOverTime(depth_data_.at(i), depth_data_.at(i+1));
+            getTransportOverTime(depth_data_.at(i), depth_data_.at(i + 1));
         }
     }
 
-    template<std::size_t H, std::size_t W>
-    void getTransportOverTime(const BottomProfile<H,W,T>& profile_first, BottomProfile<H,W,T>& profile_second) const
+    template <std::size_t H, std::size_t W>
+    void getTransportOverTime(const BottomProfile<H, W, T>& profile_first, BottomProfile<H, W, T>& profile_second) const
     {
-    	std::cout << __PRETTY_FUNCTION__ << std::endl;
-    	std::vector<std::pair<Dune,Dune>> simular_dunes = profile_first.getSimularDune(profile_second, 0.01);
-		if(simular_dunes.size() > 0)
-		{
-			float total_transport = 0;
-			for(const auto& i : simular_dunes)
-			{
-				total_transport += calculateMovedArea(i.first, i.second);
-			}
-			profile_second.average_transport_ = total_transport/simular_dunes.size();
-		}
-		else
-		{
-			profile_second.average_transport_ = 0;
-		}
-		std::cout << "Average transport: " << profile_second.average_transport_ << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
+        std::vector<std::pair<Dune, Dune>> simular_dunes = profile_first.getSimularDune(profile_second, 0.01);
+        if (simular_dunes.size() > 0)
+        {
+            float total_transport       = 0;
+            std::size_t calculatedDunes = 0;
+            for (const auto& i : simular_dunes)
+            {
+                try
+                {
+                    total_transport += calculateMovedArea(i.first, i.second);
+                    calculatedDunes++;
+                }
+                catch (std::exception& e)
+                {
+                    continue;
+                }
+            }
+            profile_second.average_transport_ = total_transport / calculatedDunes;
+        }
+        else
+        {
+            profile_second.average_transport_ = 0;
+        }
+        std::cout << "Average transport: " << profile_second.average_transport_ << std::endl;
     }
 
     template <std::size_t H, std::size_t W>
@@ -1240,7 +1251,7 @@ class DepthProfiler
                 abs(afgeleide[i][0] - last_found_x) > minimal_x_diff)
             {
                 last_found_x = afgeleide[i][0];
-                result.push_back(i+1);
+                result.push_back(i + 1);
             }
         }
         std::cout << "Found: " << result.size() << " peaks or valleys" << std::endl;

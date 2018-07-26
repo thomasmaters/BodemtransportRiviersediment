@@ -17,9 +17,9 @@
 namespace Communication::UDP
 {
 UDPServerClient::UDPServerClient(boost::asio::io_service& io_service,
-                                 std::string host,
-                                 std::string remote_port,
-                                 std::string local_port)
+                                 const std::string& host,
+                                 const std::string& remote_port,
+                                 const std::string& local_port)
   : host_(host),
     remote_port_(remote_port),
     local_port_(local_port),

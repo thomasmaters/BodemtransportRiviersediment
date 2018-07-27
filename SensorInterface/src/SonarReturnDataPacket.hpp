@@ -40,7 +40,7 @@ class SonarReturnDataPacket : public SensorMessage
     {
     }
 
-    SonarReturnDataPacket(uint8_t* data) : SensorMessage(data, command_length_)
+    explicit SonarReturnDataPacket(uint8_t* data) : SensorMessage(data, command_length_)
     {
     }
 

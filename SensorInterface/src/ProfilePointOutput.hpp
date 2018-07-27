@@ -66,7 +66,7 @@ class ProfilePointOutput : public SensorMessage
         std::cout << __PRETTY_FUNCTION__ << std::endl;
     }
 
-    ProfilePointOutput(uint8_t* data) : SensorMessage(data, command_length_)
+    explicit ProfilePointOutput(uint8_t* data) : SensorMessage(data, command_length_)
     {
         std::cout << __PRETTY_FUNCTION__ << std::endl;
     }

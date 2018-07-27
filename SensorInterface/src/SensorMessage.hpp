@@ -22,7 +22,7 @@ class SensorMessage
     /**
      * Constructor
      */
-    SensorMessage(std::size_t size) : size_(size), data_(new uint8_t[size]{ 0 })
+    explicit SensorMessage(std::size_t size) : size_(size), data_(new uint8_t[size]{ 0 })
     {
     }
 

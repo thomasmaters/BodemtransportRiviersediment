@@ -8,7 +8,6 @@
 
 #include "DeltaT100Controller.hpp"
 
-#include "Filter.hpp"
 #include "SonarReturnData.hpp"
 #include "SonarReturnDataPacket.hpp"
 
@@ -79,7 +78,8 @@ void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
     else
     {
         std::cout << "Length mismatch expected: " << std::to_string(SonarReturnDataPacket::command_length_)
-                  << " got: " << std::to_string(length) << std::endl;
+                  << " got: " << std::to_string(length) << " Resending last package." << std::endl;
+        sensor_communication_.sendRequest(switch_data_command_, SonarReturnDataPacket::command_length_, false);
     }
 }
 
@@ -87,9 +87,6 @@ void DeltaT100Controller::cosntructSensorPing()
 {
     // Construct a ping by moving the buffer into the ping.
     SonarReturnData ping(data_buffer_);
-    // Create a new buffer.
-    //    FileHandler file;
-    //    file.openFile("output");
     data_buffer_ = std::unique_ptr<DataBuffer<>>(new DataBuffer<>());
     sensor_communication_.sendRequest(switch_data_command_, SonarReturnDataPacket::command_length_, false);
 }
@@ -97,24 +94,29 @@ void DeltaT100Controller::cosntructSensorPing()
 SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t length)
 {
     std::cout << __PRETTY_FUNCTION__ << ": " << length << std::endl;
-    ProfilePointOutput sonar_data(data);
-
-    if (current_display_gain_ < display_gain_)
+    if(length == ProfilePointOutput::command_length_)
     {
-        profile_point_output_ += sonar_data;
-        current_display_gain_++;
-    }
-    else
-    {
-        auto matrix = profile_point_output_.asMatrix();
-        ZeroFilter::applyFilter(matrix);
-        depth_profiler_.addProcessedPoint(matrix);
-        profile_point_output_ = sonar_data;
-        current_display_gain_ = 0;
+		ProfilePointOutput sonar_data(data);
+
+		if (current_display_gain_ < display_gain_)
+		{
+			profile_point_output_ += sonar_data;
+			current_display_gain_++;
+		}
+		else
+		{
+			auto matrix = profile_point_output_.asMatrix();
+			depth_profiler_.addProcessedPoint(matrix);
+			profile_point_output_ = sonar_data;
+			current_display_gain_ = 0;
+		}
+
+	    // Return a message with 1 byte to reopen a connection.
+	    return SensorMessage(1);
     }
 
-    // Return a message with 1 byte to reopen a connection.
-    return SensorMessage(1);
+    //Return an empty message to stop the connection.
+    return SensorMessage(0);
 }
 
 void DeltaT100Controller::requestSensorPing(const SwitchDataCommand& command)

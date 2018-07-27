@@ -4,16 +4,16 @@ f_instance = open("wave_anitdunes.txt", 'w')
 
 r = 0.5
 tensionMatrix = np.matrix([[0,1,0,0],[-r,0,r,0],[2*r,r-3,3-2*r,-r],[-r,2-r,r-2,r]])
-waveArray = [[0,4,0],[3,4.5,0],[8,3,0]] #Breaking wave antidunes       12
+#waveArray = [[0,4,0],[3,4.5,0],[8,3,0]] #Breaking wave antidunes       12
 #waveArray = [[0,3.5,0],[3,2,0],[6,5,0]] #Anitdunes                     9
-#waveArray = [[0,4,0],[4,5.5,0],[7,4,0],[10,3,0]] #Standig wave antidunes13
+waveArray = [[0,4,0],[4,5.5,0],[7,4,0],[10,3,0]] #Standig wave antidunes13
 #waveArray = [[0,5,0],[5,5,0]]           #plane bed                     10
 #waveArray = [[0,4,0],[2,4.5,0],[5,3,0]] #Washed-out dunes              10
 #waveArray = [[0,5,0],[3,6,0],[6,2.5,0]] #Dunes                         9
 #waveArray = [[0,3,0],[1,4,0],[2,3.5,0],[4,5.5,0]] #Dunes, with superimposed ripples 6
 #waveArray = [[0,4,0],[2,3,0]]           #Ripples                       4
 waveArraySize = len(waveArray)
-waveSize = 12
+waveSize = 13
 
 for x in range(0, 119):
     for y in range(0, waveArraySize):

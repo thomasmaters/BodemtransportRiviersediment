@@ -24,10 +24,6 @@
 
 namespace Controller
 {
-/*
- *
- */
-// Datapoints per ping. Type to store the pings as.
 template <std::size_t N, typename T = float>
 class DepthProfiler
 {

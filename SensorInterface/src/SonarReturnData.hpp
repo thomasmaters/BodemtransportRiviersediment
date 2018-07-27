@@ -30,7 +30,7 @@ class SonarReturnData : public SensorMessage
     {
     }
 
-    SonarReturnData(std::unique_ptr<DataBuffer<>>& buffer) : SensorMessage(SonarReturnDataPacket::command_length_ * 16)
+    explicit SonarReturnData(std::unique_ptr<DataBuffer<>>& buffer) : SensorMessage(SonarReturnDataPacket::command_length_ * 16)
     {
         for (std::size_t i = 0; i < buffer->size(); ++i)
         {

@@ -24,7 +24,7 @@ class FileHandler
     {
     }
 
-    FileHandler(const std::string& fileName)
+    explicit FileHandler(const std::string& fileName)
     {
         openFile(fileName);
     }

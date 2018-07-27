@@ -21,7 +21,7 @@ struct Dune
 
     float start_x_;
 
-    Matrix<4, 1, float> signature_;  // ax^3 + bx^2 + cx + d values.
+    Matrix<4, 1, float> signature_;  // Polynomial coefficients.
     float surface_area_;
 
     std::string toString()
@@ -38,6 +38,7 @@ struct BottomProfile
     std::vector<Dune> dunes_;
     float average_transport_;  // Transport averaged over all the dunes as compared to the last BottomProfile.
 
+    // TODO: Magic numbers
     std::vector<std::pair<Dune, Dune>> getSimularDune(const BottomProfile& profile, float precision = 5) const
     {
         std::vector<std::pair<Dune, Dune>> result;
@@ -45,19 +46,12 @@ struct BottomProfile
         {
             for (const Dune& dune : dunes_)
             {
-                // TODO: Magic numbers
-                // TODO; Remove debug and compact
-                std::cout << "other: " << other_dune.start_index_ << " this: " << dune.start_index_ << std::endl;
                 if (other_dune.start_index_ >= dune.start_index_ &&
                     std::abs((int32_t)other_dune.size_index_ - (int32_t)dune.size_index_) <= precision &&
-                    std::abs(dune.surface_area_ - other_dune.surface_area_) <= precision)
+                    std::abs(dune.surface_area_ - other_dune.surface_area_) <= precision
+					)
                 {
                     result.push_back(std::make_pair(other_dune, dune));
-                }
-                else
-                {
-                    std::cout << "Wave not simular" << std::endl;
-                    continue;
                 }
             }
         }

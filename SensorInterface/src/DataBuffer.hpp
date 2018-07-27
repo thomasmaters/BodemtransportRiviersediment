@@ -30,11 +30,6 @@ class DataBuffer
     }
 
     DataBuffer(const DataBuffer& rhs) = delete;
-    //    {
-    //    	std::cout << __PRETTY_FUNCTION__ << std::endl;
-    //    	rhs.data_store_ = std::move(data_store_);
-    //    	rhs.reserved_data_store_ = std::move(reserved_data_store_);
-    //    }
 
     DataBuffer& operator=(const DataBuffer& rhs)
     {

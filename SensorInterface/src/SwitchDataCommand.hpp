@@ -284,7 +284,7 @@ class SwitchDataCommand : public SensorMessage
     void setSwitchDelay(uint16_t value)
     {
         uint8_t aValue = value / 2;
-        data_[24] = aValue;
+        data_[24]      = aValue;
     }
 
     // Sets the switch delay directly to this value.

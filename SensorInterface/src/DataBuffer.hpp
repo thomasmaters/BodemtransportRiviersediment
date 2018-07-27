@@ -8,6 +8,9 @@
 
 #ifndef SRC_DATABUFFER_HPP_
 #define SRC_DATABUFFER_HPP_
+
+#include "SensorMessage.hpp"
+
 #include <cstdint>
 #include <iostream>
 #include <memory>

@@ -58,16 +58,16 @@ Matrix<H, W, T>::Matrix(const Matrix<H, W, T>& rhs) : innerMatrix(rhs.innerMatri
 
 template <std::size_t H, std::size_t W, typename T>
 template <std::size_t aH, std::size_t aW>
-Matrix<H, W, T>::Matrix(const Matrix<aH,aW,T>& rhs, std::size_t heightStart, std::size_t widthStart)
+Matrix<H, W, T>::Matrix(const Matrix<aH, aW, T>& rhs, std::size_t heightStart, std::size_t widthStart)
 {
-	assert(heightStart + H <= aH);
-	assert(widthStart + W <= aW);
+    assert(heightStart + H <= aH);
+    assert(widthStart + W <= aW);
 
     for (std::size_t i = 0; i < H; ++i)
     {
         for (std::size_t j = 0; j < W; ++j)
         {
-        	innerMatrix.at(i).at(j) = rhs.at(heightStart + i, widthStart + j);
+            innerMatrix.at(i).at(j) = rhs.at(heightStart + i, widthStart + j);
         }
     }
 }
@@ -209,10 +209,10 @@ Matrix<H, W, T> Matrix<H, W, T>::sort_rows(Matrix<H, W, T>& lhs, Matrix<H, W, T>
     std::size_t j = index;
     for (std::size_t i = index; i < H; ++i)
     {
-        std::array<T, W> ref = lhs[j];
+        std::array<T, W> ref  = lhs[j];
         std::array<T, W> ref2 = lhs[i];
 
-        std::array<T, W> iden = rhs[j];
+        std::array<T, W> iden  = rhs[j];
         std::array<T, W> iden2 = rhs[i];
 
         if (ref2[index] == 1 || ref2[index] == -1)
@@ -240,7 +240,7 @@ Matrix<H, W, T> Matrix<H, W, T>::sort_rows(Matrix<H, W, T>& lhs, Matrix<H, W, T>
 template <std::size_t H, std::size_t W, typename T>
 Matrix<H, W, T> Matrix<H, W, T>::substract_cols_to_zero(Matrix<H, W, T>& lhs, Matrix<H, W, T>& rhs, std::size_t index)
 {
-    std::array<T, W> row = lhs[index];
+    std::array<T, W> row  = lhs[index];
     std::array<T, W> rowi = rhs[index];
     for (std::size_t i = 0; i < H; ++i)
     {
@@ -280,7 +280,7 @@ Matrix<H, W, T> Matrix<H, W, T>::inverse()
     }
 
     Matrix<H, W, T> identity = this->identity();
-    Matrix<H, W, T> temp = *(this);
+    Matrix<H, W, T> temp     = *(this);
     for (std::size_t i = 0; i < H; ++i)
     {
         sort_rows(temp, identity, i);

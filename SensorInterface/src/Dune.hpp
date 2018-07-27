@@ -48,9 +48,11 @@ struct BottomProfile
                 // TODO: Magic numbers
                 // TODO; Remove debug and compact
                 std::cout << "other: " << other_dune.start_index_ << " this: " << dune.start_index_ << std::endl;
-                if (other_dune.start_index_ >= dune.start_index_ && std::abs((int32_t)other_dune.size_index_ - (int32_t)dune.size_index_) <= precision && std::abs(dune.surface_area_ - other_dune.surface_area_) <= precision)
+                if (other_dune.start_index_ >= dune.start_index_ &&
+                    std::abs((int32_t)other_dune.size_index_ - (int32_t)dune.size_index_) <= precision &&
+                    std::abs(dune.surface_area_ - other_dune.surface_area_) <= precision)
                 {
-					result.push_back(std::make_pair(other_dune, dune));
+                    result.push_back(std::make_pair(other_dune, dune));
                 }
                 else
                 {

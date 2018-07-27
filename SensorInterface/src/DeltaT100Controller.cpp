@@ -8,7 +8,6 @@
 
 #include "DeltaT100Controller.hpp"
 
-#include "DepthProfiler.hpp"
 #include "Filter.hpp"
 #include "SonarReturnData.hpp"
 #include "SonarReturnDataPacket.hpp"
@@ -29,7 +28,8 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
     deltat_communication_(io_service_, "localhost", local_port, remote_port),
     display_gain_(20),
     current_display_gain_(0),
-	data_buffer_(std::unique_ptr<DataBuffer<>>(new DataBuffer<>()))
+    depth_profiler_(DepthProfiler<480, float>()),
+    data_buffer_(std::unique_ptr<DataBuffer<>>(new DataBuffer<>()))
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     deltat_communication_.addRequestHandler(std::shared_ptr<RequestHandler>(this));

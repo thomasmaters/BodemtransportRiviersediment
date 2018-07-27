@@ -127,11 +127,12 @@ void TCPSession::handleRequest(const boost::system::error_code& error,
             request_handler->handleRequest(data_.data(), bytes_transferd);
         }
         // TODO; request response size.
-        boost::asio::async_write(getSocket(),
-                                 boost::asio::buffer(data_.data(), 5),
-                                 [&]([[maybe_unused]]const boost::system::error_code& error, std::size_t bytes_written) {
-                                     std::cout << "Written response(" << bytes_written << ")" << std::endl;
-                                 });
+        boost::asio::async_write(
+            getSocket(),
+            boost::asio::buffer(data_.data(), 5),
+            [&]([[maybe_unused]] const boost::system::error_code& error, std::size_t bytes_written) {
+                std::cout << "Written response(" << bytes_written << ")" << std::endl;
+            });
     }
     else
     {
@@ -165,7 +166,9 @@ void TCPServerClient::sendRequest(const SensorMessage& message,
                 has_response_head_and_body);
 }
 
-void TCPServerClient::sendRequest(const SensorMessage& message, char delimiter, [[maybe_unused]] bool has_response_head_and_body)
+void TCPServerClient::sendRequest(const SensorMessage& message,
+                                  char delimiter,
+                                  [[maybe_unused]] bool has_response_head_and_body)
 {
     sendMessage(boost::asio::mutable_buffer(message.getData(), message.getDataLength()), delimiter, false);
 }

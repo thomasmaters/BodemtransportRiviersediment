@@ -44,7 +44,7 @@ void UDPServerClient::sendRequest(const SensorMessage& message,
                 has_response_head_and_body);
 }
 
-void UDPServerClient::sendRequest(const SensorMessage& message, char delimiter, bool has_response_head_and_body)
+void UDPServerClient::sendRequest([[maybe_unused]] const SensorMessage& message, [[maybe_unused]] char delimiter, [[maybe_unused]] bool has_response_head_and_body)
 {
     throw std::runtime_error("UDP connection does not support reading until a delimiter, use a response size instead.");
 }
@@ -113,7 +113,7 @@ void UDPServerClient::getResponse(std::size_t response_size,
     }
 }
 
-void UDPServerClient::gotResponse(bool has_response_head_and_body,
+void UDPServerClient::gotResponse([[maybe_unused]] bool has_response_head_and_body,
                                   const boost::system::error_code& error,
                                   std::size_t bytes_transferred)
 {
@@ -171,7 +171,7 @@ void UDPServerClient::handle_receive(const boost::system::error_code& error, std
     }
 }
 
-void UDPServerClient::handle_send(const boost::system::error_code& error, std::size_t bytes_transferred)
+void UDPServerClient::handle_send([[maybe_unused]] const boost::system::error_code& error, std::size_t bytes_transferred)
 {
     std::cout << "Send response of: " << bytes_transferred << " bytes" << std::endl;
 }

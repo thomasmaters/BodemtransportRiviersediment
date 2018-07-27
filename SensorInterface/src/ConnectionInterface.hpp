@@ -38,11 +38,11 @@ class ResponseHandler
     {
     }
 
-    virtual void handleResponse(uint8_t* data, std::size_t length)
+    virtual void handleResponse([[maybe_unused]] uint8_t* data, [[maybe_unused]] std::size_t length)
     {
     }
 
-    virtual std::size_t handleResponseHead(uint8_t* data, std::size_t length)
+    virtual std::size_t handleResponseHead([[maybe_unused]] uint8_t* data, [[maybe_unused]] std::size_t length)
     {
         return 10;
     }

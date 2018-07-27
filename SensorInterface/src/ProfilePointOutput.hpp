@@ -184,7 +184,7 @@ class ProfilePointOutput : public SensorMessage
 
     float getBeamRange(uint16_t beam) const
     {
-        if (!(beam >= 0 && beam < MAX_BEAMS))
+        if (!(beam < MAX_BEAMS))
         {
             return 0;
         }
@@ -194,7 +194,7 @@ class ProfilePointOutput : public SensorMessage
 
     float getCorrectedBeamRange(uint16_t beam) const
     {
-        if (!(beam >= 0 && beam < MAX_BEAMS))
+        if (!(beam < MAX_BEAMS))
         {
             return 0;
         }
@@ -203,7 +203,7 @@ class ProfilePointOutput : public SensorMessage
 
     std::array<float, 3> getBeamPosition(uint16_t beam) const
     {
-        if (!(beam >= 0 && beam < MAX_BEAMS))
+        if (!(beam < MAX_BEAMS))
         {
             return std::array<float, 3>{ 0, 0, 0 };
         }

@@ -180,7 +180,7 @@ class SwitchDataCommand : public SensorMessage
 
     void setStartGain(uint8_t value)
     {
-        if (!(value >= 0 && value <= 30))
+        if (!(value <= 30))
         {
             throw std::runtime_error("Gain not between valid values.[0-20]");
         }
@@ -245,7 +245,7 @@ class SwitchDataCommand : public SensorMessage
         {
             throw std::runtime_error("TransmitDelay not in steps of 100.");
         }
-        if (!(value >= 0 && value <= 10000))
+        if (!(value <= 10000))
         {
             throw std::runtime_error("ExternalTransmitDelay not in a valid range.[0-100000]");
         }
@@ -284,10 +284,6 @@ class SwitchDataCommand : public SensorMessage
     void setSwitchDelay(uint16_t value)
     {
         uint8_t aValue = value / 2;
-        if (!(aValue >= 0 && aValue <= UINT8_MAX))
-        {
-            throw std::runtime_error("SwitchDelay not in a valid range.[0-254]");
-        }
         data_[24] = aValue;
     }
 

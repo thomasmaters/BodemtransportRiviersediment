@@ -96,7 +96,7 @@ void TCPSession::handleResponse(Type response_indentifier,
 }
 
 void TCPSession::handleReceivedResponse(bool has_response_head_and_body,
-                                        const boost::system::error_code& error,
+                                        [[maybe_unused]] const boost::system::error_code& error,
                                         std::size_t bytes_transferd,
                                         std::shared_ptr<ResponseHandler> response_handler)
 {
@@ -129,8 +129,8 @@ void TCPSession::handleRequest(const boost::system::error_code& error,
         // TODO; request response size.
         boost::asio::async_write(getSocket(),
                                  boost::asio::buffer(data_.data(), 5),
-                                 [&](const boost::system::error_code& error, std::size_t byteWritten) {
-                                     std::cout << "Written response(" << byteWritten << ")" << std::endl;
+                                 [&]([[maybe_unused]]const boost::system::error_code& error, std::size_t bytes_written) {
+                                     std::cout << "Written response(" << bytes_written << ")" << std::endl;
                                  });
     }
     else
@@ -165,7 +165,7 @@ void TCPServerClient::sendRequest(const SensorMessage& message,
                 has_response_head_and_body);
 }
 
-void TCPServerClient::sendRequest(const SensorMessage& message, char delimiter, bool has_response_head_and_body)
+void TCPServerClient::sendRequest(const SensorMessage& message, char delimiter, [[maybe_unused]] bool has_response_head_and_body)
 {
     sendMessage(boost::asio::mutable_buffer(message.getData(), message.getDataLength()), delimiter, false);
 }

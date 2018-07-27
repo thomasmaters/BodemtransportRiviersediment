@@ -17,6 +17,7 @@
 #include <thread>
 #include <valarray>
 #include <vector>
+#include <chrono>
 
 #define MAX_ITERATIONS 200
 #define STEP_SIZE 1e-5
@@ -999,8 +1000,11 @@ class DepthProfiler
                                    { 443, 4, 0 } });
 
         addRawPoint(input1);
+        auto start = std::chrono::steady_clock::now();
         addRawPoint(input2);
-        //    	calculateRoot();
+        auto end = std::chrono::steady_clock::now();
+        auto diff = end - start;
+        std::cout << std::chrono::duration <double, std::milli> (diff).count() << " ms" << std::endl;
     }
 
     virtual ~DepthProfiler()
@@ -1021,7 +1025,6 @@ class DepthProfiler
     template <std::size_t H>
     T calculateRoot(const Matrix<H, 1, T>& params, T inital_guess = 1, T x_shift = 0, float precision = PRECISION) const
     {
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
         T guess     = inital_guess;
         T new_guess = 0;
 
@@ -1035,9 +1038,7 @@ class DepthProfiler
                 throw std::runtime_error("Determinat ~= 0");
             }
 
-            // Wikipedia says its 'guess - y/yp' but that will diverge from the correct answer.
             new_guess = guess - y / yp;
-            std::cout << "error: " << std::abs(new_guess - guess) << " guess: " << guess << " y: " << y << std::endl;
             if (std::abs(new_guess - guess) <= precision * abs(new_guess))
             {
                 std::cout << "Found intersection at: " << new_guess << std::endl;
@@ -1056,7 +1057,6 @@ class DepthProfiler
                     T x_shift       = 0,
                     float precision = PRECISION) const
     {
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
         T guess     = inital_guess;
         T new_guess = 0;
 
@@ -1064,8 +1064,8 @@ class DepthProfiler
         {
             // Keeps in considuration that the second function is shifted along the x axis.
             // Only downside is that it increases the complexity.
-            T y  = baseFunction(guess, params) - baseFunction(guess, params2, x_shift);
-            T yp = baseDerivative(guess, params) - baseDerivative(guess, params2, x_shift);
+            T y  = baseFunction(guess, params) - baseFunction(guess + x_shift, params2);
+            T yp = baseDerivative(guess, params) - baseDerivative(guess + x_shift, params2);
 
             if (std::abs(yp) < EPSILON)
             {
@@ -1073,7 +1073,6 @@ class DepthProfiler
             }
 
             new_guess = guess - y / yp;
-            std::cout << "error: " << std::abs(new_guess - guess) << " guess: " << guess << " y: " << y << std::endl;
             if (std::abs(new_guess - guess) <= precision * abs(new_guess))
             {
                 std::cout << "Found intersection at: " << new_guess << std::endl;
@@ -1088,7 +1087,6 @@ class DepthProfiler
     // https://math.stackexchange.com/questions/1300934/intersection-of-two-parabolas-where-one-is-vertex-shifted
     float calculateMovedArea(const Dune& dune_left, const Dune& dune_right) const
     {
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
         // Calculate the how much our dune has moved across the x axis.
         T x_diff = dune_right.start_x_ - dune_left.start_x_;
         // Calculate intersection between the dunes.
@@ -1100,8 +1098,8 @@ class DepthProfiler
         float area_of_b  = calculateArea(dune_right.signature_, 0, root + x_diff);
         float moved_area = dune_right.surface_area_ - (area_of_a + area_of_b);
 
-        std::cout << "area_a: " << area_of_a << " area_b: " << area_of_b << std::endl;
-        std::cout << "x_diff: " << x_diff << " Root: " << root << " Moved area: " << moved_area << std::endl;
+//        std::cout << "area_a: " << area_of_a << " area_b: " << area_of_b << std::endl;
+//        std::cout << "x_diff: " << x_diff << " Root: " << root << " Moved area: " << moved_area << std::endl;
         return moved_area;
     }
 
@@ -1121,8 +1119,8 @@ class DepthProfiler
             bottom_profile.average_transport_ = 0;
 
             // Calculate ax^3 + bx^2 + cx + d
-            auto afgeleide                             = calculateAfgeleide(matrix);
-            std::vector<std::size_t> peaks_and_valleys = findPeaksAndValleys(afgeleide, 0.001, 1);
+            auto afgeleide                             = calculateDerivative(matrix);
+            std::vector<std::size_t> peaks_and_valleys = findPeaksAndValleys(afgeleide, 1);
             std::vector<std::pair<std::size_t, std::size_t>> waves = classifyWave(afgeleide, peaks_and_valleys);
 
             for (std::size_t i = 0; i < waves.size(); ++i)
@@ -1133,7 +1131,7 @@ class DepthProfiler
                 dune.start_x_     = matrix.at(dune.start_index_, 0);
 
                 // TODO: change this magic number.
-                if (dune.size_index_ > 60)  // Our wave has more then 60 points
+                if (dune.size_index_ > 60)  // Our wave has more then 60 points and we don't like big waves, so just skip it |: .
                 {
                     continue;
                 }
@@ -1152,8 +1150,9 @@ class DepthProfiler
                 dune.surface_area_ =
                     calculateArea(params, single_dune_matrix.at(0, 0), single_dune_matrix.at(dune.size_index_, 0));
                 bottom_profile.dunes_.push_back(dune);
-                std::cout << dune.toString() << std::endl;
-                std::cout << params << std::endl;
+
+//                std::cout << dune.toString() << std::endl;
+//                std::cout << params << std::endl;
             }
 
             // Calculate the transport!
@@ -1174,7 +1173,6 @@ class DepthProfiler
     void shiftWaveToZero(Matrix<H, W, T>& matrix, std::size_t dune_size) const
     {
         T start_x = matrix.at(0, 0);
-        std::cout << "Start x: " << start_x << std::endl;
         for (std::size_t i = 0; i < dune_size + 1; ++i)
         {
             matrix.at(i, 0) -= start_x;
@@ -1197,7 +1195,6 @@ class DepthProfiler
     template <std::size_t H, std::size_t W>
     void getTransportOverTime(const BottomProfile<H, W, T>& profile_first, BottomProfile<H, W, T>& profile_second) const
     {
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
         std::vector<std::pair<Dune, Dune>> simular_dunes = profile_first.getSimularDune(profile_second, 0.01);
         if (simular_dunes.size() > 0)
         {
@@ -1225,7 +1222,7 @@ class DepthProfiler
     }
 
     template <std::size_t H, std::size_t W>
-    Matrix<H - 1, 2, T> calculateAfgeleide(Matrix<H, W, T>& matrix) const
+    Matrix<H - 1, 2, T> calculateDerivative(Matrix<H, W, T>& matrix) const
     {
         Matrix<H - 1, 2, T> result;
 
@@ -1238,9 +1235,7 @@ class DepthProfiler
     }
 
     template <std::size_t H, std::size_t W>
-    std::vector<std::size_t> findPeaksAndValleys(const Matrix<H, W, T>& afgeleide,
-                                                 float afweiking,
-                                                 std::size_t minimal_x_diff = 0) const
+    std::vector<std::size_t> findPeaksAndValleys(const Matrix<H, W, T>& afgeleide, std::size_t minimal_x_diff = 0) const
     {
         std::vector<std::size_t> result;
         float last_found_x = 0;
@@ -1437,7 +1432,7 @@ class DepthProfiler
                 throw std::runtime_error("Took to many iterations");
             }
 
-            std::cout << "Iteration: " << i << " " << total_deviation << std::endl;
+//            std::cout << "Iteration: " << i << " " << total_deviation << std::endl;
         }
     }
 

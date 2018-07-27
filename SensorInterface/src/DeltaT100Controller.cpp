@@ -27,9 +27,9 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
   : io_service_(io_service),
     sensor_communication_(io_service_, host, local_port, remote_port),
     deltat_communication_(io_service_, "localhost", local_port, remote_port),
-    data_buffer_(std::unique_ptr<DataBuffer<>>(new DataBuffer<>())),
     display_gain_(20),
-    current_display_gain_(0)
+    current_display_gain_(0),
+	data_buffer_(std::unique_ptr<DataBuffer<>>(new DataBuffer<>()))
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     deltat_communication_.addRequestHandler(std::shared_ptr<RequestHandler>(this));
@@ -67,7 +67,7 @@ void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
             else
             {
                 switch_data_command_.setPacketNumberRequest(0);
-                cosntructSensorPing(mode);
+                cosntructSensorPing();
             }
         }
         else
@@ -83,7 +83,7 @@ void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
     }
 }
 
-void DeltaT100Controller::cosntructSensorPing(Mode mode)
+void DeltaT100Controller::cosntructSensorPing()
 {
     // Construct a ping by moving the buffer into the ping.
     SonarReturnData ping(data_buffer_);

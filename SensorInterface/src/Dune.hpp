@@ -38,9 +38,8 @@ struct BottomProfile
     std::vector<Dune> dunes_;
     float average_transport_;  // Transport averaged over all the dunes as compared to the last BottomProfile.
 
-    std::vector<std::pair<Dune, Dune>> getSimularDune(const BottomProfile& profile, float precision) const
+    std::vector<std::pair<Dune, Dune>> getSimularDune(const BottomProfile& profile, float precision = 5) const
     {
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
         std::vector<std::pair<Dune, Dune>> result;
         for (const Dune& other_dune : profile.dunes_)
         {
@@ -49,18 +48,9 @@ struct BottomProfile
                 // TODO: Magic numbers
                 // TODO; Remove debug and compact
                 std::cout << "other: " << other_dune.start_index_ << " this: " << dune.start_index_ << std::endl;
-                if (other_dune.start_index_ >= dune.start_index_)
+                if (other_dune.start_index_ >= dune.start_index_ && std::abs((int32_t)other_dune.size_index_ - (int32_t)dune.size_index_) <= precision && std::abs(dune.surface_area_ - other_dune.surface_area_) <= precision)
                 {
-                    std::cout << "Index same or bigger" << std::endl;
-                    if (std::abs((int32_t)other_dune.size_index_ - (int32_t)dune.size_index_) <= 5)
-                    {
-                        std::cout << "Dune size simular" << std::endl;
-                        if (std::abs(dune.surface_area_ - other_dune.surface_area_) <= 5)
-                        {
-                            std::cout << "Dune area simular" << std::endl;
-                            result.push_back(std::make_pair(other_dune, dune));
-                        }
-                    }
+					result.push_back(std::make_pair(other_dune, dune));
                 }
                 else
                 {

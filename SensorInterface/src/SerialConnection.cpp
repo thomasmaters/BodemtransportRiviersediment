@@ -92,7 +92,7 @@ template <typename Type>
 void SerialClientServer::handleWriteComplete(Type responseSize,
                                              bool hasResponseHeadAndBody,
                                              const boost::system::error_code& error,
-                                             std::size_t bytesTransferd)
+                                             [[maybe_unused]] std::size_t bytes_transferd)
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     if (error)

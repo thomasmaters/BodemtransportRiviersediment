@@ -41,7 +41,7 @@ class DeltaT100Controller : public Communication::RequestHandler, public Communi
     virtual ~DeltaT100Controller();
 
   private:
-    void cosntructSensorPing(Mode mode);
+    void cosntructSensorPing();
 
     boost::asio::io_service& io_service_;
     Communication::TCP::TCPServerClient sensor_communication_;

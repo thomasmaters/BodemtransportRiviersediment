@@ -25,11 +25,13 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         onderzoekqtmain.cpp \
-    onderzoek2dchart.cpp
+    onderzoek2dchart.cpp \
+    onderzoek3dchart.cpp
 
 HEADERS += \
         onderzoekqtmain.h \
-    onderzoek2dchart.h
+    onderzoek2dchart.h \
+    onderzoek3dchart.h
 
 FORMS += \
         onderzoekqtmain.ui

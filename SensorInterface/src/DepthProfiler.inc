@@ -540,6 +540,7 @@ void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix)
             dune.size_index_  = waves[i].second - waves[i].first;
             dune.start_index_ = waves[i].first;
             dune.start_x_     = matrix.at(dune.start_index_, 0);
+            dune.end_x_		  = matrix.at(waves[i].second, 0);
 
             // TODO: change this magic number.
             if (dune.size_index_ > 60)  // We have a big wave, just skip it. .
@@ -548,11 +549,11 @@ void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix)
             }
             if (dune.start_index_ + 60 > N)  // Our wave doesn't fit in matrix, this is really bad coding.
             {
-                return;
+                continue;
             }
             Matrix<60, 2, float> single_dune_matrix(matrix, dune.start_index_, 0);
 
-            // Translate x values so they start from 0. (This helps the Gausse-Newton algorithme find a result.)
+            // Translate x values so they start from 0. (This helps the Gauss-Newton algorithm find a result.)
             shiftWaveToZero(single_dune_matrix, dune.size_index_ + 1);
 
             Matrix<4, 1, T> params({ 1, 1, 1, 1 });
@@ -613,6 +614,7 @@ template <std::size_t N, typename T>
 template <std::size_t H>
 T DepthProfiler<N, T>::newtonsMethod(const Matrix<H, 1, T>& params,
                                      const Matrix<H, 1, T>& params2,
+									 const std::pair<float,float>& solution_space,
                                      T inital_guess,
                                      T x_shift,
                                      float precision) const
@@ -633,7 +635,13 @@ T DepthProfiler<N, T>::newtonsMethod(const Matrix<H, 1, T>& params,
         }
 
         new_guess = guess - y / yp;
-        if (std::abs(new_guess - guess) <= precision * abs(new_guess))
+        if(new_guess < solution_space.first || new_guess > solution_space.second)
+        {
+        	std::cout << "Outside solution space: " << new_guess << std::endl;
+        	new_guess = solution_space.first + (solution_space.second - solution_space.first) / 1.95;
+        	continue;
+        }
+        else if (std::abs(new_guess - guess) <= precision * abs(new_guess))
         {
             std::cout << "Found intersection at: " << new_guess << std::endl;
             return new_guess;
@@ -828,6 +836,7 @@ template <std::size_t H, std::size_t W>
 void DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& profile_first,
                                                BottomProfile<H, W, T>& profile_second) const
 {
+	std::cout << __PRETTY_FUNCTION__ << std::endl;
     std::vector<std::pair<Dune, Dune>> simular_dunes = profile_first.getSimularDune(profile_second, 0.01);
     std::cout << "Found: " << simular_dunes.size() << " simular dunes." << std::endl;
     if (simular_dunes.size() > 0)
@@ -860,9 +869,12 @@ float DepthProfiler<N, T>::calculateMovedArea(const Dune& dune_left, const Dune&
 {
     // Calculate the how much our dune has moved across the x axis.
     T x_diff = dune_right.start_x_ - dune_left.start_x_;
+    T inital_guess = (dune_left.end_x_ - dune_right.start_x_) / 2;
+    std::cout << "Inital guess: " << inital_guess << " rs: " << dune_right.start_x_ << " re: " << dune_right.end_x_ << " ls: " << dune_left.start_x_ << " le: " << dune_left.end_x_ << std::endl;
+    auto solution_space = std::make_pair(0, (dune_left.end_x_ - dune_right.start_x_) + x_diff);
+
     // Calculate intersection between the dunes.
-    // TODO: better initial guess based on dune length.
-    T root = newtonsMethod(dune_left.signature_, dune_right.signature_, 10.0, x_diff);
+    T root = newtonsMethod(dune_left.signature_, dune_right.signature_, solution_space, inital_guess, x_diff);
 
     // Calculate how much of the dune has stayed in place
     float area_of_a  = calculateArea(dune_left.signature_, root, 12);

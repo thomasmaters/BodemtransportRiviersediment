@@ -20,6 +20,7 @@ struct Dune
     std::size_t size_index_;   // Size in Matrix
 
     float start_x_;
+    float end_x_;
 
     Matrix<4, 1, float> signature_;  // Polynomial coefficients.
     float surface_area_;
@@ -47,6 +48,7 @@ struct BottomProfile
             for (const Dune& dune : dunes_)
             {
                 if (other_dune.start_index_ >= dune.start_index_ &&
+                	other_dune.start_index_ + other_dune.size_index_<= dune.start_index_ + dune.size_index_ &&
                     std::abs((int32_t)other_dune.size_index_ - (int32_t)dune.size_index_) <= precision &&
                     std::abs(dune.surface_area_ - other_dune.surface_area_) <= precision
 					)

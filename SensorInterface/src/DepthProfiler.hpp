@@ -17,7 +17,7 @@
 #include <chrono>
 #include <vector>
 
-#define MAX_ITERATIONS 200
+#define MAX_ITERATIONS 100
 #define STEP_SIZE 1e-5
 #define PRECISION 1e-5
 #define EPSILON 1e-14
@@ -80,6 +80,7 @@ class DepthProfiler
      * But it uses 2 polynomials where the second polynomial is shifted along the x-axis.
      * @param params Polynomial coefficients.
      * @param params2 Polynomial coefficients.
+     * @param solution_space Range the solution can be in.
      * @param inital_guess Start guess.
      * @param x_shift How much the x-axis will be shifted for the second polynomial to calculate a(x-h)^3 + b(x-h)^2 + c(x-h) + d
      * @param precision How precise the solution has to be.
@@ -88,6 +89,7 @@ class DepthProfiler
     template <std::size_t H>
     T newtonsMethod(const Matrix<H, 1, T>& params,
                     const Matrix<H, 1, T>& params2,
+					const std::pair<float,float>& solution_space,
                     T inital_guess  = 1,
                     T x_shift       = 0,
                     float precision = PRECISION) const;

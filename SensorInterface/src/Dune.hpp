@@ -47,10 +47,10 @@ struct BottomProfile
         {
             for (const Dune& dune : dunes_)
             {
-                if (other_dune.start_index_ >= dune.start_index_ &&
-                	other_dune.start_index_ + other_dune.size_index_<= dune.start_index_ + dune.size_index_ &&
-                    std::abs((int32_t)other_dune.size_index_ - (int32_t)dune.size_index_) <= precision &&
-                    std::abs(dune.surface_area_ - other_dune.surface_area_) <= precision
+                if (other_dune.start_index_ >= dune.start_index_ && //The dune is to the right of the left dune.
+                	other_dune.start_index_ + other_dune.size_index_<= dune.start_index_ + dune.size_index_ && //The dune is to the left of the right dune.
+                    std::abs((int32_t)other_dune.size_index_ - (int32_t)dune.size_index_) <= precision && //Size in x direction approx equal
+                    std::abs(dune.surface_area_ - other_dune.surface_area_) <= precision //Surface area approx equal
 					)
                 {
                     result.push_back(std::make_pair(other_dune, dune));

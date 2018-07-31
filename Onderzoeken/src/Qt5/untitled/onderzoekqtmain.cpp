@@ -14,7 +14,7 @@ OnderzoekQtMain::OnderzoekQtMain(QWidget *parent) :
     ui->setupUi(this);
         connect(ui->pushButton, SIGNAL (released()),chart, SLOT (changeColor()));
     ui->horizontalLayout->addWidget(kaas->container);
-//    ui->horizontalLayout->addWidget(chart->chartView);
+    ui->horizontalLayout_4->addWidget(chart->chartView);
 }
 
 OnderzoekQtMain::~OnderzoekQtMain()

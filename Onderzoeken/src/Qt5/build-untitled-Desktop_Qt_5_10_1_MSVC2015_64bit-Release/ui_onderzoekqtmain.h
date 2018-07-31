@@ -37,6 +37,8 @@ public:
     QWidget *horizontalLayoutWidget_3;
     QHBoxLayout *horizontalLayout_3;
     QPushButton *pushButton;
+    QWidget *horizontalLayoutWidget_4;
+    QHBoxLayout *horizontalLayout_4;
     QMenuBar *menuBar;
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
@@ -45,16 +47,30 @@ public:
     {
         if (OnderzoekQtMain->objectName().isEmpty())
             OnderzoekQtMain->setObjectName(QStringLiteral("OnderzoekQtMain"));
-        OnderzoekQtMain->resize(1347, 411);
+        OnderzoekQtMain->setWindowModality(Qt::WindowModal);
+        OnderzoekQtMain->resize(1281, 416);
+        QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        sizePolicy.setHorizontalStretch(100);
+        sizePolicy.setVerticalStretch(100);
+        sizePolicy.setHeightForWidth(OnderzoekQtMain->sizePolicy().hasHeightForWidth());
+        OnderzoekQtMain->setSizePolicy(sizePolicy);
+        OnderzoekQtMain->setSizeIncrement(QSize(100, 100));
         centralWidget = new QWidget(OnderzoekQtMain);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
+        QSizePolicy sizePolicy1(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        sizePolicy1.setHorizontalStretch(0);
+        sizePolicy1.setVerticalStretch(0);
+        sizePolicy1.setHeightForWidth(centralWidget->sizePolicy().hasHeightForWidth());
+        centralWidget->setSizePolicy(sizePolicy1);
+        centralWidget->setSizeIncrement(QSize(1920, 1080));
         horizontalLayoutWidget = new QWidget(centralWidget);
         horizontalLayoutWidget->setObjectName(QStringLiteral("horizontalLayoutWidget"));
-        horizontalLayoutWidget->setGeometry(QRect(0, 40, 1281, 281));
+        horizontalLayoutWidget->setGeometry(QRect(0, 40, 641, 281));
         horizontalLayout = new QHBoxLayout(horizontalLayoutWidget);
         horizontalLayout->setSpacing(6);
         horizontalLayout->setContentsMargins(11, 11, 11, 11);
         horizontalLayout->setObjectName(QStringLiteral("horizontalLayout"));
+        horizontalLayout->setSizeConstraint(QLayout::SetNoConstraint);
         horizontalLayout->setContentsMargins(0, 0, 0, 0);
         horizontalLayoutWidget_2 = new QWidget(centralWidget);
         horizontalLayoutWidget_2->setObjectName(QStringLiteral("horizontalLayoutWidget_2"));
@@ -63,6 +79,7 @@ public:
         horizontalLayout_2->setSpacing(6);
         horizontalLayout_2->setContentsMargins(11, 11, 11, 11);
         horizontalLayout_2->setObjectName(QStringLiteral("horizontalLayout_2"));
+        horizontalLayout_2->setSizeConstraint(QLayout::SetNoConstraint);
         horizontalLayout_2->setContentsMargins(0, 0, 0, 0);
         label = new QLabel(horizontalLayoutWidget_2);
         label->setObjectName(QStringLiteral("label"));
@@ -77,16 +94,26 @@ public:
         horizontalLayout_3->setSpacing(6);
         horizontalLayout_3->setContentsMargins(11, 11, 11, 11);
         horizontalLayout_3->setObjectName(QStringLiteral("horizontalLayout_3"));
+        horizontalLayout_3->setSizeConstraint(QLayout::SetMaximumSize);
         horizontalLayout_3->setContentsMargins(0, 0, 0, 0);
         pushButton = new QPushButton(horizontalLayoutWidget_3);
         pushButton->setObjectName(QStringLiteral("pushButton"));
 
         horizontalLayout_3->addWidget(pushButton);
 
+        horizontalLayoutWidget_4 = new QWidget(centralWidget);
+        horizontalLayoutWidget_4->setObjectName(QStringLiteral("horizontalLayoutWidget_4"));
+        horizontalLayoutWidget_4->setGeometry(QRect(640, 40, 641, 281));
+        horizontalLayout_4 = new QHBoxLayout(horizontalLayoutWidget_4);
+        horizontalLayout_4->setSpacing(6);
+        horizontalLayout_4->setContentsMargins(11, 11, 11, 11);
+        horizontalLayout_4->setObjectName(QStringLiteral("horizontalLayout_4"));
+        horizontalLayout_4->setSizeConstraint(QLayout::SetNoConstraint);
+        horizontalLayout_4->setContentsMargins(0, 0, 0, 0);
         OnderzoekQtMain->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(OnderzoekQtMain);
         menuBar->setObjectName(QStringLiteral("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 1347, 21));
+        menuBar->setGeometry(QRect(0, 0, 1281, 21));
         OnderzoekQtMain->setMenuBar(menuBar);
         mainToolBar = new QToolBar(OnderzoekQtMain);
         mainToolBar->setObjectName(QStringLiteral("mainToolBar"));

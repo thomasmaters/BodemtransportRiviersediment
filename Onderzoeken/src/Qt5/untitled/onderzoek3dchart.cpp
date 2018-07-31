@@ -12,16 +12,18 @@ Onderzoek3Dchart::Onderzoek3Dchart(QWidget *parent) : QWidget(parent)
 
     QSurfaceDataProxy* dataProxy = new QSurfaceDataProxy();
     QSurface3DSeries* dataSeries = new QSurface3DSeries(dataProxy);
+    dataSeries->setDrawMode(QSurface3DSeries::DrawSurfaceAndWireframe);
+    dataSeries->setFlatShadingEnabled(true);
     QSurfaceDataArray *dataArray = new QSurfaceDataArray;
 
-    dataArray->reserve(100);
-    for (int i = 0 ; i < 100 ; i++) {
-       QSurfaceDataRow *newRow = new QSurfaceDataRow(100);
+    dataArray->reserve(1000);
+    for (int i = 0 ; i < 1000 ; i++) {
+       QSurfaceDataRow *newRow = new QSurfaceDataRow(1000);
        // Keep values within range bounds, since just adding step can cause minor drift due
        // to the rounding errors.
        float z = i;
        int index = 0;
-       for (int j = 0; j < 100; j++) {
+       for (int j = 0; j < 1000; j++) {
            float x = j;
            float R = qSqrt(z * z + x * x) + 0.01f;
            float y = (qSin(R) / R + 0.24f) * 1.61f;

@@ -41,4 +41,20 @@ int main(int argc, char **argv) {
 	    std::cout << std::chrono::duration <double, std::milli> (diff).count() << " ms" << std::endl;
 	}
 
+	mglGraph gr2;
+	std::size_t size = 1000;
+	mglData coords(size,size);
+	for (std::size_t i = 0; i < size; ++i) {
+		for (std::size_t j = 0; j < size; ++j) {
+			coords.SetVal(std::rand()%3, i, j, 0);
+		}
+	}
+	gr2.SetRange('x', 0, size);
+	gr2.SetRange('y', 0, size);
+	gr2.SetRange('z', 0, 3);
+	gr2.Rotate(50,60);
+	gr2.Axis();
+
+	gr2.Surf(coords);
+	gr2.WriteFrame("OnderzoekMathGLgr3.png");
 }

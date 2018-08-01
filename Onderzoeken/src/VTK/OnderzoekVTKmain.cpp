@@ -27,6 +27,8 @@ VTK_MODULE_INIT(vtkRenderingFreeType)
 #include <vtk-8.1/vtkTexturedButtonRepresentation2D.h>
 #include <vtk-8.1/vtkImageActor.h>
 #include <vtk-8.1/vtkImageData.h>
+#include <vtk-8.1/vtkButtonRepresentation.h>
+#include <vtk-8.1/vtkRectangularButtonSource.h>
 
 #include <random>
 #include <chrono>
@@ -35,53 +37,50 @@ VTK_MODULE_INIT(vtkRenderingFreeType)
   vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
 
 
-void CreateImage(vtkSmartPointer<vtkImageData> image,
-                 unsigned char* color1,
-                 unsigned char* color2)
+void CreateImage(vtkSmartPointer<vtkImageData> image)
 {
   // Specify the size of the image data
   image->SetDimensions(10, 10, 1);
-#if VTK_MAJOR_VERSION <= 5
-  image->SetNumberOfScalarComponents(3);
-  image->SetScalarTypeToUnsignedChar();
-#else
   image->AllocateScalars(VTK_UNSIGNED_CHAR, 3);
-#endif
-  int* dims = image->GetDimensions();
 
-  // Fill the image with
-  for (int y = 0; y < dims[1]; y++)
-  {
-    for (int x = 0; x < dims[0]; x++)
-    {
-      unsigned char* pixel =
-        static_cast<unsigned char*>(image->GetScalarPointer(x, y, 0));
-      if (x < 5)
-      {
-        pixel[0] = color1[0];
-        pixel[1] = color1[1];
-        pixel[2] = color1[2];
-      }
-      else
-      {
-        pixel[0] = color2[0];
-        pixel[1] = color2[1];
-        pixel[2] = color2[2];
-      }
-    }
-  }
 }
 
-class MyClass
+class vtkButtonCallback : public vtkCommand
 {
-  public:
-    void KeypressCallbackFunction(vtkObject*,
-                                  long unsigned int vtkNotUsed(eventId),
-                                  void* vtkNotUsed(callData))
+public:
+  static vtkButtonCallback *New()
+    { return new vtkButtonCallback; }
+  virtual void Execute(vtkObject *caller, unsigned long, void*)
   {
-    std::cout << "Caught event in MyClass" << std::endl;
-  }
+      vtkButtonWidget *buttonWidget =
+        reinterpret_cast<vtkButtonWidget*>(caller);
+      std::cout << "Button clicked" << std::endl;
 
+      auto start = std::chrono::steady_clock::now();
+      table->RemoveColumn(0);
+      table->RemoveColumn(1);
+      VTK_CREATE(vtkIntArray, tblIndex);
+      tblIndex->SetName("Index");
+      table->AddColumn(tblIndex);
+
+      VTK_CREATE(vtkIntArray, arrMonth);
+      arrMonth->SetName("Month");
+      table->AddColumn(arrMonth);
+
+      table->SetNumberOfRows(500);
+      for (std::size_t i = 0; i < 500; ++i)
+      {
+        table->SetValue(i,0,i);
+        table->SetValue(i,1, std::rand() % 5);
+      }
+
+      auto end = std::chrono::steady_clock::now();
+      auto diff = end - start;
+      std::cout << std::chrono::duration <double, std::milli> (diff).count() << " ms" << std::endl;
+  }
+  vtkButtonCallback():Actor(0), table(0) {}
+  vtkActor *Actor;
+  vtkTable *table;
 };
 
 // Monthly circulation data
@@ -90,9 +89,9 @@ int main(int, char*[] )
   // Set up a 2D scene, add an XY chart to it
   VTK_CREATE(vtkContextView, view);
   view->GetRenderer()->SetBackground(1.0, 1.0, 1.0);
-  view->GetRenderWindow()->SetSize(400, 300);
+  view->GetRenderWindow()->SetSize(800, 400);
   VTK_CREATE(vtkChartXY, chart);
-//  view->GetScene()->AddItem(chart);
+  view->GetScene()->AddItem(chart);
 
   // Create a table with some points in it...
   VTK_CREATE(vtkTable, table);
@@ -104,18 +103,6 @@ int main(int, char*[] )
   VTK_CREATE(vtkIntArray, arrMonth);
   arrMonth->SetName("Month");
   table->AddColumn(arrMonth);
-
-  auto start = std::chrono::steady_clock::now();
-  table->SetNumberOfRows(500);
-  for (std::size_t i = 0; i < 500; ++i)
-  {
-    table->SetValue(i,0,i);
-    table->SetValue(i,1, std::rand() % 5);
-  }
-
-  auto end = std::chrono::steady_clock::now();
-  auto diff = end - start;
-  std::cout << std::chrono::duration <double, std::milli> (diff).count() << " ms" << std::endl;
   // Add multiple line plots, setting the colors etc
   vtkPlot *line = 0;
 
@@ -131,18 +118,17 @@ int main(int, char*[] )
 
   vtkSmartPointer<vtkTextActor> textActor =
     vtkSmartPointer<vtkTextActor>::New();
-  textActor->SetInput ( "Hello world" );
-  textActor->SetPosition2 ( 10, 40 );
+  textActor->SetInput ( "TEST" );
+  textActor->SetPosition(400.0, 380.0);
+//  textActor->SetPosition2 ( 100, 100 );
   textActor->SetTextProperty(textProperty);
 
-  unsigned char banana[3] = { 227, 207, 87 };
-  unsigned char tomato[3] = { 255, 99, 71 };
   VTK_CREATE(vtkButtonWidget,buttonWidget);
   VTK_CREATE(vtkTexturedButtonRepresentation2D, representation);
   VTK_CREATE(vtkImageData,image);
   VTK_CREATE(vtkImageData,image2);
-  CreateImage(image, tomato, banana);
-  CreateImage(image2, banana, tomato);
+  CreateImage(image);
+  CreateImage(image2);
   representation->SetNumberOfStates(2);
   representation->SetButtonTexture(0, image);
   representation->SetButtonTexture(1, image2);
@@ -160,16 +146,19 @@ int main(int, char*[] )
   bds[4] = bds[5] = 0.0;
   representation->SetPlaceFactor(1);
   representation->PlaceWidget(bds);
-  MyClass temp;
-  buttonWidget->AddObserver(vtkCommand::LeftButtonPressEvent,&temp, &MyClass::KeypressCallbackFunction);
+  vtkSmartPointer<vtkButtonCallback> callback =
+    vtkSmartPointer<vtkButtonCallback>::New();
+  buttonWidget->AddObserver(vtkCommand::StateChangedEvent,callback);
+  callback->table = table;
   buttonWidget->On();
 
 
   //Finally render the scene and compare the image to a reference image
   view->GetRenderer()->AddActor(textActor);
-
-  view->GetRenderWindow()->SetMultiSamples(0);
+//  view->GetRenderWindow()->SetMultiSamples(0);
   view->GetInteractor()->Initialize();
+  view->GetRenderer()->Render();
+
   view->GetInteractor()->Start();
 
   return EXIT_SUCCESS;

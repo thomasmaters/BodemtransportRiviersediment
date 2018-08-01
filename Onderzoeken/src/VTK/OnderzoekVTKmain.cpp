@@ -29,6 +29,10 @@ VTK_MODULE_INIT(vtkRenderingFreeType)
 #include <vtk-8.1/vtkImageData.h>
 #include <vtk-8.1/vtkButtonRepresentation.h>
 #include <vtk-8.1/vtkRectangularButtonSource.h>
+#include <vtk-8.1/vtkVertexGlyphFilter.h>
+#include <vtk-8.1/vtkPolyDataMapper.h>
+#include <vtk-8.1/vtkDelaunay2D.h>
+#include <vtk-8.1/vtkProperty.h>
 
 #include <random>
 #include <chrono>
@@ -152,10 +156,40 @@ int main(int, char*[] )
   callback->table = table;
   buttonWidget->On();
 
+  vtkSmartPointer<vtkPoints> points =
+    vtkSmartPointer<vtkPoints>::New();
 
-  //Finally render the scene and compare the image to a reference image
+  unsigned int gridSize = 1000;
+  for(unsigned int x = 0; x < gridSize; x++)
+  {
+    for(unsigned int y = 0; y < gridSize; y++)
+    {
+      points->InsertNextPoint(x, y, vtkMath::Random(0.0, 3.0));
+    }
+  }
+
+  // Add the grid points to a polydata object
+  vtkSmartPointer<vtkPolyData> polydata =
+    vtkSmartPointer<vtkPolyData>::New();
+  polydata->SetPoints(points);
+
+  vtkSmartPointer<vtkVertexGlyphFilter> glyphFilter =
+    vtkSmartPointer<vtkVertexGlyphFilter>::New();
+  glyphFilter->SetInputData(polydata);
+  glyphFilter->Update();
+
+  // Create a mapper and actor
+  VTK_CREATE(vtkPolyDataMapper, pointsMapper);
+  pointsMapper->SetInputConnection(glyphFilter->GetOutputPort());
+
+  VTK_CREATE(vtkActor,pointsActor);
+  pointsActor->SetMapper(pointsMapper);
+  pointsActor->GetProperty()->SetPointSize(3.0);
+  pointsActor->GetProperty()->SetColor(1.0,0.0,0.0);
+
+  view->GetRenderer()->AddActor(pointsActor);
   view->GetRenderer()->AddActor(textActor);
-//  view->GetRenderWindow()->SetMultiSamples(0);
+  view->GetRenderWindow()->SetMultiSamples(0);
   view->GetInteractor()->Initialize();
   view->GetRenderer()->Render();
 

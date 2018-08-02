@@ -8,60 +8,50 @@
 
 #include "gnuplot-iostream.h"
 
+#include <random>
+#include <chrono>
+
 int main(int argc, char **argv) {
 	Gnuplot gp;
-		// Create a script which can be manually fed into gnuplot later:
-		//    Gnuplot gp(">script.gp");
-		// Create script and also feed to gnuplot:
-		//    Gnuplot gp("tee plot.gp | gnuplot -persist");
-		// Or choose any of those options at runtime by setting the GNUPLOT_IOSTREAM_CMD
-		// environment variable.
+	std::vector<std::tuple<std::size_t, std::size_t> > pts_A;
+	std::vector<std::vector<std::tuple<std::uint16_t, std::uint16_t, std::uint16_t> > > pts_B;
 
-		// Gnuplot vectors (i.e. arrows) require four columns: (x,y,dx,dy)
-		std::vector<std::tuple<double, double, double, double> > pts_A;
+//	std::uint16_t size = 1000;
+//	for (std::uint16_t i = 0; i < size; ++i) {
+//		pts_B.resize(size);
+//		for (std::uint16_t j = 0; j < size; ++j) {
+//			pts_B[i].push_back(std::make_tuple(i, j, std::rand() % 5));
+//		}
+//	}
+//
+//	gp << "set xrange[0:1000]\n";
+//	gp << "set yrange[0,1000]\n";
+//	gp << "set zrange[0,5]\n";
+//	gp << "set view 60, 30\n";
+//	gp << "show view\n";
+//	gp << "splot '-' with pm3d\n";
+//	gp.send2d(pts_B);
 
-		// You can also use a separate container for each column, like so:
-		std::vector<double> pts_B_x;
-		std::vector<double> pts_B_y;
-		std::vector<double> pts_B_dx;
-		std::vector<double> pts_B_dy;
+	gp << "set xrange [0:500]\nset yrange [0:4]\n";
 
-		// You could also use:
-		//   std::vector<std::vector<double> >
-		//   boost::tuple of four std::vector's
-		//   std::vector of std::tuple (if you have C++11)
-		//   arma::mat (with the Armadillo library)
-		//   blitz::Array<blitz::TinyVector<double, 4>, 1> (with the Blitz++ library)
-		// ... or anything of that sort
-
-		for(double alpha=0; alpha<1; alpha+=1.0/24.0) {
-			double theta = alpha*2.0*3.14159;
-			pts_A.push_back(std::make_tuple(
-				 cos(theta),
-				 sin(theta),
-				-cos(theta)*0.1,
-				-sin(theta)*0.1
-			));
-
-			pts_B_x .push_back( cos(theta)*0.8);
-			pts_B_y .push_back( sin(theta)*0.8);
-			pts_B_dx.push_back( sin(theta)*0.1);
-			pts_B_dy.push_back(-cos(theta)*0.1);
+	for (std::size_t k = 0; k < 10; ++k) {
+		auto start = std::chrono::steady_clock::now();
+		pts_A.clear();
+		for (std::size_t i = 0; i < 500; ++i) {
+			pts_A.push_back(std::make_pair(i, std::rand() % 5));
 		}
-
-		// Don't forget to put "\n" at the end of each line!
-		gp << "set xrange [-2:2]\nset yrange [-2:2]\n";
-		// '-' means read from stdin.  The send1d() function sends data to gnuplot's stdin.
-		gp << "plot '-' with vectors title 'pts_A', '-' with vectors title 'pts_B'\n";
+		gp << "clear\n";
+		gp << "plot '-' with boxes title 'pts_A'\n";
 		gp.send1d(pts_A);
-		gp.send1d(std::make_tuple(pts_B_x, pts_B_y, pts_B_dx, pts_B_dy));
+		gp << "e\n";
+		gp.flush();
+	    auto end = std::chrono::steady_clock::now();
+	    auto diff = end - start;
+	    std::cout << std::chrono::duration <double, std::milli> (diff).count() << " ms" << std::endl;
+	}
 
-	#ifdef _WIN32
-		// For Windows, prompt for a keystroke before the Gnuplot object goes out of scope so that
-		// the gnuplot window doesn't get closed.
-		std::cout << "Press enter to exit." << std::endl;
-		std::cin.get();
-	#endif
+	std::cout << "Press enter to exit." << std::endl;
+	std::cin.get();
 }
 
 

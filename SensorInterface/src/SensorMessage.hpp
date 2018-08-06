@@ -41,6 +41,19 @@ class SensorMessage
         std::copy(rhs.data_, rhs.data_ + size_, data_);
     }
 
+    void increaseSize(std::size_t size)
+    {
+        if (size <= size_)
+        {
+            return;
+        }
+        uint8_t* data = new uint8_t[size]{ 0 };  // alloc new data space
+        std::copy(data_, data_ + size, data);    // copy old data to new data
+        delete[] data_;                          // Delete old data
+        size_ = size;                            // Assign size
+        data_ = data;                            // Assign pointer to new data
+    }
+
     SensorMessage& operator=(const SensorMessage& rhs)
     {
         if (this != &rhs)

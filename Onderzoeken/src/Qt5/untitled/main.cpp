@@ -1,5 +1,5 @@
-#include "onderzoekqtmain.h"
 #include <QApplication>
+#include "onderzoekqtmain.h"
 
 int main(int argc, char *argv[])
 {

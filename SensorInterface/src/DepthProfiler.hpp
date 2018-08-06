@@ -57,8 +57,8 @@ class DepthProfiler
      * @param matrix A filtered matrix.
      */
     void addProcessedPoint(Matrix<N, 3, T>& matrix);
-  private:
 
+  private:
     /**
      * Tries to find a where the polynomial intersects 0 using NewtonsMethod.
      * https://en.wikipedia.org/wiki/Newton%27s_method
@@ -82,14 +82,15 @@ class DepthProfiler
      * @param params2 Polynomial coefficients.
      * @param solution_space Range the solution can be in.
      * @param inital_guess Start guess.
-     * @param x_shift How much the x-axis will be shifted for the second polynomial to calculate a(x-h)^3 + b(x-h)^2 + c(x-h) + d
+     * @param x_shift How much the x-axis will be shifted for the second polynomial to calculate a(x-h)^3 + b(x-h)^2 +
+     * c(x-h) + d
      * @param precision How precise the solution has to be.
      * @return x where polynomial intersects 0.
      */
     template <std::size_t H>
     T newtonsMethod(const Matrix<H, 1, T>& params,
                     const Matrix<H, 1, T>& params2,
-					const std::pair<float,float>& solution_space,
+                    const std::pair<float, float>& solution_space,
                     T inital_guess  = 1,
                     T x_shift       = 0,
                     float precision = PRECISION) const;

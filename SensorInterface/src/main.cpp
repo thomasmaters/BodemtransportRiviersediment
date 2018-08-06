@@ -6,6 +6,7 @@
  *		Email : thomasmaters@hotmail.com (TG.Maters@student.han.nl)
  */
 
+#include "BottomTransportMessage.hpp"
 #include "DeltaT100Controller.hpp"
 
 #include <boost/asio.hpp>

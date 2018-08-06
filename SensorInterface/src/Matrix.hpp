@@ -15,6 +15,8 @@
 #include <initializer_list>
 #include <iostream>
 
+#include <boost/serialization/array.hpp>
+
 template <std::size_t H /* amount of rows */, std::size_t W /* amount of columns */, typename T>
 class Matrix
 {

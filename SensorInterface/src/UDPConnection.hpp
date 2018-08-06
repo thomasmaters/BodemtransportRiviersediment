@@ -66,13 +66,13 @@ class UDPServerClient : public ConnectionInterface, public std::enable_shared_fr
     std::string remote_port_;
     std::string local_port_;
 
+    boost::asio::io_service& io_service_;
+
     boost::asio::ip::udp::endpoint local_endpoint_;
     boost::asio::ip::udp::endpoint remote_endpoint_;
 
     boost::asio::ip::udp::socket socket_outgoing_;
     boost::asio::ip::udp::socket socket_incomming_;
-
-    boost::asio::io_service& io_service_;
 };
 }
 

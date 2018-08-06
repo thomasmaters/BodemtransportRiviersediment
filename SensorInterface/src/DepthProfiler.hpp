@@ -9,6 +9,7 @@
 #ifndef SRC_DEPTHPROFILER_HPP_
 #define SRC_DEPTHPROFILER_HPP_
 
+#include "DepthProfilerProxy.hpp"
 #include "DataBuffer.hpp"
 #include "Dune.hpp"
 #include "FileHandler.hpp"
@@ -25,7 +26,7 @@
 namespace Controller
 {
 template <std::size_t N, typename T = float>
-class DepthProfiler
+class DepthProfiler: public DepthProfilerProxy
 {
     static_assert(std::is_arithmetic<T>::value, "Type must be aritmatic.");
 
@@ -57,6 +58,12 @@ class DepthProfiler
      * @param matrix A filtered matrix.
      */
     void addProcessedPoint(Matrix<N, 3, T>& matrix);
+
+    /**
+     * Enables if a udp packet will be send after calculating the transport of a bottom profile.
+     * @param state
+     */
+    inline void setTransportUpdateEnabled(bool state) { send_transport_updates_ = state; }
 
   private:
     /**
@@ -245,6 +252,8 @@ class DepthProfiler
   private:
     FileHandler file_instance_;
     std::vector<BottomProfile<N, 3, T>> depth_data_;
+
+    bool send_transport_updates_;
 };
 
 } /* namespace Controller */

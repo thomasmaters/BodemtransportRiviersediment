@@ -11,7 +11,11 @@
 
 #include "Dune.hpp"
 #include "SensorMessage.hpp"
+
 #define BOTTOM_TRANSPORT_HEADER_SIZE 16
+
+namespace Controller
+{
 
 class BottomTransportMessage : public SensorMessage
 {
@@ -29,6 +33,20 @@ class BottomTransportMessage : public SensorMessage
         data_[0]               = 0xAA;
         data_[messageSize - 1] = 0xBB;
     }
+
+    BottomTransportMessage(const BottomTransportMessage& rhs): SensorMessage(rhs)
+	{
+
+	}
+
+    BottomTransportMessage& operator=(const BottomTransportMessage& rhs)
+	{
+		if( this != &rhs )
+		{
+			SensorMessage::operator =(rhs);
+		}
+		return *this;
+	}
 
     uint8_t getAmoundOfDunes()
     {
@@ -98,5 +116,6 @@ class BottomTransportMessage : public SensorMessage
         memcpy(&(data_[index]), &value, sizeof(value));
     }
 };
+}
 
 #endif /* SRC_BOTTOMTRANSPORTMESSAGE_HPP_ */

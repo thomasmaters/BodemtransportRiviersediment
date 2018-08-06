@@ -31,6 +31,8 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
     data_buffer_(std::unique_ptr<DataBuffer<>>(new DataBuffer<>()))
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
+    depth_profiler_.setTransportUpdateEnabled(true);
+
     deltat_communication_.addRequestHandler(std::shared_ptr<RequestHandler>(this));
     sensor_communication_.addResponseHandler(std::shared_ptr<ResponseHandler>(this));
 

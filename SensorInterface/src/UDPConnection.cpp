@@ -23,9 +23,9 @@ UDPServerClient::UDPServerClient(boost::asio::io_service& io_service,
   : host_(host),
     remote_port_(remote_port),
     local_port_(local_port),
+    io_service_(io_service),
     socket_outgoing_(io_service),
-    socket_incomming_(io_service, udp::endpoint(udp::v4(), std::atoi(local_port.c_str()))),
-    io_service_(io_service)
+    socket_incomming_(io_service, udp::endpoint(udp::v4(), std::atoi(local_port.c_str())))
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     start_receive();

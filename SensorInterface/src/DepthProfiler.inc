@@ -8,8 +8,9 @@
 namespace Controller
 {
 template <std::size_t N, typename T>
-DepthProfiler<N, T>::DepthProfiler()
+DepthProfiler<N, T>::DepthProfiler() : send_transport_updates_(false)
 {
+	std::cout << __PRETTY_FUNCTION__ << std::endl;
     Matrix<480, 3, T> input1({ { 0.0, 4.0, 0 },
                                { 0.0965, 4.03425, 0 },
                                { 0.19199999999999998, 4.0840000000000005, 0 },
@@ -566,6 +567,10 @@ void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix)
         if (depth_data_.size() > 0)
         {
             getTransportOverTime(depth_data_.back(), bottom_profile);
+            if(send_transport_updates_)
+            {
+				sendBottomProfile(bottom_profile);
+            }
         }
 
         depth_data_.push_back(bottom_profile);

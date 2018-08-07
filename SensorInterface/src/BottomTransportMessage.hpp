@@ -12,11 +12,12 @@
 #include "Dune.hpp"
 #include "SensorMessage.hpp"
 
+#include <iomanip>
+
 #define BOTTOM_TRANSPORT_HEADER_SIZE 16
 
 namespace Controller
 {
-
 class BottomTransportMessage : public SensorMessage
 {
   public:
@@ -34,19 +35,18 @@ class BottomTransportMessage : public SensorMessage
         data_[messageSize - 1] = 0xBB;
     }
 
-    BottomTransportMessage(const BottomTransportMessage& rhs): SensorMessage(rhs)
-	{
-
-	}
+    BottomTransportMessage(const BottomTransportMessage& rhs) : SensorMessage(rhs)
+    {
+    }
 
     BottomTransportMessage& operator=(const BottomTransportMessage& rhs)
-	{
-		if( this != &rhs )
-		{
-			SensorMessage::operator =(rhs);
-		}
-		return *this;
-	}
+    {
+        if (this != &rhs)
+        {
+            SensorMessage::operator=(rhs);
+        }
+        return *this;
+    }
 
     uint8_t getAmoundOfDunes()
     {
@@ -97,11 +97,11 @@ class BottomTransportMessage : public SensorMessage
         {
             for (std::size_t j = 0; j < value.at(i).signature_.getHeight(); ++j)
             {
-                setFloatToData(BOTTOM_TRANSPORT_HEADER_SIZE + i * 7 + j * 4, value.at(i).signature_.at(j, 0));
+                setFloatToData(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + j * 4, value.at(i).signature_.at(j, 0));
             }
-            setFloatToData(BOTTOM_TRANSPORT_HEADER_SIZE + i * 7 + 16, value.at(i).transport_);
-            setFloatToData(BOTTOM_TRANSPORT_HEADER_SIZE + i * 7 + 20, value.at(i).start_x_);
-            setFloatToData(BOTTOM_TRANSPORT_HEADER_SIZE + i * 7 + 24, value.at(i).end_x_);
+            setFloatToData(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + 16, value.at(i).transport_);
+            setFloatToData(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + 20, value.at(i).start_x_);
+            setFloatToData(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + 24, value.at(i).end_x_);
         }
     }
 

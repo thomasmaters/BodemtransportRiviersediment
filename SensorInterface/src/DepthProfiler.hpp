@@ -9,8 +9,8 @@
 #ifndef SRC_DEPTHPROFILER_HPP_
 #define SRC_DEPTHPROFILER_HPP_
 
-#include "DepthProfilerProxy.hpp"
 #include "DataBuffer.hpp"
+#include "DepthProfilerProxy.hpp"
 #include "Dune.hpp"
 #include "FileHandler.hpp"
 #include "Matrix.hpp"
@@ -26,7 +26,7 @@
 namespace Controller
 {
 template <std::size_t N, typename T = float>
-class DepthProfiler: public DepthProfilerProxy
+class DepthProfiler : public DepthProfilerProxy
 {
     static_assert(std::is_arithmetic<T>::value, "Type must be aritmatic.");
 
@@ -63,7 +63,10 @@ class DepthProfiler: public DepthProfilerProxy
      * Enables if a udp packet will be send after calculating the transport of a bottom profile.
      * @param state
      */
-    inline void setTransportUpdateEnabled(bool state) { send_transport_updates_ = state; }
+    inline void setTransportUpdateEnabled(bool state)
+    {
+        send_transport_updates_ = state;
+    }
 
   private:
     /**

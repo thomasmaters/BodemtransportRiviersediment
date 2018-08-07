@@ -22,8 +22,16 @@ class SensorMessage
     /**
      * Constructor
      */
-    explicit SensorMessage(std::size_t size) : size_(size), data_(new uint8_t[size]{ 0 })
+    explicit SensorMessage(std::size_t size) : size_(size)
     {
+        if (size_ == 0)
+        {
+            data_ = new uint8_t[1]{ 0 };
+        }
+        else
+        {
+            data_ = new uint8_t[size]{ 0 };
+        }
     }
 
     /**

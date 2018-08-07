@@ -8,6 +8,7 @@
 
 #include "DeltaT100Controller.hpp"
 
+#include "IOHandler.hpp"
 #include "SonarReturnData.hpp"
 #include "SonarReturnDataPacket.hpp"
 
@@ -18,13 +19,11 @@
 
 namespace Controller::DeltaT100
 {
-DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
-                                         const std::string& host,
+DeltaT100Controller::DeltaT100Controller(const std::string& host,
                                          const std::string& local_port,
                                          const std::string& remote_port)
-  : io_service_(io_service),
-    sensor_communication_(io_service_, host, local_port, remote_port),
-    deltat_communication_(io_service_, "localhost", local_port, remote_port),
+  : sensor_communication_(IOHandler::getInstance().getIOService(), host, local_port, remote_port),
+    deltat_communication_(IOHandler::getInstance().getIOService(), "localhost", local_port, remote_port),
     display_gain_(20),
     current_display_gain_(0),
     depth_profiler_(DepthProfiler<480, float>()),
@@ -36,11 +35,8 @@ DeltaT100Controller::DeltaT100Controller(boost::asio::io_service& io_service,
     deltat_communication_.addRequestHandler(std::shared_ptr<RequestHandler>(this));
     sensor_communication_.addResponseHandler(std::shared_ptr<ResponseHandler>(this));
 
-    auto work = std::make_shared<boost::asio::io_service::work>(io_service_);
-
     switch_data_command_ = SwitchDataCommand();
     sensor_communication_.sendRequest(switch_data_command_, SonarReturnDataPacket::command_length_, false);
-    io_service_.run();
 }
 
 void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
@@ -116,6 +112,19 @@ SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t leng
         // Return a message with 1 byte to reopen a connection.
         return SensorMessage(1);
     }
+    else
+    {
+        std::ifstream matrixInput("C:\\Projecten\\Eclipse-workspace\\MultibeamDataProcessor\\Debug\\output_ssv.txt");
+        Matrix<480, 3, float> test(matrixInput, false);
+        current_display_gain_++;
+        Matrix<480, 3, float> temp;
+        for (std::size_t i = 0; i < 480; ++i)
+        {
+            temp.at(i, 0) += current_display_gain_;
+        }
+        test += temp;
+        depth_profiler_.addRawPoint(test);
+    }
 
     // Return an empty message to stop the connection.
     return SensorMessage(0);
@@ -129,7 +138,6 @@ void DeltaT100Controller::requestSensorPing(const SwitchDataCommand& command)
 
 DeltaT100Controller::~DeltaT100Controller()
 {
-    // TODO Auto-generated destructor stub
 }
 
 } /* namespace Controller */

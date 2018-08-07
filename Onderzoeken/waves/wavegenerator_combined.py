@@ -3,6 +3,7 @@ import random
 
 fArray = open("output_array.txt", 'w')
 fCSV = open("output_csv.txt", 'w')
+fSSV = open("output_ssv.txt", 'w')
 
 r = 0.5
 tensionMatrix = np.matrix([[0,1,0,0],[-r,0,r,0],[2*r,r-3,3-2*r,-r],[-r,2-r,r-2,r]])
@@ -40,6 +41,7 @@ for x in range(0, 119):
         progressMatrix = np.matrix([[1,pr,pr * pr,pr*pr*pr]])
         pointsMatrix = np.matrix([waveArray[x],waveArray[x+1],waveArray[x+2],waveArray[x+3]])
         output = progressMatrix*tensionMatrix*pointsMatrix
+        fSSV.write(str(output.item((0,0))) + " " + str(output.item((0,1))) + " 0\n")
         fArray.write("{" + str(output.item((0,0))) + "," + str(output.item((0,1))) + ",0},\n")
         fCSV.write(str(output.item((0,0))) + "," + str(output.item((0,1))) + "," + str(output.item((0,2))) + "\n")
 fArray.close()

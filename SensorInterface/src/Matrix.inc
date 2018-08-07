@@ -72,6 +72,23 @@ Matrix<H, W, T>::Matrix(const Matrix<aH, aW, T>& rhs, std::size_t heightStart, s
     }
 }
 
+template <std::size_t H, std::size_t W, typename T>
+Matrix<H, W, T>::Matrix(std::ifstream& file, bool commaSeperated)
+{
+    T temp;
+    if (!commaSeperated)
+    {
+        for (std::size_t i = 0; i < H; ++i)
+        {
+            for (std::size_t j = 0; j < W; ++j)
+            {
+                file >> temp;
+                innerMatrix[i][j] = temp;
+            }
+        }
+    }
+}
+
 /************************************************************
  * Acces operators.
  ************************************************************/

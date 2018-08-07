@@ -25,12 +25,7 @@ namespace Controller::DeltaT100
 class DeltaT100Controller : public Communication::RequestHandler, public Communication::ResponseHandler
 {
   public:
-    //	DeltaT100Controller();
-
-    DeltaT100Controller(boost::asio::io_service& io_service,
-                        const std::string& host,
-                        const std::string& local_port,
-                        const std::string& remote_port);
+    DeltaT100Controller(const std::string& host, const std::string& local_port, const std::string& remote_port);
 
     void handleResponse(uint8_t* data, std::size_t length) override;
 
@@ -43,7 +38,6 @@ class DeltaT100Controller : public Communication::RequestHandler, public Communi
   private:
     void cosntructSensorPing();
 
-    boost::asio::io_service& io_service_;
     Communication::TCP::TCPServerClient sensor_communication_;
     Communication::UDP::UDPServerClient deltat_communication_;
 

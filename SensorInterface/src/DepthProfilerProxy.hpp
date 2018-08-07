@@ -9,49 +9,46 @@
 #ifndef SRC_DEPTHPROFILERPROXY_HPP_
 #define SRC_DEPTHPROFILERPROXY_HPP_
 
-#include "UDPConnection.hpp"
 #include "BottomTransportMessage.hpp"
 #include "Dune.hpp"
+#include "IOHandler.hpp"
+#include "UDPConnection.hpp"
 
 #include <thread>
 
-class DepthProfilerProxy: public Communication::ResponseHandler
+class DepthProfilerProxy : public Communication::ResponseHandler,
+                           public std::enable_shared_from_this<DepthProfilerProxy>
 {
-public:
-	DepthProfilerProxy():
-		outgoing_communication_(io_service_,"localhost", "0", "666")
-	{
-		std::cout << __PRETTY_FUNCTION__ << std::endl;
-//		std::thread temp{[this](){io_service_.run();}};
-//		temp.detach();
-	}
+  public:
+    DepthProfilerProxy() : outgoing_communication_(IOHandler::getInstance().getIOService(), "localhost", "2000", "2001")
+    {
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
+        outgoing_communication_.addResponseHandler(std::shared_ptr<ResponseHandler>(this));
+        //		std::thread temp{[this](){io_service_.run();}};
+        //		temp.detach();
+    }
 
-	~DepthProfilerProxy()
-	{
-		std::cout << __PRETTY_FUNCTION__ << std::endl;
-		io_service_.stop();
-	}
+    ~DepthProfilerProxy()
+    {
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
+    }
 
-	void handleResponse([[maybe_unused]] uint8_t* data,[[maybe_unused]] std::size_t length)
-	{
+    void handleResponse([[maybe_unused]] uint8_t* data, [[maybe_unused]] std::size_t length)
+    {
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
+    }
 
-	}
+    template <std::size_t H, std::size_t W, typename T>
+    void sendBottomProfile(BottomProfile<H, W, T>& profile)
+    {
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
+        Controller::BottomTransportMessage message;
+        message.setDunes(profile);
+        outgoing_communication_.sendRequest(message, (std::size_t)0, false);
+    }
 
-	template<std::size_t H, std::size_t W, typename T>
-	void sendBottomProfile(BottomProfile<H,W,T>& profile)
-	{
-		std::cout << __PRETTY_FUNCTION__ << std::endl;
-		Controller::BottomTransportMessage message;
-		message.setDunes(profile);
-		outgoing_communication_.sendRequest(message, (std::size_t)1, false);
-	}
-
-private:
-	Communication::UDP::UDPServerClient outgoing_communication_;
-	boost::asio::io_service io_service_;
-
+  private:
+    Communication::UDP::UDPServerClient outgoing_communication_;
 };
-
-
 
 #endif /* SRC_DEPTHPROFILERPROXY_HPP_ */

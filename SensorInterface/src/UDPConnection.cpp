@@ -27,7 +27,7 @@ UDPServerClient::UDPServerClient(boost::asio::io_service& io_service,
     socket_outgoing_(io_service),
     socket_incomming_(io_service, udp::endpoint(udp::v4(), std::atoi(local_port.c_str())))
 {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << " local: " << local_port << " remote: " << remote_port << std::endl;
     start_receive();
 }
 
@@ -81,7 +81,7 @@ void UDPServerClient::sendMessage(const boost::asio::mutable_buffer& buffer,
 {
     if (connectOutgoingSocket())
     {
-        std::cout << __PRETTY_FUNCTION__ << ": " << (char*)buffer.data() << std::endl;
+        std::cout << __PRETTY_FUNCTION__ << std::endl;
         socket_outgoing_.async_send(buffer,
                                     boost::bind(&UDPServerClient::getResponse,
                                                 this,
@@ -101,13 +101,16 @@ void UDPServerClient::getResponse(std::size_t response_size,
               << std::endl;
     if (!error)
     {
-        socket_outgoing_.async_receive_from(boost::asio::buffer(data_, response_size),
-                                            remote_endpoint_,
-                                            boost::bind(&UDPServerClient::gotResponse,
-                                                        this,
-                                                        has_response_head_and_body,
-                                                        boost::asio::placeholders::error,
-                                                        boost::asio::placeholders::bytes_transferred));
+        if (response_size > 0)
+        {
+            socket_outgoing_.async_receive_from(boost::asio::buffer(data_, response_size),
+                                                remote_endpoint_,
+                                                boost::bind(&UDPServerClient::gotResponse,
+                                                            this,
+                                                            has_response_head_and_body,
+                                                            boost::asio::placeholders::error,
+                                                            boost::asio::placeholders::bytes_transferred));
+        }
     }
     else
     {
@@ -119,6 +122,7 @@ void UDPServerClient::gotResponse([[maybe_unused]] bool has_response_head_and_bo
                                   const boost::system::error_code& error,
                                   std::size_t bytes_transferred)
 {
+    std::cout << __PRETTY_FUNCTION__ << ": bytes transferd: " << bytes_transferred << std::endl;
     if (error)
     {
         std::cout << __PRETTY_FUNCTION__ << ": " << error.message() << std::endl;
@@ -147,7 +151,7 @@ void UDPServerClient::handle_receive(const boost::system::error_code& error, std
 {
     start_receive();
     std::cout << "Received: " << bytes_transferred << " bytes" << std::endl;
-    if (!error || error == boost::asio::error::eof)
+    if (!error || (error == boost::asio::error::eof && bytes_transferred > 0))
     {
         if (request_handler_.use_count() != 0)
         {

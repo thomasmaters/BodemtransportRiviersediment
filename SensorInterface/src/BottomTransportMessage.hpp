@@ -39,6 +39,10 @@ class BottomTransportMessage : public SensorMessage
     {
     }
 
+    BottomTransportMessage(const SensorMessage& rhs) : SensorMessage(rhs)
+    {
+    }
+
     BottomTransportMessage& operator=(const BottomTransportMessage& rhs)
     {
         if (this != &rhs)

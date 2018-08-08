@@ -37,14 +37,15 @@ class SensorMessage
     /**
      * Constructor
      */
-    SensorMessage(uint8_t* data, std::size_t size) : size_(size), data_(data)
+    SensorMessage(uint8_t* data, std::size_t size) : size_(size), data_(new uint8_t[size]{ 0 })
     {
+        std::copy(data, data + size_, data_);
     }
 
     /**
      * Copy constructor
      */
-    SensorMessage(const SensorMessage& rhs) : size_(rhs.size_), data_(nullptr)
+    SensorMessage(const SensorMessage& rhs) : size_(rhs.size_), data_(new uint8_t[rhs.size_]{ 0 })
     {
         std::copy(rhs.data_, rhs.data_ + size_, data_);
     }

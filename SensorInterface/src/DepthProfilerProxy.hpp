@@ -24,8 +24,6 @@ class DepthProfilerProxy : public Communication::ResponseHandler,
     {
         std::cout << __PRETTY_FUNCTION__ << std::endl;
         outgoing_communication_.addResponseHandler(std::shared_ptr<ResponseHandler>(this));
-        //		std::thread temp{[this](){io_service_.run();}};
-        //		temp.detach();
     }
 
     ~DepthProfilerProxy()
@@ -44,6 +42,7 @@ class DepthProfilerProxy : public Communication::ResponseHandler,
         std::cout << __PRETTY_FUNCTION__ << std::endl;
         Controller::BottomTransportMessage message;
         message.setDunes(profile);
+        message.setAverageTransport(profile.average_transport_);
         outgoing_communication_.sendRequest(message, (std::size_t)0, false);
     }
 

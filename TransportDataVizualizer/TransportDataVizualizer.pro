@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets network
+QT       += core gui widgets network printsupport
 
 TARGET = TransportDataVizualizer
 TEMPLATE = app
@@ -25,16 +25,18 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         MainApplication.cpp \
+    DepthProfileVizualizerProxy.cpp \
     DepthProfileVizualizer.cpp \
-    depthprofilevizualizerproxy.cpp
+    qcustomplot.cpp
 
 HEADERS += \
         MainApplication.hpp \
-    DepthProfileVizualizer.hpp \
     DepthProfileVizualizerProxy.hpp \
     ../SensorInterface/src/BottomTransportMessage.hpp \
     ../SensorInterface/src/BottomTransportMessage.hpp \
-    ../SensorInterface/src/SensorMessage.hpp
+    ../SensorInterface/src/SensorMessage.hpp \
+    DepthProfileVizualizer.hpp \
+    qcustomplot.h
 
 FORMS += \
         mainapplication.ui

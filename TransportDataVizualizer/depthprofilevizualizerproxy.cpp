@@ -1,32 +1,38 @@
 #include "depthprofilevizualizerproxy.hpp"
 
-DepthProfileVizualizerProxy::DepthProfileVizualizerProxy(QObject* parent): QObject(parent)
+DepthProfileVizualizerProxy::DepthProfileVizualizerProxy(QWidget* parent): QWidget (parent)
 {
     udp_socket_ = new QUdpSocket(this);
     udp_socket_->bind(QHostAddress::LocalHost, 2000);
 
-    connect(udp_socket_, SIGNAL(readyRead()),
-            this, SLOT(readPendingDatagrams()));
+    connect(udp_socket_, SIGNAL(readyRead()),this, SLOT(readPendingDatagrams()));
 }
 
 DepthProfileVizualizerProxy::~DepthProfileVizualizerProxy()
-    {
-
-    }
+{
+    QTextStream(stdout) << __PRETTY_FUNCTION__;
+}
 
 void DepthProfileVizualizerProxy::readPendingDatagrams()
 {
-    while (udp_socket_->hasPendingDatagrams()) {
-        QTextStream(stdout) << "Got packat";
-        QNetworkDatagram datagram = udp_socket_->receiveDatagram();
-        QTextStream(stdout) << datagram.data().size();
-        SensorMessage message = SensorMessage((uint8_t*)datagram.data().data(),2048);
-        Controller::BottomTransportMessage depth_profile(message);
-        for(auto& i: depth_profile.getDunes())
-        {
-            QTextStream(stdout) << QString::fromStdString(i.to_string());
-        }
+    try {
+        QTextStream(stdout) << "Got packet";
+            QByteArray datagram;
 
-        datagram.data().data();
+            datagram.resize(udp_socket_->pendingDatagramSize());
+            udp_socket_->readDatagram(datagram.data(), datagram.size());
+
+            QTextStream(stdout) << "\nConstructed SensorMessage: " << datagram.size() << "\n";
+            Controller::BottomTransportMessage depth_profile(reinterpret_cast<uint8_t*>(datagram.data()));
+
+            messageReceived(depth_profile);
+    } catch (std::exception& msg) {
+        QTextStream(stdout) << msg.what() << '\n';
     }
+
+}
+
+void DepthProfileVizualizerProxy::messageReceived(Controller::BottomTransportMessage message)
+{
+
 }

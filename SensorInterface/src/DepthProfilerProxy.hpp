@@ -43,6 +43,7 @@ class DepthProfilerProxy : public Communication::ResponseHandler,
         Controller::BottomTransportMessage message;
         message.setDunes(profile);
         message.setAverageTransport(profile.average_transport_);
+        message.setTimeOfPing(profile.time_);
         outgoing_communication_.sendRequest(message, (std::size_t)0, false);
     }
 

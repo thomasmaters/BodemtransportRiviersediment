@@ -25,7 +25,8 @@ class BottomTransportMessage : public SensorMessage
     // Byte 0: Hex AA, dec 170, indentifier
     // Byte 1: amount dunes
     // Byte 2-5: average transport
-    // Byte 6-15: empty, 00 hex
+    // Byte 6-13: time of ping
+    // Byte 14-15: empty, 00 hex
     // Byte 16-xxx: amountdunes * [a(float),b(float),c(float),d(float),transport(float), x_from(float), x_to(float)]
     // Byte xxx+1: hex BB, dex 187
 
@@ -68,12 +69,22 @@ class BottomTransportMessage : public SensorMessage
 
     float getAverageTransport()
     {
-        return getFloatFromData(2);
+        return getDataAtIndex<float>(2);
     }
 
     void setAverageTransport(float value)
     {
-        setFloatToData(2, value);
+        setDataToIndex(2, value);
+    }
+
+    int64_t getTimeOfPing()
+    {
+    	return getDataAtIndex<int64_t>(6);
+    }
+
+    void setTimeOfPing(int64_t value)
+    {
+    	setDataToIndex(6, value);
     }
 
     std::vector<Matrix<7, 1, float>> getDunes()
@@ -87,9 +98,7 @@ class BottomTransportMessage : public SensorMessage
             for (std::size_t j = 0; j < 7; ++j)
             {
                 std::size_t array_ptr = BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + j * 4;
-                dune[j][0] = getFloatFromData(array_ptr);
-//                std::cout << BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + j * 4 << " -> " << dune[j][0] << std::endl;
-//                std::cout << BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + j * 4 << " -> " << (int)data_[array_ptr] << std::endl;
+                dune[j][0] = getDataAtIndex<float>(array_ptr);
             }
             result.push_back(dune);
         }
@@ -109,26 +118,27 @@ class BottomTransportMessage : public SensorMessage
         {
             for (std::size_t j = 0; j < value.at(i).signature_.getHeight(); ++j)
             {
-                setFloatToData(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + j * 4, value.at(i).signature_.at(j, 0));
+            	setDataToIndex<float>(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + j * 4, value.at(i).signature_.at(j, 0));
             }
-            setFloatToData(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + 16, value.at(i).transport_);
-            setFloatToData(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + 20, value.at(i).start_x_);
-            setFloatToData(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + 24, value.at(i).end_x_);
+            setDataToIndex<float>(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + 16, value.at(i).transport_);
+            setDataToIndex<float>(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + 20, value.at(i).start_x_);
+            setDataToIndex<float>(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + 24, value.at(i).end_x_);
         }
     }
 
   private:
-    float getFloatFromData(std::size_t index)
+    template<typename T>
+    T getDataAtIndex(std::size_t index)
     {
-//        return (data_[index+3] << 24) | (data_[index + 2] << 16) | (data_[index + 1] << 8) | data_[index];
-        float result;
-        memcpy(&result, &(data_[index]), sizeof(float));
+        T result;
+        memcpy(&result, &(data_[index]), sizeof(T));
         return result;
     }
 
-    void setFloatToData(std::size_t index, float value)
+    template<typename T>
+    void setDataToIndex(std::size_t index, T value)
     {
-        memcpy(&(data_[index]), &value, sizeof(value));
+        memcpy(&(data_[index]), &value, sizeof(T));
     }
 };
 }

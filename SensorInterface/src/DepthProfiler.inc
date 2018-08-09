@@ -60,14 +60,17 @@ void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono
             Matrix<60, 2, float> single_dune_matrix(matrix, dune.start_index_, 0);
 
             // Translate x values so they start from 0. (This helps the Gauss-Newton algorithm find a result.)
-            shiftWaveToZero(single_dune_matrix, dune.size_index_ + 1);
-
-            Matrix<4, 1, T> params({ 1, 1, 1, 1 });
-            gaussNewton(single_dune_matrix, params, dune.size_index_);
-            dune.signature_ = params;
-            dune.surface_area_ =
-                calculateArea(params, single_dune_matrix.at(0, 0), single_dune_matrix.at(dune.size_index_, 0));
-            bottom_profile.dunes_.push_back(dune);
+            shiftWaveToZero(single_dune_matrix, dune.size_index_);
+            try {
+                Matrix<4, 1, T> params({ 1, 1, 1, 1 });
+                gaussNewton(single_dune_matrix, params, dune.size_index_);
+                dune.signature_ = params;
+                dune.surface_area_ =
+                    calculateArea(params, single_dune_matrix.at(0, 0), single_dune_matrix.at(dune.size_index_, 0));
+                bottom_profile.dunes_.push_back(dune);
+			} catch (std::exception& e) {
+				std::cout << e.what() << std::endl;
+			}
         }
 
         // Calculate the transport!
@@ -156,7 +159,7 @@ T DepthProfiler<N, T>::newtonsMethod(const Matrix<H, 1, T>& params,
 
         guess = new_guess;
     }
-    throw std::runtime_error("Took to many iterations.");
+    throw std::runtime_error("Newtons Method: Took to many iterations.");
 }
 
 template <std::size_t N, typename T>
@@ -216,10 +219,8 @@ void DepthProfiler<N, T>::gaussNewton(const Matrix<H, W, T>& inputs,
         }
         if (i + 1 == MAX_ITERATIONS)
         {
-            throw std::runtime_error("Took to many iterations");
+            throw std::runtime_error("GaussNewton: Took to many iterations");
         }
-
-        //            std::cout << "Iteration: " << i << " " << total_deviation << std::endl;
     }
 }
 
@@ -343,12 +344,16 @@ template <std::size_t H, std::size_t W>
 void DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& profile_first,
                                                BottomProfile<H, W, T>& profile_second) const
 {
-    std::vector<std::pair<Dune, Dune>> simular_dunes = profile_first.getSimularDune(profile_second, 0.01);
+	//TODO: Magic number
+    std::vector<std::pair<Dune, Dune>> simular_dunes = profile_first.getSimularDune(profile_second, 2.0);
     std::cout << "Found: " << simular_dunes.size() << " simular dunes." << std::endl;
     if (simular_dunes.size() > 0)
     {
         float total_transport       = 0;
+        float total_wave_length = 0;
         std::size_t calculatedDunes = 0;
+        uint64_t time_difference = std::abs(profile_second.time_ - profile_first.time_); //In ms.
+
         for (auto& i : simular_dunes)
         {
             try
@@ -356,6 +361,7 @@ void DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& pro
                 float transport     = calculateMovedArea(i.first, i.second);
                 i.second.transport_ = transport;
                 total_transport += transport;
+                total_wave_length += i.first.end_x_ - i.first.start_x_;
                 calculatedDunes++;
             }
             catch (std::exception& e)
@@ -363,7 +369,9 @@ void DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& pro
                 continue;
             }
         }
-        profile_second.average_transport_ = total_transport / calculatedDunes;
+        //total_transport / total_wave_length / ms * 1000 = m^2/s
+        //TODO: Transport per dune of over de lengte van alle dunes bij elkaar?
+        profile_second.average_transport_ = (total_transport / calculatedDunes) / (total_wave_length / calculatedDunes) / (float)time_difference * 1000.0;
     }
     else
     {
@@ -379,8 +387,6 @@ float DepthProfiler<N, T>::calculateMovedArea(const Dune& dune_left, const Dune&
     T x_diff       = dune_right.start_x_ - dune_left.start_x_;
     T max_guess    = (dune_left.end_x_ - dune_right.start_x_);
     T inital_guess = max_guess / 2;
-    //    std::cout << "Inital guess: " << inital_guess << " rs: " << dune_right.start_x_ << " re: " <<
-    //    dune_right.end_x_ << " ls: " << dune_left.start_x_ << " le: " << dune_left.end_x_ << std::endl;
     auto solution_space = std::make_pair(0, max_guess + x_diff);
 
     // Calculate intersection between the dunes.
@@ -421,10 +427,10 @@ std::vector<std::size_t> DepthProfiler<N, T>::findPeaksAndValleys(const Matrix<H
             abs(derivative[i][0] - last_found_x) > minimal_x_diff)
         {
             last_found_x = derivative[i][0];
-            result.push_back(i + 1);
+            result.push_back(i);
         }
     }
-    //    std::cout << "Found: " << result.size() << " peaks or valleys." << std::endl;
+        std::cout << "Found: " << result.size() << " peaks or valleys." << std::endl;
     return result;
 }
 
@@ -435,16 +441,16 @@ DepthProfiler<N, T>::classifyWave(const Matrix<H, W, T>& afgeleide,
                                   const std::vector<std::size_t>& peaks_and_valleys) const
 {
     std::vector<std::pair<std::size_t, std::size_t>> result;
-    for (std::size_t i = 0; i < peaks_and_valleys.size() - 2; ++i)
+    for (std::size_t i = 0; i < peaks_and_valleys.size() - 3; ++i)
     {
         // Find a valley -> peak -> valley order.
         if (!isPeak(afgeleide, peaks_and_valleys[i]) && isPeak(afgeleide, peaks_and_valleys[i + 1]) &&
             !isPeak(afgeleide, peaks_and_valleys[i + 2]))
         {
             result.push_back(std::make_pair(peaks_and_valleys[i], peaks_and_valleys[i + 2]));
-            //            std::cout << "Wave from: " << peaks_and_valleys[i] << " to: " << peaks_and_valleys[i+2]
-            //				   << "   from_x: " << afgeleide.at(peaks_and_valleys[i],0) << " to_x: " <<
-            // afgeleide.at(peaks_and_valleys[i+2],0) << std::endl;
+                        std::cout << "Wave from: " << peaks_and_valleys[i] << " to: " << peaks_and_valleys[i+2]
+            				   << "   from_x: " << afgeleide.at(peaks_and_valleys[i],0) << " to_x: " <<
+             afgeleide.at(peaks_and_valleys[i+2],0) << std::endl;
         }
     }
     std::cout << "Found: " << result.size() << " Waves" << std::endl;

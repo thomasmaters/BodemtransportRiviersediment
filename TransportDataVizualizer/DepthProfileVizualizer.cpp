@@ -4,6 +4,7 @@ DepthProfileVizualizer::DepthProfileVizualizer(QCustomPlot* custom_plot, QWidget
 {
     custom_plot_->addGraph();
     custom_plot_->addGraph();
+    custom_plot_->xAxis->setRange(0.0,180.0);
 }
 
 void DepthProfileVizualizer::messageReceived(Controller::BottomTransportMessage message)
@@ -29,7 +30,6 @@ void DepthProfileVizualizer::messageReceived(Controller::BottomTransportMessage 
         }
     }
 
-    custom_plot_->xAxis->rescale(true);
     custom_plot_->yAxis->rescale(true);
     custom_plot_->graph(0)->setData(x,y);
     custom_plot_->graph(1)->setPen(QPen(Qt::red));

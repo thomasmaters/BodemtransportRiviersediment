@@ -11,18 +11,23 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <chrono>
 
 /**
  * Base class that can be converted to every protocol derived from it.
- * Its the users responsability to check the size and to clean the data.
  */
 class SensorMessage
 {
-  public:
+public:
+    static std::chrono::milliseconds::rep getCurrentTime()
+    {
+    	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+    }
+
     /**
      * Constructor
      */
-    explicit SensorMessage(std::size_t size) : size_(size)
+    explicit SensorMessage(std::size_t size, std::chrono::milliseconds::rep time = getCurrentTime()) : size_(size), time_(time)
     {
         if (size_ == 0)
         {
@@ -37,7 +42,7 @@ class SensorMessage
     /**
      * Constructor
      */
-    SensorMessage(uint8_t* data, std::size_t size) : size_(size), data_(new uint8_t[size]{ 0 })
+    SensorMessage(uint8_t* data, std::size_t size, std::chrono::milliseconds::rep time = getCurrentTime()) : size_(size), data_(new uint8_t[size]{ 0 }), time_(time)
     {
         std::copy(data, data + size_, data_);
     }
@@ -45,11 +50,15 @@ class SensorMessage
     /**
      * Copy constructor
      */
-    SensorMessage(const SensorMessage& rhs) : size_(rhs.size_), data_(new uint8_t[rhs.size_]{ 0 })
+    SensorMessage(const SensorMessage& rhs) : size_(rhs.size_), data_(new uint8_t[rhs.size_]{ 0 }), time_(rhs.time_)
     {
         std::copy(rhs.data_, rhs.data_ + size_, data_);
     }
 
+    /**
+     * Increase the size of a SensorMessage internal buffer, without dataloss.
+     * @param size
+     */
     void increaseSize(std::size_t size)
     {
         if (size <= size_)
@@ -67,6 +76,7 @@ class SensorMessage
     {
         if (this != &rhs)
         {
+        	time_ = rhs.time_;
             size_ = rhs.size_;
             std::copy(rhs.data_, rhs.data_ + size_, data_);
         }
@@ -83,14 +93,21 @@ class SensorMessage
         return size_;
     }
 
+    std::chrono::milliseconds::rep getTime() const
+    {
+    	return time_;
+    }
+
     virtual ~SensorMessage()
     {
         delete[] data_;
     }
+  private:
 
   protected:
     std::size_t size_;
     uint8_t* data_;
+    std::chrono::milliseconds::rep time_;
 };
 
 #endif /* SRC_SENSORMESSAGE_HPP_ */

@@ -44,9 +44,10 @@ class DepthProfiler : public DepthProfilerProxy
     /**
      * Add a unfilterd matrix of points to calculate the transport of.
      * It will apply a couple of filters before calling addProcessedPoint().
-     * @param matrix
+     * @param matrix A unfilterd matrix.
+     * @param time of ping
      */
-    void addRawPoint(Matrix<N, 3, T>& matrix);
+    void addRawPoint(Matrix<N, 3, T>& matrix, std::chrono::milliseconds::rep time = 0);
 
     /**
      * Indentifies all the dunes in the bottom profile by:
@@ -56,8 +57,9 @@ class DepthProfiler : public DepthProfilerProxy
      * 4. Use gaussNewton algorithme on each 'Wave'.
      * 5. Calculate its surface area.
      * @param matrix A filtered matrix.
+     * @param time Of ping.
      */
-    void addProcessedPoint(Matrix<N, 3, T>& matrix);
+    void addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono::milliseconds::rep time = 0);
 
     /**
      * Enables if a udp packet will be send after calculating the transport of a bottom profile.

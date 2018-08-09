@@ -9,6 +9,8 @@
 #ifndef SRC_CONNECTIONINTERFACE_HPP_
 #define SRC_CONNECTIONINTERFACE_HPP_
 
+#define ENABLE_IO_DEBUG 1
+
 #include "SensorMessage.hpp"
 
 #include <cstdint>
@@ -24,7 +26,7 @@ class RequestHandler
     {
     }
 
-    virtual SensorMessage handleRequest(uint8_t* data, std::size_t length) = 0;
+    virtual SensorMessage handleRequest(uint8_t* data, std::size_t length, std::chrono::milliseconds::rep time = 0) = 0;
 
     virtual ~RequestHandler()
     {
@@ -38,7 +40,7 @@ class ResponseHandler
     {
     }
 
-    virtual void handleResponse([[maybe_unused]] uint8_t* data, [[maybe_unused]] std::size_t length)
+    virtual void handleResponse([[maybe_unused]] uint8_t* data, [[maybe_unused]] std::size_t length, [[maybe_unused]] std::chrono::milliseconds::rep time = 0)
     {
     }
 
@@ -77,6 +79,11 @@ class ConnectionInterface
     {
         response_handler_.reset();
         response_handler_.swap(response_handler);
+    }
+
+    static std::chrono::milliseconds::rep getCurrentTime()
+    {
+    	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
     }
 
   protected:

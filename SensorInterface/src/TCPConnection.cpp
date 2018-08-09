@@ -15,7 +15,9 @@
 #include <boost/asio/write.hpp>
 #include <boost/bind.hpp>
 
-#include <iostream>
+#ifdef ENABLE_IO_DEBUG
+	#include <iostream>
+#endif
 
 namespace Communication::TCP
 {
@@ -41,7 +43,9 @@ void TCPSession::handleOutgoingConnection(const boost::asio::mutable_buffer& mes
                                           bool has_response_head_and_body,
                                           std::shared_ptr<ResponseHandler> response_handler)
 {
-    std::cout << "SEND( " << message.size() << ")" << std::endl;
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "TCPSession -> SENDING( " << message.size() << ")" << std::endl;
+#endif
     boost::asio::async_write(getSocket(),
                              boost::asio::buffer(message),
                              boost::bind(&TCPSession::handleResponse<Type>,
@@ -60,7 +64,9 @@ void TCPSession::handleResponse(Type response_indentifier,
                                 std::size_t bytes_transferd,
                                 std::shared_ptr<ResponseHandler> response_handler)
 {
-    std::cout << "Send: " << bytes_transferd << " bytes." << std::endl;
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "TCPSession -> SEND( " << bytes_transferd << ")" << std::endl;
+#endif
     if (!error)
     {
         boost::asio::streambuf aBuffer;
@@ -91,7 +97,9 @@ void TCPSession::handleResponse(Type response_indentifier,
     }
     else
     {
-        std::cout << "FAILED TO GET RESPONSE: " << error.message() << std::endl;
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "TCPSession -> Failed to get response: " << error.message() << std::endl;
+#endif
     }
 }
 
@@ -100,7 +108,9 @@ void TCPSession::handleReceivedResponse(bool has_response_head_and_body,
                                         std::size_t bytes_transferd,
                                         std::shared_ptr<ResponseHandler> response_handler)
 {
-    std::cout << "RESPONSE(" << bytes_transferd << "): " << std::endl;
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "TCPSession -> GOT RESPONSE( " << bytes_transferd << ")" << std::endl;
+#endif
     if (response_handler.use_count() > 0)
     {
         if (has_response_head_and_body)
@@ -110,7 +120,7 @@ void TCPSession::handleReceivedResponse(bool has_response_head_and_body,
         }
         else
         {
-            response_handler->handleResponse(data_.data(), bytes_transferd);
+            response_handler->handleResponse(data_.data(), bytes_transferd, ConnectionInterface::getCurrentTime());
         }
     }
 }
@@ -119,24 +129,30 @@ void TCPSession::handleRequest(const boost::system::error_code& error,
                                std::size_t bytes_transferd,
                                std::shared_ptr<RequestHandler> request_handler)
 {
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "TCPSession -> GOT REQUEST( " << bytes_transferd << ")" << std::endl;
+#endif
     if (!error || error == boost::asio::error::eof)
     {
-        std::cout << "We got request with data: " << data_.data() << std::endl;
         if (request_handler.use_count() > 0)
         {
-            request_handler->handleRequest(data_.data(), bytes_transferd);
+            request_handler->handleRequest(data_.data(), bytes_transferd, ConnectionInterface::getCurrentTime());
         }
         // TODO; request response size.
         boost::asio::async_write(
             getSocket(),
             boost::asio::buffer(data_.data(), 5),
             [&]([[maybe_unused]] const boost::system::error_code& error, std::size_t bytes_written) {
-                std::cout << "Written response(" << bytes_written << ")" << std::endl;
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "TCPSession -> WRITTEN RESPONSE( " << bytes_written << ")" << std::endl;
+#endif
             });
     }
     else
     {
-        std::cout << "INVALID REQUEST RECEIVED: " << error.message() << std::endl;
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "TCPSession -> Invalid request received " << error.message() << std::endl;
+#endif
     }
 }
 
@@ -195,6 +211,9 @@ void TCPServerClient::start_accept()
     }
     catch (std::exception& e)
     {
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "TCPServerClient -> Could not connect: " << e.what() << std::endl;
+#endif
         std::cout << "Could not connect: " << e.what() << std::endl;
     }
 }
@@ -249,13 +268,17 @@ void TCPServerClient::handleConnect(const boost::asio::mutable_buffer& message_b
 {
     if (!error)
     {
-        std::cout << "CONNECTED TO HOST" << std::endl;
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "TCPServerClient -> CONNECTED TO HOST" << std::endl;
+#endif
         active_sesion_->handleOutgoingConnection(
             message_buffer, response_indentifier, has_response_head_and_body, response_handler_);
     }
     else
     {
-        std::cout << "COULD NOT CONNECT TO HOST: " << error.message() << std::endl;
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "TCPServerClient -> Could not connect to host: " << error.message() << std::endl;
+#endif
     }
 }
 }

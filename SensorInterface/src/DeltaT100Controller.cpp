@@ -13,7 +13,6 @@
 #include "SonarReturnDataPacket.hpp"
 
 #include <iostream>
-#include <random>
 #include <string>
 #include <thread>
 
@@ -39,7 +38,7 @@ DeltaT100Controller::DeltaT100Controller(const std::string& host,
     sensor_communication_.sendRequest(switch_data_command_, SonarReturnDataPacket::command_length_, false);
 }
 
-void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length)
+void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length, std::chrono::milliseconds::rep)
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     if (length == SonarReturnDataPacket::command_length_)
@@ -89,7 +88,7 @@ void DeltaT100Controller::cosntructSensorPing()
     sensor_communication_.sendRequest(switch_data_command_, SonarReturnDataPacket::command_length_, false);
 }
 
-SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t length)
+SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t length, std::chrono::milliseconds::rep time)
 {
     std::cout << __PRETTY_FUNCTION__ << ": " << length << std::endl;
     if (length == ProfilePointOutput::command_length_)
@@ -104,7 +103,7 @@ SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t leng
         else
         {
             auto matrix = profile_point_output_.asMatrix();
-            depth_profiler_.addProcessedPoint(matrix);
+            depth_profiler_.addProcessedPoint(matrix, time);
             profile_point_output_ = sonar_data;
             current_display_gain_ = 0;
         }
@@ -123,7 +122,7 @@ SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t leng
             temp.at(i, 0) += current_display_gain_;
         }
         test += temp;
-        depth_profiler_.addRawPoint(test);
+        depth_profiler_.addRawPoint(test, time);
     }
 
     // Return an empty message to stop the connection.

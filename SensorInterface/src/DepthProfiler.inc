@@ -19,20 +19,21 @@ DepthProfiler<N, T>::~DepthProfiler()
 }
 
 template <std::size_t N, typename T>
-void DepthProfiler<N, T>::addRawPoint(Matrix<N, 3, T>& matrix)
+void DepthProfiler<N, T>::addRawPoint(Matrix<N, 3, T>& matrix, std::chrono::milliseconds::rep time)
 {
     // Apply filters and stuff.
-    addProcessedPoint(matrix);
+    addProcessedPoint(matrix,time);
 }
 
 template <std::size_t N, typename T>
-void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix)
+void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono::milliseconds::rep time)
 {
     try
     {
         BottomProfile<N, 3, T> bottom_profile;
         bottom_profile.raw_data_          = matrix;
         bottom_profile.average_transport_ = 0;
+        bottom_profile.time_ = time;
 
         // Calculate ax^3 + bx^2 + cx + d
         auto afgeleide                             = calculateDerivative(matrix);

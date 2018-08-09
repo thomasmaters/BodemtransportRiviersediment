@@ -12,7 +12,9 @@
 #include <boost/asio/placeholders.hpp>
 #include <boost/bind.hpp>
 
+#ifdef ENABLE_IO_DEBUG
 #include <iostream>
+#endif
 
 namespace Communication::UDP
 {
@@ -27,7 +29,6 @@ UDPServerClient::UDPServerClient(boost::asio::io_service& io_service,
     socket_outgoing_(io_service),
     socket_incomming_(io_service, udp::endpoint(udp::v4(), std::atoi(local_port.c_str())))
 {
-    std::cout << __PRETTY_FUNCTION__ << " local: " << local_port << " remote: " << remote_port << std::endl;
     start_receive();
 }
 
@@ -58,7 +59,6 @@ void UDPServerClient::sendRequest(std::string message, std::size_t response_size
 
 UDPServerClient::~UDPServerClient()
 {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
 }
 
 bool UDPServerClient::connectOutgoingSocket()
@@ -70,7 +70,9 @@ bool UDPServerClient::connectOutgoingSocket()
     boost::asio::connect(socket_outgoing_, iter, ec);
     if (ec)
     {
-        std::cout << ec.message() << std::endl;
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "UDPServerClient -> Failed to connect to outgoing socket: " << ec.message() << std::endl;
+#endif
     }
     return !ec;
 }
@@ -81,7 +83,9 @@ void UDPServerClient::sendMessage(const boost::asio::mutable_buffer& buffer,
 {
     if (connectOutgoingSocket())
     {
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "UDPServerClient -> SENDING( " << buffer.size() << ")" << std::endl;
+#endif
         socket_outgoing_.async_send(buffer,
                                     boost::bind(&UDPServerClient::getResponse,
                                                 this,
@@ -97,8 +101,9 @@ void UDPServerClient::getResponse(std::size_t response_size,
                                   const boost::system::error_code& error,
                                   std::size_t bytes_transferred)
 {
-    std::cout << "WRITTEN: " << bytes_transferred << " bytes, trying to receive: " << response_size << " bytes."
-              << std::endl;
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "UDPServerClient -> SEND( " << bytes_transferred << ")" << std::endl;
+#endif
     if (!error)
     {
         if (response_size > 0)
@@ -114,7 +119,9 @@ void UDPServerClient::getResponse(std::size_t response_size,
     }
     else
     {
-        std::cerr << __PRETTY_FUNCTION__ << ": " << error.message() << std::endl;
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "UDPServerClient -> Send failed: " << error.message() << std::endl;
+#endif
     }
 }
 
@@ -122,23 +129,27 @@ void UDPServerClient::gotResponse([[maybe_unused]] bool has_response_head_and_bo
                                   const boost::system::error_code& error,
                                   std::size_t bytes_transferred)
 {
-    std::cout << __PRETTY_FUNCTION__ << ": bytes transferd: " << bytes_transferred << std::endl;
-    if (error)
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "UDPServerClient -> GOT RESPONSE( " << bytes_transferred << ")" << std::endl;
+#endif
+    if (!error)
     {
-        std::cout << __PRETTY_FUNCTION__ << ": " << error.message() << std::endl;
-        // throw std::runtime_error("Failed getting response." + error.message());
+        if (response_handler_.use_count() != 0)
+        {
+            response_handler_->handleResponse(data_.data(), bytes_transferred, ConnectionInterface::getCurrentTime());
+        }
         return;
     }
-
-    if (response_handler_.use_count() != 0)
+    else
     {
-        response_handler_->handleResponse(data_.data(), bytes_transferred);
+#ifdef ENABLE_IO_DEBUG
+    	std::cout << "UDPServerClient -> Failed to get response: " << error.message() << std::endl;
+#endif
     }
 }
 
 void UDPServerClient::start_receive()
 {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
     socket_incomming_.async_receive_from(boost::asio::buffer(data_, UDP_BUFFER_SIZE),
                                          local_endpoint_,
                                          boost::bind(&UDPServerClient::handle_receive,
@@ -149,15 +160,20 @@ void UDPServerClient::start_receive()
 
 void UDPServerClient::handle_receive(const boost::system::error_code& error, std::size_t bytes_transferred)
 {
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "UDPServerClient -> RECEIVED REQUEST( " << bytes_transferred << ")" << std::endl;
+#endif
     start_receive();
-    std::cout << "Received: " << bytes_transferred << " bytes" << std::endl;
     if (!error || (error == boost::asio::error::eof && bytes_transferred > 0))
     {
         if (request_handler_.use_count() != 0)
         {
-            SensorMessage response = request_handler_->handleRequest(data_.data(), bytes_transferred);
+            SensorMessage response = request_handler_->handleRequest(data_.data(), bytes_transferred, ConnectionInterface::getCurrentTime());
             if (response.getDataLength() > 0)
             {
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "UDPServerClient -> SENDING RESPONSE( " << response.getDataLength() << ")" << std::endl;
+#endif
                 socket_incomming_.async_send_to(boost::asio::buffer(response.getData(), response.getDataLength()),
                                                 local_endpoint_,
                                                 boost::bind(&UDPServerClient::handle_send,
@@ -167,19 +183,25 @@ void UDPServerClient::handle_receive(const boost::system::error_code& error, std
             }
             else
             {
-                std::cout << "Response to message is empty, stopping contact with client" << std::endl;
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "UDPServerClient -> Response to request is empty, closing connection" << std::endl;
+#endif
             }
         }
     }
     else
     {
-        std::cout << "Error occurred: " << error.message() << std::endl;
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "UDPServerClient -> Receive failed: " << error.message() << std::endl;
+#endif
     }
 }
 
 void UDPServerClient::handle_send([[maybe_unused]] const boost::system::error_code& error,
                                   std::size_t bytes_transferred)
 {
-    std::cout << "Send response of: " << bytes_transferred << " bytes" << std::endl;
+#ifdef ENABLE_IO_DEBUG
+    std::cout << "UDPServerClient -> SEND( " << bytes_transferred << ")" << std::endl;
+#endif
 }
 }

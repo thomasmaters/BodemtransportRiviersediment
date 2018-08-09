@@ -13,6 +13,7 @@
 
 #include <string>
 #include <vector>
+#include <chrono>
 
 struct Dune
 {
@@ -37,11 +38,12 @@ template <std::size_t H, std::size_t W, typename T>
 struct BottomProfile
 {
     Matrix<H, W, T> raw_data_;
+    std::chrono::milliseconds::rep time_;
     std::vector<Dune> dunes_;
     float average_transport_;  // Transport averaged over all the dunes as compared to the last BottomProfile.
 
     // TODO: Magic numbers
-    std::vector<std::pair<Dune, Dune>> getSimularDune(const BottomProfile& profile, float precision = 5) const
+    std::vector<std::pair<Dune, Dune>> getSimularDune(const BottomProfile& profile, T precision = 5) const
     {
         std::vector<std::pair<Dune, Dune>> result;
         for (const Dune& other_dune : profile.dunes_)

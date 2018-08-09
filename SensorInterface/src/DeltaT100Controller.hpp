@@ -27,9 +27,9 @@ class DeltaT100Controller : public Communication::RequestHandler, public Communi
   public:
     DeltaT100Controller(const std::string& host, const std::string& local_port, const std::string& remote_port);
 
-    void handleResponse(uint8_t* data, std::size_t length) override;
+    void handleResponse(uint8_t* data, std::size_t length, std::chrono::milliseconds::rep time = 0) override;
 
-    SensorMessage handleRequest(uint8_t* data, std::size_t length) override;
+    SensorMessage handleRequest(uint8_t* data, std::size_t length, std::chrono::milliseconds::rep time = 0) override;
 
     void requestSensorPing(const SwitchDataCommand& command);
 

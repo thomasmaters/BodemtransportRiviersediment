@@ -66,7 +66,7 @@ class ProfilePointOutput : public SensorMessage
         std::cout << __PRETTY_FUNCTION__ << std::endl;
     }
 
-    explicit ProfilePointOutput(uint8_t* data) : SensorMessage(data, command_length_)
+    explicit ProfilePointOutput(uint8_t* data, std::chrono::milliseconds::rep time = 0) : SensorMessage(data, command_length_, time)
     {
         std::cout << __PRETTY_FUNCTION__ << std::endl;
     }

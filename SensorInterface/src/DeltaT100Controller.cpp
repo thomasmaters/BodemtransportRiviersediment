@@ -119,11 +119,11 @@ SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t leng
         Matrix<480, 3, float> temp;
         for (std::size_t i = 0; i < 479; ++i)
         {
-        	temp.at(i,0) = current_display_gain_;
-//        	temp.at(i, 0) = test.at(i,0);
-//            temp.at((i + current_display_gain_) % 479 , 1) = test.at(i,1);
+            temp.at(i, 0) = current_display_gain_;
+            //        	temp.at(i, 0) = test.at(i,0);
+            //            temp.at((i + current_display_gain_) % 479 , 1) = test.at(i,1);
         }
-        test +=temp;
+        test += temp;
         depth_profiler_.addRawPoint(test, time);
     }
 

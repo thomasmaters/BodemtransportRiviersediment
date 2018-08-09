@@ -71,7 +71,7 @@ bool UDPServerClient::connectOutgoingSocket()
     if (ec)
     {
 #ifdef ENABLE_IO_DEBUG
-    std::cout << "UDPServerClient -> Failed to connect to outgoing socket: " << ec.message() << std::endl;
+        std::cout << "UDPServerClient -> Failed to connect to outgoing socket: " << ec.message() << std::endl;
 #endif
     }
     return !ec;
@@ -84,7 +84,7 @@ void UDPServerClient::sendMessage(const boost::asio::mutable_buffer& buffer,
     if (connectOutgoingSocket())
     {
 #ifdef ENABLE_IO_DEBUG
-    std::cout << "UDPServerClient -> SENDING( " << buffer.size() << ")" << std::endl;
+        std::cout << "UDPServerClient -> SENDING( " << buffer.size() << ")" << std::endl;
 #endif
         socket_outgoing_.async_send(buffer,
                                     boost::bind(&UDPServerClient::getResponse,
@@ -120,7 +120,7 @@ void UDPServerClient::getResponse(std::size_t response_size,
     else
     {
 #ifdef ENABLE_IO_DEBUG
-    std::cout << "UDPServerClient -> Send failed: " << error.message() << std::endl;
+        std::cout << "UDPServerClient -> Send failed: " << error.message() << std::endl;
 #endif
     }
 }
@@ -143,7 +143,7 @@ void UDPServerClient::gotResponse([[maybe_unused]] bool has_response_head_and_bo
     else
     {
 #ifdef ENABLE_IO_DEBUG
-    	std::cout << "UDPServerClient -> Failed to get response: " << error.message() << std::endl;
+        std::cout << "UDPServerClient -> Failed to get response: " << error.message() << std::endl;
 #endif
     }
 }
@@ -168,11 +168,12 @@ void UDPServerClient::handle_receive(const boost::system::error_code& error, std
     {
         if (request_handler_.use_count() != 0)
         {
-            SensorMessage response = request_handler_->handleRequest(data_.data(), bytes_transferred, ConnectionInterface::getCurrentTime());
+            SensorMessage response =
+                request_handler_->handleRequest(data_.data(), bytes_transferred, ConnectionInterface::getCurrentTime());
             if (response.getDataLength() > 0)
             {
 #ifdef ENABLE_IO_DEBUG
-    std::cout << "UDPServerClient -> SENDING RESPONSE( " << response.getDataLength() << ")" << std::endl;
+                std::cout << "UDPServerClient -> SENDING RESPONSE( " << response.getDataLength() << ")" << std::endl;
 #endif
                 socket_incomming_.async_send_to(boost::asio::buffer(response.getData(), response.getDataLength()),
                                                 local_endpoint_,
@@ -184,7 +185,7 @@ void UDPServerClient::handle_receive(const boost::system::error_code& error, std
             else
             {
 #ifdef ENABLE_IO_DEBUG
-    std::cout << "UDPServerClient -> Response to request is empty, closing connection" << std::endl;
+                std::cout << "UDPServerClient -> Response to request is empty, closing connection" << std::endl;
 #endif
             }
         }
@@ -192,7 +193,7 @@ void UDPServerClient::handle_receive(const boost::system::error_code& error, std
     else
     {
 #ifdef ENABLE_IO_DEBUG
-    std::cout << "UDPServerClient -> Receive failed: " << error.message() << std::endl;
+        std::cout << "UDPServerClient -> Receive failed: " << error.message() << std::endl;
 #endif
     }
 }

@@ -10,24 +10,27 @@
 #define SRC_SENSORMESSAGE_HPP_
 
 #include <algorithm>
-#include <cstdint>
 #include <chrono>
+#include <cstdint>
 
 /**
  * Base class that can be converted to every protocol derived from it.
  */
 class SensorMessage
 {
-public:
+  public:
     static std::chrono::milliseconds::rep getCurrentTime()
     {
-    	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        return std::chrono::duration_cast<std::chrono::milliseconds>(
+                   std::chrono::system_clock::now().time_since_epoch())
+            .count();
     }
 
     /**
      * Constructor
      */
-    explicit SensorMessage(std::size_t size, std::chrono::milliseconds::rep time = getCurrentTime()) : size_(size), time_(time)
+    explicit SensorMessage(std::size_t size, std::chrono::milliseconds::rep time = getCurrentTime())
+      : size_(size), time_(time)
     {
         if (size_ == 0)
         {
@@ -42,7 +45,8 @@ public:
     /**
      * Constructor
      */
-    SensorMessage(uint8_t* data, std::size_t size, std::chrono::milliseconds::rep time = getCurrentTime()) : size_(size), data_(new uint8_t[size]{ 0 }), time_(time)
+    SensorMessage(uint8_t* data, std::size_t size, std::chrono::milliseconds::rep time = getCurrentTime())
+      : size_(size), data_(new uint8_t[size]{ 0 }), time_(time)
     {
         std::copy(data, data + size_, data_);
     }
@@ -76,7 +80,7 @@ public:
     {
         if (this != &rhs)
         {
-        	time_ = rhs.time_;
+            time_ = rhs.time_;
             size_ = rhs.size_;
             std::copy(rhs.data_, rhs.data_ + size_, data_);
         }
@@ -95,15 +99,15 @@ public:
 
     std::chrono::milliseconds::rep getTime() const
     {
-    	return time_;
+        return time_;
     }
 
     virtual ~SensorMessage()
     {
         delete[] data_;
     }
-  private:
 
+  private:
   protected:
     std::size_t size_;
     uint8_t* data_;

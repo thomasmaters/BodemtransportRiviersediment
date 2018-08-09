@@ -3,7 +3,8 @@
 
 #include <QMainWindow>
 
-namespace Ui {
+namespace Ui
+{
 class MainApplication;
 }
 
@@ -11,12 +12,12 @@ class MainApplication : public QMainWindow
 {
     Q_OBJECT
 
-public:
+  public:
     explicit MainApplication(QWidget *parent = nullptr);
     ~MainApplication();
 
-private:
+  private:
     Ui::MainApplication *ui;
 };
 
-#endif // MAINAPPLICATION_HPP
+#endif  // MAINAPPLICATION_HPP

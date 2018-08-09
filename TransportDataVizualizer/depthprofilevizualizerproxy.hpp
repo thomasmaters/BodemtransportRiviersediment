@@ -3,29 +3,31 @@
 
 #include "../SensorInterface/src/BottomTransportMessage.hpp"
 
-#include <QtNetwork/QUdpSocket>
-#include <QtNetwork/QNetworkDatagram>
-#include <QTextStream>
 #include <QString>
+#include <QTextStream>
+#include <QtNetwork/QNetworkDatagram>
+#include <QtNetwork/QUdpSocket>
 #include <QtWidgets/QtWidgets>
 
 #include <string>
 
-class DepthProfileVizualizerProxy: public QWidget
+class DepthProfileVizualizerProxy : public QWidget
 {
     Q_OBJECT
-public:
+  public:
     explicit DepthProfileVizualizerProxy(QWidget* parent = 0);
 
     virtual ~DepthProfileVizualizerProxy();
-protected:
-    virtual void messageReceived(Controller::BottomTransportMessage message);
-signals:
 
-public slots:
+  protected:
+    virtual void messageReceived(Controller::BottomTransportMessage message);
+  signals:
+
+  public slots:
     void readPendingDatagrams();
-private:
+
+  private:
     QUdpSocket* udp_socket_;
 };
 
-#endif // DEPTHPROFILEVIZUALIZERPROXY_HPP
+#endif  // DEPTHPROFILEVIZUALIZERPROXY_HPP

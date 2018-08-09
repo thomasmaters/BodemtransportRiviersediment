@@ -1,11 +1,11 @@
-#include "MainApplication.hpp"
 #include <QApplication>
+#include "MainApplication.hpp"
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     MainApplication w;
-//    DepthProfileVizualizerProxy b;
+    //    DepthProfileVizualizerProxy b;
     w.show();
 
     return a.exec();

@@ -16,7 +16,7 @@
 #include <boost/bind.hpp>
 
 #ifdef ENABLE_IO_DEBUG
-	#include <iostream>
+#include <iostream>
 #endif
 
 namespace Communication::TCP
@@ -98,7 +98,7 @@ void TCPSession::handleResponse(Type response_indentifier,
     else
     {
 #ifdef ENABLE_IO_DEBUG
-    std::cout << "TCPSession -> Failed to get response: " << error.message() << std::endl;
+        std::cout << "TCPSession -> Failed to get response: " << error.message() << std::endl;
 #endif
     }
 }
@@ -144,14 +144,14 @@ void TCPSession::handleRequest(const boost::system::error_code& error,
             boost::asio::buffer(data_.data(), 5),
             [&]([[maybe_unused]] const boost::system::error_code& error, std::size_t bytes_written) {
 #ifdef ENABLE_IO_DEBUG
-    std::cout << "TCPSession -> WRITTEN RESPONSE( " << bytes_written << ")" << std::endl;
+                std::cout << "TCPSession -> WRITTEN RESPONSE( " << bytes_written << ")" << std::endl;
 #endif
             });
     }
     else
     {
 #ifdef ENABLE_IO_DEBUG
-    std::cout << "TCPSession -> Invalid request received " << error.message() << std::endl;
+        std::cout << "TCPSession -> Invalid request received " << error.message() << std::endl;
 #endif
     }
 }
@@ -212,7 +212,7 @@ void TCPServerClient::start_accept()
     catch (std::exception& e)
     {
 #ifdef ENABLE_IO_DEBUG
-    std::cout << "TCPServerClient -> Could not connect: " << e.what() << std::endl;
+        std::cout << "TCPServerClient -> Could not connect: " << e.what() << std::endl;
 #endif
         std::cout << "Could not connect: " << e.what() << std::endl;
     }
@@ -269,7 +269,7 @@ void TCPServerClient::handleConnect(const boost::asio::mutable_buffer& message_b
     if (!error)
     {
 #ifdef ENABLE_IO_DEBUG
-    std::cout << "TCPServerClient -> CONNECTED TO HOST" << std::endl;
+        std::cout << "TCPServerClient -> CONNECTED TO HOST" << std::endl;
 #endif
         active_sesion_->handleOutgoingConnection(
             message_buffer, response_indentifier, has_response_head_and_body, response_handler_);
@@ -277,7 +277,7 @@ void TCPServerClient::handleConnect(const boost::asio::mutable_buffer& message_b
     else
     {
 #ifdef ENABLE_IO_DEBUG
-    std::cout << "TCPServerClient -> Could not connect to host: " << error.message() << std::endl;
+        std::cout << "TCPServerClient -> Could not connect to host: " << error.message() << std::endl;
 #endif
     }
 }

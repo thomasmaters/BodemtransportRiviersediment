@@ -32,7 +32,7 @@ class BottomTransportMessage : public SensorMessage
 
     BottomTransportMessage() : SensorMessage(command_length_)
     {
-        data_[0]               = 0xAA;
+        data_[0]                   = 0xAA;
         data_[command_length_ - 1] = 0xBB;
     }
 
@@ -79,12 +79,12 @@ class BottomTransportMessage : public SensorMessage
 
     int64_t getTimeOfPing()
     {
-    	return getDataAtIndex<int64_t>(6);
+        return getDataAtIndex<int64_t>(6);
     }
 
     void setTimeOfPing(int64_t value)
     {
-    	setDataToIndex(6, value);
+        setDataToIndex(6, value);
     }
 
     std::vector<Matrix<7, 1, float>> getDunes()
@@ -98,7 +98,7 @@ class BottomTransportMessage : public SensorMessage
             for (std::size_t j = 0; j < 7; ++j)
             {
                 std::size_t array_ptr = BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + j * 4;
-                dune[j][0] = getDataAtIndex<float>(array_ptr);
+                dune[j][0]            = getDataAtIndex<float>(array_ptr);
             }
             result.push_back(dune);
         }
@@ -118,7 +118,7 @@ class BottomTransportMessage : public SensorMessage
         {
             for (std::size_t j = 0; j < value.at(i).signature_.getHeight(); ++j)
             {
-            	setDataToIndex<float>(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + j * 4, value.at(i).signature_.at(j, 0));
+                setDataToIndex<float>(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + j * 4, value.at(i).signature_.at(j, 0));
             }
             setDataToIndex<float>(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + 16, value.at(i).transport_);
             setDataToIndex<float>(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + 20, value.at(i).start_x_);
@@ -127,7 +127,7 @@ class BottomTransportMessage : public SensorMessage
     }
 
   private:
-    template<typename T>
+    template <typename T>
     T getDataAtIndex(std::size_t index)
     {
         T result;
@@ -135,7 +135,7 @@ class BottomTransportMessage : public SensorMessage
         return result;
     }
 
-    template<typename T>
+    template <typename T>
     void setDataToIndex(std::size_t index, T value)
     {
         memcpy(&(data_[index]), &value, sizeof(T));

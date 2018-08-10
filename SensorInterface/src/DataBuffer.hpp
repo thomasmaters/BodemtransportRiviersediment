@@ -12,7 +12,6 @@
 #include "SensorMessage.hpp"
 
 #include <cstdint>
-#include <iostream>
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -68,7 +67,6 @@ class DataBuffer
         }
         catch (std::exception& e)
         {
-            std::cerr << "Error: " << e.what() << std::endl;
         }
 
         //    	data_store_mutex_.unlock();

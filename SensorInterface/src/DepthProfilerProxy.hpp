@@ -22,24 +22,20 @@ class DepthProfilerProxy : public Communication::ResponseHandler,
   public:
     DepthProfilerProxy() : outgoing_communication_(IOHandler::getInstance().getIOService(), "localhost", "2000", "2001")
     {
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
         outgoing_communication_.addResponseHandler(std::shared_ptr<ResponseHandler>(this));
     }
 
     ~DepthProfilerProxy()
     {
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
     }
 
     void handleResponse([[maybe_unused]] uint8_t* data, [[maybe_unused]] std::size_t length)
     {
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
     }
 
     template <std::size_t H, std::size_t W, typename T>
     void sendBottomProfile(BottomProfile<H, W, T>& profile)
     {
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
         Controller::BottomTransportMessage message;
         message.setDunes(profile);
         message.setAverageTransport(profile.average_transport_);

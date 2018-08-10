@@ -9,7 +9,7 @@
 #ifndef SRC_CONNECTIONINTERFACE_HPP_
 #define SRC_CONNECTIONINTERFACE_HPP_
 
-#define ENABLE_IO_DEBUG 1
+#define ENABLE_IO_DEBUG 0
 
 #include "SensorMessage.hpp"
 

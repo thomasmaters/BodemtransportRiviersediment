@@ -15,6 +15,7 @@
 #include <iostream>
 #include <string>
 #include <thread>
+#include <fstream>
 
 namespace Controller::DeltaT100
 {
@@ -28,7 +29,6 @@ DeltaT100Controller::DeltaT100Controller(const std::string& host,
     depth_profiler_(DepthProfiler<480, float>()),
     data_buffer_(std::unique_ptr<DataBuffer<>>(new DataBuffer<>()))
 {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
     depth_profiler_.setTransportUpdateEnabled(true);
 
     deltat_communication_.addRequestHandler(std::shared_ptr<RequestHandler>(this));
@@ -40,7 +40,6 @@ DeltaT100Controller::DeltaT100Controller(const std::string& host,
 
 void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length, std::chrono::milliseconds::rep)
 {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
     if (length == SonarReturnDataPacket::command_length_)
     {
         // TODO: should we check if we are in bounds of a SonarReturnData message. length == SonarReturnData::length?
@@ -90,7 +89,6 @@ void DeltaT100Controller::cosntructSensorPing()
 
 SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t length, std::chrono::milliseconds::rep time)
 {
-    std::cout << __PRETTY_FUNCTION__ << ": " << length << std::endl;
     if (length == ProfilePointOutput::command_length_)
     {
         ProfilePointOutput sonar_data(data);
@@ -120,8 +118,6 @@ SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t leng
         for (std::size_t i = 0; i < 479; ++i)
         {
             temp.at(i, 0) = current_display_gain_;
-            //        	temp.at(i, 0) = test.at(i,0);
-            //            temp.at((i + current_display_gain_) % 479 , 1) = test.at(i,1);
         }
         test += temp;
         depth_profiler_.addRawPoint(test, time);

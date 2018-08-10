@@ -19,6 +19,8 @@ class DepthProfileVizualizer : public DepthProfileVizualizerProxy
 
   private:
     QCustomPlot* custom_plot_;
+    QVector<double> transport_data_;
+    QVector<double> transport_key_;
 
   public slots:
 };

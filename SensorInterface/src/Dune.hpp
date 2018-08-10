@@ -24,7 +24,7 @@ struct Dune
     float end_x_;
 
     Matrix<4, 1, float> signature_;  // Polynomial coefficients.
-    float surface_area_;
+    float surface_area_; //Surface area in m^2.
     float transport_ = 0;
 
     std::string toString() const
@@ -50,18 +50,7 @@ struct BottomProfile
         {
             for (const Dune& dune : dunes_)
             {
-                //            	std::cout << other_dune.toString() << std::endl;
-                //            	std::cout << dune.toString() << std::endl;
-                //            	std::cout << std::to_string(other_dune.start_index_ >= dune.start_index_) << " - "
-                //            			<< std::to_string(other_dune.start_index_ + other_dune.size_index_ <=
-                //            dune.start_index_ + dune.size_index_ ) << " - "
-                //            			<< std::to_string((std::abs((int32_t)other_dune.size_index_ -
-                //            (int32_t)dune.size_index_) <= precision)) << " - "
-                //						<< std::to_string((std::fabs(dune.surface_area_ - other_dune.surface_area_) <= precision))
-                //<< " -> " <<  (std::abs(dune.surface_area_ - other_dune.surface_area_) <= 5.0) << std::endl;
                 if (other_dune.start_index_ >= dune.start_index_ &&  // The dune is to the right of the left dune.
-                    //                		std::abs((int32_t)other_dune.start_x_ - (int32_t)dune.start_x_) <= precision
-                    //                &&
                     other_dune.start_index_ + other_dune.size_index_ <=
                         dune.start_index_ + dune.size_index_ &&  // The dune is to the left of the right dune.
                     std::abs((int32_t)other_dune.size_index_ - (int32_t)dune.size_index_) <=

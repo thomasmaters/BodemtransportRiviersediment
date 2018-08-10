@@ -45,6 +45,10 @@ class IOHandler
         {
             io_service_.stop();
         }
+        if (io_thread_.joinable())
+        {
+            io_thread_.join();
+        }
     }
 
     ~IOHandler()

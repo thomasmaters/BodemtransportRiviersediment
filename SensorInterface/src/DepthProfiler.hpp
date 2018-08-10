@@ -9,19 +9,22 @@
 #ifndef SRC_DEPTHPROFILER_HPP_
 #define SRC_DEPTHPROFILER_HPP_
 
-#include "DataBuffer.hpp"
-#include "DepthProfilerProxy.hpp"
-#include "Dune.hpp"
-#include "FileHandler.hpp"
-#include "Matrix.hpp"
-
-#include <chrono>
-#include <vector>
-
 #define MAX_ITERATIONS 100
 #define STEP_SIZE 1e-5
 #define PRECISION 1e-5
 #define EPSILON 1e-14
+#define DEPTHPROFILER_DEBUG 1
+
+#include "DataBuffer.hpp"
+#include "DepthProfilerProxy.hpp"
+#include "Dune.hpp"
+#include "Matrix.hpp"
+
+#include <chrono>
+#include <vector>
+#if DEPTHPROFILER_DEBUG > 0
+#include <iostream>
+#endif
 
 namespace Controller
 {
@@ -255,7 +258,6 @@ class DepthProfiler : public DepthProfilerProxy
     bool isPeak(const Matrix<H, W, T>& derivative, std::size_t index) const;
 
   private:
-    FileHandler file_instance_;
     std::vector<BottomProfile<N, 3, T>> depth_data_;
 
     bool send_transport_updates_;

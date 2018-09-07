@@ -29,10 +29,19 @@ class DepthProfilerProxy : public Communication::ResponseHandler,
     {
     }
 
+    /**
+     * Handles incoming response messages, override this function to do things with the response.
+     * @param data Pointer to the data.
+     * @param length Of the data.
+     */
     void handleResponse([[maybe_unused]] uint8_t* data, [[maybe_unused]] std::size_t length)
     {
     }
 
+    /**
+     * Sends a bottomprofile over a UDP connection as a BottomTransportMessage.
+     * @param profile To send.
+     */
     template <std::size_t H, std::size_t W, typename T>
     void sendBottomProfile(BottomProfile<H, W, T>& profile)
     {

@@ -137,28 +137,6 @@ class SwitchDataCommand : public SensorMessage
         data_[26] = 0xFD;
     }
 
-    //    static SwitchDataCommand getDefaultInstance()
-    //    {
-    //        SwitchDataCommand temp;
-    //        temp.setRange(Range::M20);
-    //        temp.setNadirOffsetAngle(0);
-    //        temp.setStartGain(3);
-    //        temp.setAbsorption(20);
-    //        temp.setAgcThreshold(10);
-    //        temp.setPacketNumberRequest(0);
-    //        temp.setPulseLength(PulseLength::M5);
-    //        temp.setExternalTriggerControlEdge(ExternalTriggerControlEdge::NEG);
-    //        temp.enableExternalTriggerControl(false);
-    //        temp.setExternalTransmitDelay(0);
-    //        temp.setDataPoints(Mode::IUX);
-    //        temp.setDataBits(DataBits::BITS8);
-    //        temp.setPrhCommand(PrhCommand::NOPRH);
-    //        temp.setRunMode(RunMode::DISABLEALL);
-    //        temp.setSwitchDelay((uint8_t)0);
-    //        temp.setFrequency(Frequency::KHZ120);
-    //        return temp;
-    //    }
-
     void setRange(Controller::DeltaT100::Range value)
     {
         data_[3] = static_cast<uint8_t>(value);

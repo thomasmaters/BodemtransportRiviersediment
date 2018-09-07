@@ -24,7 +24,7 @@ struct Dune
     float end_x_;
 
     Matrix<4, 1, float> signature_;  // Polynomial coefficients.
-    float surface_area_; //Surface area in m^2.
+    float surface_area_;             // Surface area in m^2.
     float transport_ = 0;
 
     std::string toString() const

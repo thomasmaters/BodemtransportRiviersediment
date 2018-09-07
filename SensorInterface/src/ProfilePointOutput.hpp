@@ -213,8 +213,6 @@ class ProfilePointOutput : public SensorMessage
 
         float x = beam_range * std::cos(-beam_angle);
         float y = beam_range * std::sin(beam_angle);
-        // std::cout << "Beam range: " << std::setw(8) << beam_range << " angle: " << std::setw(8) << beam_angle << " x:
-        // " << std::setw(6) << x << " z: " << std::setw(6) << z << std::endl;
         return std::array<float, 3>{ x, beam_range, y };
     }
 
@@ -231,7 +229,6 @@ class ProfilePointOutput : public SensorMessage
         }
 
         return matrix;
-        //	    	std::cout << matrix << std::endl;
     }
 
   private:

@@ -12,10 +12,10 @@
 #include "SonarReturnData.hpp"
 #include "SonarReturnDataPacket.hpp"
 
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <thread>
-#include <fstream>
 
 namespace Controller::DeltaT100
 {
@@ -45,8 +45,6 @@ void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length, std:
         // TODO: should we check if we are in bounds of a SonarReturnData message. length == SonarReturnData::length?
         std::unique_ptr<uint8_t[]>& stored_data = data_buffer_->moveToBuffer(data, length);
         SonarReturnDataPacket sonar_data(&(stored_data.get()[0]));
-
-        sonar_data.toString();
 
         if ((sonar_data.getSerialStatus() & SerialStatus::SWITCHOK) == SerialStatus::SWITCHOK)
         {

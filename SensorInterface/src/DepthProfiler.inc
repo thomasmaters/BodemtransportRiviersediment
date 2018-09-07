@@ -72,7 +72,8 @@ void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono
             catch (std::exception& e)
             {
 #if DEPTHPROFILER_DEBUG > 0
-    std::cout << "DepthProfiler: Add proccessed point error: " << e.what() << " peaks or valleys." << std::endl;
+                std::cout << "DepthProfiler: Add proccessed point error: " << e.what() << " peaks or valleys."
+                          << std::endl;
 #endif
             }
         }
@@ -92,7 +93,7 @@ void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono
     catch (std::exception& e)
     {
 #if DEPTHPROFILER_DEBUG > 0
-    std::cout << "DepthProfiler: Add proccessed point error: " << e.what() << " peaks or valleys." << std::endl;
+        std::cout << "DepthProfiler: Add proccessed point error: " << e.what() << " peaks or valleys." << std::endl;
 #endif
     }
 }
@@ -138,7 +139,8 @@ T DepthProfiler<N, T>::newtonsMethod(const Matrix<H, 1, T>& params,
                                      float precision) const
 {
 #if DEPTHPROFILER_DEBUG > 1
-	std::cout << "Newtons method: [" << solution_space.first << "," << solution_space.second << "], init: " << inital_guess << " xshift: " << x_shift << std::endl;
+    std::cout << "Newtons method: [" << solution_space.first << "," << solution_space.second
+              << "], init: " << inital_guess << " xshift: " << x_shift << std::endl;
 #endif
     T guess     = inital_guess;
     T new_guess = 0;
@@ -157,7 +159,7 @@ T DepthProfiler<N, T>::newtonsMethod(const Matrix<H, 1, T>& params,
 
         new_guess = guess - y / yp;
 #if DEPTHPROFILER_DEBUG > 1
-	std::cout << "Newtons method: Iteration: " << i << " guess: " << new_guess << std::endl;
+        std::cout << "Newtons method: Iteration: " << i << " guess: " << new_guess << std::endl;
 #endif
         if (new_guess < solution_space.first || new_guess > solution_space.second)
         {
@@ -359,7 +361,7 @@ void DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& pro
     // TODO: Magic number
     std::vector<std::pair<Dune, Dune>> simular_dunes = profile_first.getSimularDune(profile_second, 2.0);
 #if DEPTHPROFILER_DEBUG > 0
-	std::cout << "DepthProfiler: Found " << simular_dunes.size() << " simular dunes."<< std::endl;
+    std::cout << "DepthProfiler: Found " << simular_dunes.size() << " simular dunes." << std::endl;
 #endif
     if (simular_dunes.size() > 0)
     {
@@ -372,7 +374,7 @@ void DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& pro
         {
             try
             {
-                float transport     = calculateMovedArea(i.first, i.second);
+                float transport = calculateMovedArea(i.first, i.second);
                 total_transport += transport;
                 total_wave_length += i.first.end_x_ - i.first.start_x_;
                 calculatedDunes++;
@@ -380,22 +382,21 @@ void DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& pro
             catch (std::exception& e)
             {
 #if DEPTHPROFILER_DEBUG > 0
-	std::cout << "DepthProfiler: Transport over time error: " << e.what() << std::endl;
+                std::cout << "DepthProfiler: Transport over time error: " << e.what() << std::endl;
 #endif
                 continue;
             }
         }
         // total_transport / total_wave_length / ms * 1000 = m^2/s
         // TODO: Transport per dune of over de lengte van alle dunes bij elkaar?
-        profile_second.average_transport_ = (total_transport) /
-                                            (total_wave_length) / (float)time_difference * 1000.0;
+        profile_second.average_transport_ = (total_transport) / (total_wave_length) / (float)time_difference * 1000.0;
     }
     else
     {
         profile_second.average_transport_ = 0;
     }
 #if DEPTHPROFILER_DEBUG > 0
-	std::cout << "DepthProfiler: Average transport: " << profile_second.average_transport_ << std::endl;
+    std::cout << "DepthProfiler: Average transport: " << profile_second.average_transport_ << std::endl;
 #endif
 }
 
@@ -416,9 +417,9 @@ float DepthProfiler<N, T>::calculateMovedArea(const Dune& dune_left, const Dune&
     float area_of_b  = calculateArea(dune_right.signature_, 0, root + x_diff);
     float moved_area = dune_right.surface_area_ - (area_of_a + area_of_b);
 
-    if(moved_area < 0)
+    if (moved_area < 0)
     {
-    	throw std::runtime_error("Moved dune area is smaller then 0.");
+        throw std::runtime_error("Moved dune area is smaller then 0.");
     }
 
     //    std::cout << "DuneLeft area: " << area_of_a << " DuneRight area: " << area_of_b << " DuneRight surface: " <<
@@ -475,7 +476,9 @@ DepthProfiler<N, T>::classifyWave(const Matrix<H, W, T>& afgeleide,
         {
             result.push_back(std::make_pair(peaks_and_valleys[i], peaks_and_valleys[i + 2]));
 #if DEPTHPROFILER_DEBUG > 1
-	std::cout << "DepthProfiler: Wave from: " << peaks_and_valleys[i] << " to: " << peaks_and_valleys[i + 2] << "   from_x: " << afgeleide.at(peaks_and_valleys[i], 0) << " to_x: " << afgeleide.at(peaks_and_valleys[i + 2], 0) << std::endl;
+            std::cout << "DepthProfiler: Wave from: " << peaks_and_valleys[i] << " to: " << peaks_and_valleys[i + 2]
+                      << "   from_x: " << afgeleide.at(peaks_and_valleys[i], 0)
+                      << " to_x: " << afgeleide.at(peaks_and_valleys[i + 2], 0) << std::endl;
 #endif
         }
     }

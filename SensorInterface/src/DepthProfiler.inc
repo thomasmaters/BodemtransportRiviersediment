@@ -367,7 +367,6 @@ void DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& pro
     {
         float total_transport       = 0;
         float total_wave_length     = 0;
-        std::size_t calculatedDunes = 0;
         uint64_t time_difference    = std::abs(profile_second.time_ - profile_first.time_);  // In ms.
 
         for (auto& i : simular_dunes)
@@ -377,7 +376,6 @@ void DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& pro
                 float transport = calculateMovedArea(i.first, i.second);
                 total_transport += transport;
                 total_wave_length += i.first.end_x_ - i.first.start_x_;
-                calculatedDunes++;
             }
             catch (std::exception& e)
             {

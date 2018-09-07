@@ -149,11 +149,8 @@ class SwitchDataCommand : public SensorMessage
         {
             offsetAngle |= 0x8000;
         }
-        //        data_[5] = (offsetAngle & 0xFF00) >> 8;
-        //        data_[6] = offsetAngle & 0x00FF;
-
-        data_[5] = 0;
-        data_[6] = 0;
+		data_[5] = (offsetAngle & 0xFF00) >> 8;
+		data_[6] = offsetAngle & 0x00FF;
     }
 
     void setStartGain(uint8_t value)

@@ -44,7 +44,7 @@ class BottomTransportMessage : public SensorMessage
     {
     }
 
-    BottomTransportMessage(const SensorMessage& rhs) : SensorMessage(rhs)
+    explicit BottomTransportMessage(const SensorMessage& rhs) : SensorMessage(rhs)
     {
     }
 
@@ -106,7 +106,7 @@ class BottomTransportMessage : public SensorMessage
     }
 
     template <std::size_t H, std::size_t W, typename T>
-    void setDunes(const BottomProfile<H, W, T> value)
+    void setDunes(const BottomProfile<H, W, T>& value)
     {
         setDunes(value.dunes_);
     }

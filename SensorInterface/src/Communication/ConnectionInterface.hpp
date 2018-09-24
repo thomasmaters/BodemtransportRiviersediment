@@ -12,77 +12,64 @@
 #define ENABLE_IO_DEBUG 0
 
 #include "SensorMessage.hpp"
+#include "RequestResponseHandler.hpp"
 
-#include <cstdint>
 #include <memory>
 
 namespace Communication
 {
-// Handles incomming request from to sensor.
-class RequestHandler
-{
-  public:
-    RequestHandler()
-    {
-    }
+	using namespace Messages;
 
-    virtual SensorMessage handleRequest(uint8_t* data, std::size_t length, std::chrono::milliseconds::rep time = 0) = 0;
-
-    virtual ~RequestHandler()
-    {
-    }
-};
-
-class ResponseHandler
-{
-  public:
-    ResponseHandler()
-    {
-    }
-
-    virtual void handleResponse([[maybe_unused]] uint8_t* data,
-                                [[maybe_unused]] std::size_t length,
-                                [[maybe_unused]] std::chrono::milliseconds::rep time = 0)
-    {
-    }
-
-    virtual std::size_t handleResponseHead([[maybe_unused]] uint8_t* data, [[maybe_unused]] std::size_t length)
-    {
-        return 10;
-    }
-
-    virtual ~ResponseHandler()
-    {
-    }
-};
-
-class RequestResponseHandler : public RequestHandler, public ResponseHandler
-{
-};
-
+/**
+ * Interface for communicating over different protocols.
+ */
 class ConnectionInterface
 {
   public:
     virtual ~ConnectionInterface() = default;
 
+    /**
+     * Sends a message.
+     * @param message Message to send.
+     * @param response_size Amount of bytes of response.
+     * @param has_response_head_and_body Read response in 2 parts.
+     */
     virtual void sendRequest(const SensorMessage& message,
                              std::size_t response_size,
                              bool has_response_head_and_body = false) = 0;
 
+    /**
+     * Sends a message.
+     * @param message Message to send.
+     * @param delimiter Read until byte.
+     * @param has_response_head_and_body Read response in 2 parts.
+     */
     virtual void sendRequest(const SensorMessage& message, char delimiter, bool has_response_head_and_body = false) = 0;
 
+    /**
+     * Adds callback when a request comes in.
+     * @param request_handler
+     */
     virtual void addRequestHandler(std::shared_ptr<RequestHandler> request_handler)
     {
         request_handler_.reset();
         request_handler_.swap(request_handler);
     }
 
+    /**
+     * Adds callback for received responses.
+     * @param response_handler
+     */
     virtual void addResponseHandler(std::shared_ptr<ResponseHandler> response_handler)
     {
         response_handler_.reset();
         response_handler_.swap(response_handler);
     }
 
+    /**
+     * Get the current time of the system in epoch milliseconds.
+     * @return Epoch time in milliseconds
+     */
     static std::chrono::milliseconds::rep getCurrentTime()
     {
         return std::chrono::duration_cast<std::chrono::milliseconds>(

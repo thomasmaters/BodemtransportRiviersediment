@@ -29,7 +29,7 @@ UDPServerClient::UDPServerClient(boost::asio::io_service& io_service,
     socket_outgoing_(io_service),
     socket_incomming_(io_service, udp::endpoint(udp::v4(), std::atoi(local_port.c_str())))
 {
-    start_receive();
+    startReceive();
 }
 
 void UDPServerClient::sendRequest(const SensorMessage& message,
@@ -148,22 +148,22 @@ void UDPServerClient::gotResponse([[maybe_unused]] bool has_response_head_and_bo
     }
 }
 
-void UDPServerClient::start_receive()
+void UDPServerClient::startReceive()
 {
     socket_incomming_.async_receive_from(boost::asio::buffer(data_, UDP_BUFFER_SIZE),
                                          local_endpoint_,
-                                         boost::bind(&UDPServerClient::handle_receive,
+                                         boost::bind(&UDPServerClient::handleReceive,
                                                      this,
                                                      boost::asio::placeholders::error,
                                                      boost::asio::placeholders::bytes_transferred));
 }
 
-void UDPServerClient::handle_receive(const boost::system::error_code& error, std::size_t bytes_transferred)
+void UDPServerClient::handleReceive(const boost::system::error_code& error, std::size_t bytes_transferred)
 {
 #ifdef ENABLE_IO_DEBUG
     std::cout << "UDPServerClient -> RECEIVED REQUEST( " << bytes_transferred << ")" << std::endl;
 #endif
-    start_receive();
+    startReceive();
     if (!error || (error == boost::asio::error::eof && bytes_transferred > 0))
     {
         if (request_handler_.use_count() != 0)
@@ -177,7 +177,7 @@ void UDPServerClient::handle_receive(const boost::system::error_code& error, std
 #endif
                 socket_incomming_.async_send_to(boost::asio::buffer(response.getData(), response.getDataLength()),
                                                 local_endpoint_,
-                                                boost::bind(&UDPServerClient::handle_send,
+                                                boost::bind(&UDPServerClient::handleSend,
                                                             this,
                                                             boost::asio::placeholders::error,
                                                             boost::asio::placeholders::bytes_transferred));
@@ -198,7 +198,7 @@ void UDPServerClient::handle_receive(const boost::system::error_code& error, std
     }
 }
 
-void UDPServerClient::handle_send([[maybe_unused]] const boost::system::error_code& error,
+void UDPServerClient::handleSend([[maybe_unused]] const boost::system::error_code& error,
                                   std::size_t bytes_transferred)
 {
 #ifdef ENABLE_IO_DEBUG

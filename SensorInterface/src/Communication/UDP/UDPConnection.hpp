@@ -21,6 +21,9 @@
 using boost::asio::ip::udp;
 namespace Communication::UDP
 {
+/**
+ * Class handles communicating over UDP.
+ */
 class UDPServerClient : public ConnectionInterface, public std::enable_shared_from_this<UDPServerClient>
 {
   public:
@@ -29,35 +32,88 @@ class UDPServerClient : public ConnectionInterface, public std::enable_shared_fr
                     const std::string& remote_port,
                     const std::string& local_port);
 
+    /**
+     * Sends a message.
+     * @param message To send.
+     * @param response_size Size of bytes to read into response.
+     * @param has_response_head_and_body Read in 2 parts.
+     */
     void sendRequest(const SensorMessage& message, std::size_t response_size, bool has_response_head_and_body = false);
 
+    /**
+     * Sends a message.
+     * @param message To send.
+     * @param delimiter Read till delimeter found.
+     * @param has_response_head_and_body Read in 2 parts.
+     */
     void sendRequest(const SensorMessage& message, char delimiter, bool has_response_head_and_body = false);
 
+    /**
+     * Sends a message from a string.
+     * @param message To send.
+     * @param response_size Size of bytes to read.
+     */
     void sendRequest(std::string message, std::size_t response_size);
 
     virtual ~UDPServerClient();
 
   private:
+    /**
+     * Connect to outgoing ip.
+     * @return True if connected.
+     */
     bool connectOutgoingSocket();
 
+    /**
+     * Sends a message.
+     * @param buffer
+     * @param response_size
+     * @param has_response_head_and_body
+     */
     void sendMessage(const boost::asio::mutable_buffer& buffer,
                      std::size_t response_size,
                      bool has_response_head_and_body);
 
+    /**
+     * Handler when ready to read response.
+     * @param response_size
+     * @param has_response_head_and_body
+     * @param error
+     * @param bytes_transferred
+     */
     void getResponse(std::size_t response_size,
                      bool has_response_head_and_body,
                      const boost::system::error_code& error,
                      std::size_t bytes_transferred);
 
+    /**
+     * Handler when response has been read.
+     * @param has_response_head_and_body
+     * @param error
+     * @param bytes_transferred
+     */
     void gotResponse(bool has_response_head_and_body,
                      const boost::system::error_code& error,
                      std::size_t bytes_transferred);
 
-    void start_receive();
+    /**
+     * Starts listening on port.
+     */
+    void startReceive();
 
-    void handle_receive(const boost::system::error_code& error, std::size_t bytes_transferred);
+    /**
+     * Received a message on a port.
+     * @param error
+     * @param bytes_transferred
+     */
+    void handleReceive(const boost::system::error_code& error, std::size_t bytes_transferred);
 
-    void handle_send(const boost::system::error_code& error, std::size_t bytes_transferred);
+    /**
+     * Handle when response has been send on a message.
+     * @param error
+     * @param bytes_transferred
+     */
+    void handleSend(const boost::system::error_code& error, std::size_t bytes_transferred);
 
     std::array<uint8_t, UDP_BUFFER_SIZE> data_;
     boost::asio::streambuf stream_buffer_;

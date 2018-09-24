@@ -1,5 +1,7 @@
 # Prerequisites
 *.d
+*.TMP
+*.pro.user
 
 # Compiled Object files
 *.slo

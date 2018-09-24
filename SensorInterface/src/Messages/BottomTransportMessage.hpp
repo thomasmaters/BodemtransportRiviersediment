@@ -12,28 +12,45 @@
 #include "Dune.hpp"
 #include "SensorMessage.hpp"
 
-//#include <iomanip>
+#include <cstring>
 
-#define BOTTOM_TRANSPORT_HEADER_SIZE 16
+#define BT_HEADER_SIZE 16
+#define BT_MESSAGE_SIZE 2048
+#define BT_MESSAGE_START 0
+#define BT_MESSAGE_START_VALUE 0xAA //170
+#define BT_MESSAGE_END BT_MESSAGE_SIZE - 1
+#define BT_MESSAGE_END_VALUE 0xBB //187
 
-namespace Controller
+#define BT_DUNE_AMOUNT_INDEX 1
+#define BT_AVG_TRANSPORT_INDEX 2
+#define BT_PING_TIME_INDEX 6
+
+#define BT_DUNE_DATA_SIZE 28
+#define BT_DUNE_DATA_TRANSPORT_OFFSET 16
+#define BT_DUNE_DATA_XFROM_OFFSET 20
+#define BT_DUNE_DATA_XTO_OFFSET 20
+
+namespace Messages
 {
+/**
+ * Message for sending data of the calculated bottom transport.
+ */
 class BottomTransportMessage : public SensorMessage
 {
   public:
-    static constexpr std::size_t command_length_ = 2048;
+    static constexpr std::size_t command_length_ = BT_MESSAGE_SIZE;
+
     // Byte 0: Hex AA, dec 170, indentifier
     // Byte 1: amount dunes
     // Byte 2-5: average transport
     // Byte 6-13: time of ping
     // Byte 14-15: empty, 00 hex
     // Byte 16-xxx: amountdunes * [a(float),b(float),c(float),d(float),transport(float), x_from(float), x_to(float)]
-    // Byte xxx+1: hex BB, dex 187
-
+    // Byte xxx+1: hex BB, dec 187
     BottomTransportMessage() : SensorMessage(command_length_)
     {
-        data_[0]                   = 0xAA;
-        data_[command_length_ - 1] = 0xBB;
+        data_[BT_MESSAGE_START] = BT_MESSAGE_START_VALUE;
+        data_[BT_MESSAGE_END] 	= BT_MESSAGE_END_VALUE;
     }
 
     explicit BottomTransportMessage(uint8_t* data) : SensorMessage(data, command_length_)
@@ -57,47 +74,51 @@ class BottomTransportMessage : public SensorMessage
         return *this;
     }
 
-    uint8_t getAmoundOfDunes()
+    inline uint8_t getAmoundOfDunes() const
     {
-        return data_[1];
+        return data_[BT_DUNE_AMOUNT_INDEX];
     }
 
-    void setAmoundOfDunes(uint8_t value)
+    inline void setAmoundOfDunes(uint8_t value)
     {
-        data_[1] = value;
+        data_[BT_DUNE_AMOUNT_INDEX] = value;
     }
 
-    float getAverageTransport()
+    inline float getAverageTransport() const
     {
-        return getDataAtIndex<float>(2);
+        return getDataAtIndex<float>(BT_AVG_TRANSPORT_INDEX);
     }
 
-    void setAverageTransport(float value)
+    inline void setAverageTransport(float value)
     {
-        setDataToIndex(2, value);
+        setDataToIndex(BT_AVG_TRANSPORT_INDEX, value);
     }
 
-    int64_t getTimeOfPing()
+    inline int64_t getTimeOfPing() const
     {
-        return getDataAtIndex<int64_t>(6);
+        return getDataAtIndex<int64_t>(BT_PING_TIME_INDEX);
     }
 
-    void setTimeOfPing(int64_t value)
+    inline void setTimeOfPing(const int64_t& value)
     {
-        setDataToIndex(6, value);
+        setDataToIndex(BT_PING_TIME_INDEX, value);
     }
 
-    std::vector<Matrix<7, 1, float>> getDunes()
+    /**
+     * Gets all the stored dunes as a vector of Matrix data.
+     * @return All stored dune data.
+     */
+    template<std::size_t H>
+    std::vector<Matrix<H, 1, float>> getDunes() const
     {
-        std::vector<Matrix<7, 1, float>> result;
-        std::cout << "amount of dunes: " << std::to_string(getAmoundOfDunes()) << std::endl;
+        std::vector<Matrix<H, 1, float>> result;
 
         for (std::size_t i = 0; i < getAmoundOfDunes(); ++i)
         {
-            Matrix<7, 1, float> dune;
-            for (std::size_t j = 0; j < 7; ++j)
+            Matrix<H, 1, float> dune;
+            for (std::size_t j = 0; j < dune.getHeight(); ++j)
             {
-                std::size_t array_ptr = BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + j * 4;
+                std::size_t array_ptr = BT_HEADER_SIZE + i * BT_DUNE_DATA_SIZE + j * sizeof(float);
                 dune[j][0]            = getDataAtIndex<float>(array_ptr);
             }
             result.push_back(dune);
@@ -105,12 +126,20 @@ class BottomTransportMessage : public SensorMessage
         return result;
     }
 
+    /**
+     * Sets dune data in this message from a BottomProfile.
+     * @param value
+     */
     template <std::size_t H, std::size_t W, typename T>
     void setDunes(const BottomProfile<H, W, T>& value)
     {
         setDunes(value.dunes_);
     }
 
+    /**
+     * Sets dunes in this message from a vector of dunes.
+     * @param value
+     */
     void setDunes(const std::vector<Dune>& value)
     {
         setAmoundOfDunes(value.size());
@@ -118,26 +147,38 @@ class BottomTransportMessage : public SensorMessage
         {
             for (std::size_t j = 0; j < value.at(i).signature_.getHeight(); ++j)
             {
-                setDataToIndex<float>(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + j * 4, value.at(i).signature_.at(j, 0));
+                setDataToIndex<float>(BT_HEADER_SIZE + i * BT_DUNE_DATA_SIZE + j * sizeof(float), value.at(i).signature_.at(j, 0));
             }
-            setDataToIndex<float>(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + 16, value.at(i).transport_);
-            setDataToIndex<float>(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + 20, value.at(i).start_x_);
-            setDataToIndex<float>(BOTTOM_TRANSPORT_HEADER_SIZE + i * 28 + 24, value.at(i).end_x_);
+            setDataToIndex<float>(BT_HEADER_SIZE + i * BT_DUNE_DATA_SIZE + BT_DUNE_DATA_TRANSPORT_OFFSET, value.at(i).transport_);
+            setDataToIndex<float>(BT_HEADER_SIZE + i * BT_DUNE_DATA_SIZE + BT_DUNE_DATA_XFROM_OFFSET, value.at(i).start_x_);
+            setDataToIndex<float>(BT_HEADER_SIZE + i * BT_DUNE_DATA_SIZE + BT_DUNE_DATA_XTO_OFFSET, value.at(i).end_x_);
         }
     }
 
   private:
+    /**
+     * Convenience function to get data at an offset in the message buffer and return the requested type.
+     * @param Index Buffer offset.
+     * @return Value of type T.
+     */
     template <typename T>
-    T getDataAtIndex(std::size_t index)
+    T getDataAtIndex(std::size_t index) const
     {
+    	static_assert(index + sizeof(T) <= BT_MESSAGE_END, "Trying to get data outside of the message buffer.");
         T result;
-        memcpy(&result, &(data_[index]), sizeof(T));
+        std::memcpy(&result, &(data_[index]), sizeof(T));
         return result;
     }
 
+    /**
+     * Convenience function to set data at an offset in the message buffer.
+     * @param index Buffer offset.
+     * @param value Value to set.
+     */
     template <typename T>
     void setDataToIndex(std::size_t index, T value)
     {
+    	static_assert(index + sizeof(T) <= BT_MESSAGE_END, "Trying to set data outside of the message buffer.");
         memcpy(&(data_[index]), &value, sizeof(T));
     }
 };

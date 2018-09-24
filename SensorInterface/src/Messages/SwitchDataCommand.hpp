@@ -9,11 +9,11 @@
 #ifndef SRC_SWITCHDATACOMMAND_HPP_
 #define SRC_SWITCHDATACOMMAND_HPP_
 
-#include <cstdint>
-
 #include "SensorMessage.hpp"
 
-namespace Controller::DeltaT100
+#include <cstdint>
+
+namespace Messages
 {
 enum class Mode : uint8_t
 {
@@ -51,13 +51,43 @@ enum class RunMode : uint8_t
     DISABLEALL = 0b00000000
 };
 
-/*
- *
+#define SDC_HEADER_SIZE 27
+#define SDC_HEADER_BYTE_1 0xFE
+#define SDC_HEADER_BYTE_2 0x44
+#define SDC_INTERNAL_USE_9 1
+#define SDC_HEAD_ID 0x10
+#define SDC_TERMINATION_BYTE 0xFD
+
+#define SDC_HEADER_BYTE_1_OFFSET 0
+#define SDC_HEADER_BYTE_2_OFFSET 1
+#define SDC_HEAD_ID_OFFSET 2
+#define SDC_RANGE_OFFSET 3
+#define SDC_NADIR_ANGLE_HIGH 5
+#define SDC_NADIR_ANGLE_LOW 6
+#define SDC_START_GAIN_OFFSET 8
+#define SDC_INTERNAL_USE_9_OFFSET 9
+#define SDC_ABSORPTION_OFFSET 10
+#define SDC_AGC_THRESHOLD_OFFSET 11
+#define SDC_PACKET_NR_REQEUST_OFFSET 13
+#define SDC_PULSE_LENGTH_OFFSET 14
+#define SDC_EX_TRIGGER_CONTROL_OFFSET 16
+#define SDC_EX_TRIGGER_DELAY_HIGH 17
+#define SDC_EX_TRIGGER_DELAY_LOW 18
+#define SDC_DATA_POINTS_OFFSET 19
+#define SDC_DATA_BITS_OFFSET 20
+#define SDC_PRH_COMMAND_OFFSET 21
+#define SDC_RUN_MODE_OFFSET 22
+#define SDC_SWITCH_DELAY_OFFSET 24
+#define SDC_FREQUENTY_OFFSET 25
+#define SDC_TER_BYTE_OFFSET 26
+
+/**
+ * Class representing a SwitchDataCommand of the DeltaT100.
  */
 class SwitchDataCommand : public SensorMessage
 {
   public:
-    constexpr static std::size_t command_length_ = 27;
+    constexpr static std::size_t command_length_ = SDC_HEADER_SIZE;
 
     enum class PulseLength : uint8_t
     {
@@ -107,23 +137,17 @@ class SwitchDataCommand : public SensorMessage
 
     SwitchDataCommand() : SensorMessage(command_length_)
     {
-        data_[0] = 0xFE;
-        data_[1] = 0x44;
-        data_[2] = 0x10;  // Are there multiple heads?
+        data_[SDC_HEADER_BYTE_1_OFFSET] = SDC_HEADER_BYTE_1;
+        data_[SDC_HEADER_BYTE_2_OFFSET] = SDC_HEADER_BYTE_2;
+        data_[SDC_HEAD_ID_OFFSET] = SDC_HEAD_ID;
         setRange(Range::M5);
-        data_[4] = 0;
         setNadirOffsetAngle(0);
-        // Nadir
-        data_[7] = 0;
         setStartGain(30);  // Gain
-        data_[9] = 1;
+        data_[SDC_INTERNAL_USE_9_OFFSET] = SDC_INTERNAL_USE_9;
         setAbsorption(20);     // Absorption
         setAgcThreshold(120);  // AgcThreshold
-        data_[12] = 0;
         setPacketNumberRequest(0);        // PacketNumberRequest
         setPulseLength(PulseLength::M5);  // PulseLength
-        data_[15] = 0;
-        data_[16] = 0;  // ExternalTriggerControl //User defined default value
         enableExternalTriggerControl(false);
         setExternalTriggerControlEdge(ExternalTriggerControlEdge::NEG);
         setExternalTransmitDelay(0);
@@ -131,15 +155,17 @@ class SwitchDataCommand : public SensorMessage
         setDataBits(DataBits::BITS8);      // DataBits
         setPrhCommand(PrhCommand::NOPRH);  // PrhCommand
         setRunMode(RunMode::DISABLEALL);   // RunMode
-        data_[23] = 0;
-        setSwitchDelay((uint8_t)0);       // SwitchDelay
         setFrequency(Frequency::KHZ675);  // Frequency
-        data_[26] = 0xFD;
+        data_[SDC_TER_BYTE_OFFSET] = SDC_TERMINATION_BYTE;
     }
 
-    void setRange(Controller::DeltaT100::Range value)
+    virtual ~SwitchDataCommand()
     {
-        data_[3] = static_cast<uint8_t>(value);
+    }
+
+    void setRange(Messages::Range value)
+    {
+        data_[SDC_RANGE_OFFSET] = static_cast<uint8_t>(value);
     }
 
     void setNadirOffsetAngle(int16_t value)
@@ -149,8 +175,8 @@ class SwitchDataCommand : public SensorMessage
         {
             offsetAngle |= 0x8000;
         }
-        data_[5] = (offsetAngle & 0xFF00) >> 8;
-        data_[6] = offsetAngle & 0x00FF;
+        data_[SDC_NADIR_ANGLE_HIGH] = (offsetAngle & 0xFF00) >> 8;
+        data_[SDC_NADIR_ANGLE_LOW] = offsetAngle & 0x00FF;
     }
 
     void setStartGain(uint8_t value)
@@ -159,12 +185,12 @@ class SwitchDataCommand : public SensorMessage
         {
             throw std::runtime_error("Gain not between valid values.[0-20]");
         }
-        data_[8] = value;
+        data_[SDC_START_GAIN_OFFSET] = value;
     }
 
     void setAbsorption(uint8_t value)
     {
-        data_[10] = value;
+        data_[SDC_ABSORPTION_OFFSET] = value;
     }
 
     void setAgcThreshold(uint8_t value)
@@ -173,45 +199,45 @@ class SwitchDataCommand : public SensorMessage
         {
             throw std::runtime_error("AgcThreshold not between valid values.[10-250]");
         }
-        data_[11] = value;
+        data_[SDC_AGC_THRESHOLD_OFFSET] = value;
     }
 
     void setPacketNumberRequest(uint8_t value)
     {
-        if (data_[19] == static_cast<std::underlying_type<Mode>::type>(Mode::IUX))  // IUX mode
+        if (getMode() == static_cast<std::underlying_type<Mode>::type>(Mode::IUX))  // IUX mode
         {
-            if (value <= 7)
+            if (value < static_cast<std::underlying_type<Mode>::type>(Mode::IUX))
             {
-                data_[13] = value;
+                data_[SDC_PACKET_NR_REQEUST_OFFSET] = value;
             }
         }
-        else if (data_[19] == static_cast<std::underlying_type<Mode>::type>(Mode::IVX))
+        else if (getMode() == static_cast<std::underlying_type<Mode>::type>(Mode::IVX))
         {
-            if (value <= 15)
+            if (value <= static_cast<std::underlying_type<Mode>::type>(Mode::IVX))
             {
-                data_[13] = value;
+                data_[SDC_PACKET_NR_REQEUST_OFFSET] = value;
             }
         }
     }
 
     void setPulseLength(uint8_t value)
     {
-        data_[14] = value;
+        data_[SDC_PULSE_LENGTH_OFFSET] = value;
     }
 
     void setPulseLength(const PulseLength& value)
     {
-        data_[14] = static_cast<uint8_t>(value);
+        data_[SDC_PULSE_LENGTH_OFFSET] = static_cast<uint8_t>(value);
     }
 
     void setExternalTriggerControlEdge(const ExternalTriggerControlEdge& value)
     {
-        data_[16] |= static_cast<uint8_t>(value);
+        data_[SDC_EX_TRIGGER_CONTROL_OFFSET] |= static_cast<uint8_t>(value);
     }
 
     void enableExternalTriggerControl(bool enable)
     {
-        data_[16] ^= (-enable ^ data_[16]) & (1UL << 1);
+        data_[SDC_EX_TRIGGER_CONTROL_OFFSET] ^= (-enable ^ data_[SDC_EX_TRIGGER_CONTROL_OFFSET]) & (1UL << 1);
     }
 
     void setExternalTransmitDelay(uint16_t value)
@@ -225,78 +251,81 @@ class SwitchDataCommand : public SensorMessage
             throw std::runtime_error("ExternalTransmitDelay not in a valid range.[0-100000]");
         }
 
-        // TODO: how is the byte orderning? Has it to be flipped?
-        data_[17] = value & 0xff;
-        data_[18] = (value >> 8) & 0xff;
+        data_[SDC_EX_TRIGGER_DELAY_HIGH] = (value >> 8) & 0xff;
+        data_[SDC_EX_TRIGGER_DELAY_LOW] = value & 0xff;
     }
 
     void setDataPoints(const Mode& value)
     {
-        data_[19] = static_cast<std::underlying_type<Mode>::type>(value);
+        data_[SDC_DATA_POINTS_OFFSET] = static_cast<std::underlying_type<Mode>::type>(value);
+    }
+
+    /**
+     * Uses SDC_DATA_POINTS_OFFSET to get the mode.
+     * @return The mode of this message.
+     */
+    Mode getMode() const
+    {
+    	return static_cast<Mode>(data_[SDC_DATA_POINTS_OFFSET]);
     }
 
     void setDataBits(uint8_t value = static_cast<std::underlying_type<Mode>::type>(DataBits::BITS8))
     {
-        data_[20] = value;
+        data_[SDC_DATA_BITS_OFFSET] = value;
     }
 
     void setDataBits(const DataBits& value)
     {
-        data_[20] = static_cast<std::underlying_type<Mode>::type>(value);
+        data_[SDC_DATA_BITS_OFFSET] = static_cast<std::underlying_type<Mode>::type>(value);
     }
 
     void setPrhCommand(const PrhCommand& value)
     {
-        data_[21] = static_cast<std::underlying_type<Mode>::type>(value);
+        data_[SDC_PRH_COMMAND_OFFSET] = static_cast<std::underlying_type<Mode>::type>(value);
     }
 
     void setRunMode(const RunMode& value)
     {
-        data_[22] = static_cast<std::underlying_type<Mode>::type>(value);
+        data_[SDC_RUN_MODE_OFFSET] = static_cast<std::underlying_type<Mode>::type>(value);
     }
 
-    // Calculates the single byte value for the switch delay;
+	/**
+	 * Sets the switch delay from a uint16_t.
+	 * @param value
+	 */
     void setSwitchDelay(uint16_t value)
     {
         uint8_t aValue = value / 2;
-        data_[24]      = aValue;
+        data_[SDC_SWITCH_DELAY_OFFSET]      = aValue;
     }
 
-    // Sets the switch delay directly to this value.
+    /**
+     * Sets the switch delay directly from the byte value.
+     * @param value
+     */
     void setSwitchDelay(uint8_t value)
     {
-        data_[24] = value;
+        data_[SDC_SWITCH_DELAY_OFFSET] = value;
     }
 
     void setFrequency(const Frequency& value)
     {
-        data_[25] = static_cast<std::underlying_type<Mode>::type>(value);
-    }
-
-    void toString()
-    {
-        std::cout << "" << std::endl;
-    }
-
-    virtual ~SwitchDataCommand()
-    {
+        data_[SDC_FREQUENTY_OFFSET] = static_cast<std::underlying_type<Mode>::type>(value);
     }
 };
 
-} /* namespace Delta100 */
+} /* namespace Messages */
 
-constexpr Controller::DeltaT100::RunMode operator|(Controller::DeltaT100::RunMode lhs,
-                                                   Controller::DeltaT100::RunMode rhs)
+constexpr Messages::RunMode operator|(Messages::RunMode lhs, Messages::RunMode rhs)
 {
-    using underlying = typename std::underlying_type<Controller::DeltaT100::RunMode>::type;
-    return static_cast<Controller::DeltaT100::RunMode>(static_cast<underlying>(lhs) | static_cast<underlying>(rhs));
+    using underlying = typename std::underlying_type<Messages::RunMode>::type;
+    return static_cast<Messages::RunMode>(static_cast<underlying>(lhs) | static_cast<underlying>(rhs));
 }
 
-constexpr Controller::DeltaT100::RunMode operator&(Controller::DeltaT100::RunMode lhs,
-                                                   Controller::DeltaT100::RunMode rhs)
+constexpr Messages::RunMode operator&(Messages::RunMode lhs, Messages::RunMode rhs)
 {
-    using underlying = typename std::underlying_type<Controller::DeltaT100::RunMode>::type;
-    return static_cast<Controller::DeltaT100::RunMode>(static_cast<underlying>(lhs) & static_cast<underlying>(rhs));
+    using underlying = typename std::underlying_type<Messages::RunMode>::type;
+    return static_cast<Messages::RunMode>(static_cast<underlying>(lhs) & static_cast<underlying>(rhs));
 }
 
 #endif /* SRC_SWITCHDATACOMMAND_HPP_ */

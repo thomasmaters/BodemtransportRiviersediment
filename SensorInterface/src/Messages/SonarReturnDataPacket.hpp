@@ -9,9 +9,9 @@
 #ifndef SRC_SONARRETURNDATAPACKET_HPP_
 #define SRC_SONARRETURNDATAPACKET_HPP_
 
-#include <cstdint>
-
 #include "SensorMessage.hpp"
+
+#include <cstdint>
 
 #define SRDP_CONVERT_FACTOR 360 / 65536
 #define SRDP_PACKET_SIZE 1033
@@ -196,7 +196,7 @@ class SonarReturnDataPacket : public SensorMessage
     }
 };
 
-} /* namespace Delta100 */
+} /* namespace Messages */
 
 constexpr Messages::SerialStatus operator&(Messages::SerialStatus lhs, Messages::SerialStatus rhs)
 {

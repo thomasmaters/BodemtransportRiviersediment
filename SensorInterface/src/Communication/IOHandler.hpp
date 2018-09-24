@@ -13,55 +13,39 @@
 
 #include <thread>
 
+namespace Communication
+{
 class IOHandler
 {
   public:
-    static IOHandler& getInstance()
-    {
-        static IOHandler instance;
-        return instance;
-    }
+	/**
+	 * Get reference to instance.
+	 * @return
+	 */
+    static IOHandler& getInstance();
 
-    boost::asio::io_service& getIOService()
-    {
-        return io_service_;
-    }
+    /**
+     * Get a reference to the io_service.
+     * @return
+     */
+    boost::asio::io_service& getIOService();
 
-    void startIOService()
-    {
-        io_thread_ = std::thread([this]() { io_service_.run(); });
-    }
+    /**
+     * Starts the io_service in a separate thread.
+     */
+    void startIOService();
 
-    void startIOServiceBlocking()
-    {
-        auto work = std::make_shared<boost::asio::io_service::work>(io_service_);
-        io_service_.run();
-    }
+    /**
+     * Starts the io_service in the main thread.
+     */
+    void startIOServiceBlocking();
 
-    void stopIOService()
-    {
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
-        if (!io_service_.stopped())
-        {
-            io_service_.stop();
-        }
-        if (io_thread_.joinable())
-        {
-            io_thread_.join();
-        }
-    }
+    /**
+     * Stops the io_service and kills any running thread.
+     */
+    void stopIOService();
 
-    ~IOHandler()
-    {
-        if (!io_service_.stopped())
-        {
-            io_service_.stop();
-        }
-        if (io_thread_.joinable())
-        {
-            io_thread_.join();
-        }
-    }
+    ~IOHandler();
 
   private:
     IOHandler()
@@ -71,5 +55,6 @@ class IOHandler
     boost::asio::io_service io_service_;
     std::thread io_thread_;
 };
+}//Namespace Communication
 
 #endif /* SRC_IOHANDLER_HPP_ */

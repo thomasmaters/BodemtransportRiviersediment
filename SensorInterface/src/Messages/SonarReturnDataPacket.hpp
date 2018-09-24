@@ -13,10 +13,36 @@
 
 #include "SensorMessage.hpp"
 
-// Remove these includes:
-#include <bitset>
+#define SRDP_CONVERT_FACTOR 360 / 65536
+#define SRDP_PACKET_SIZE 1033
 
-namespace Controller::DeltaT100
+//Offsets
+#define SRDP_MODE_OFFSET 1
+#define SRDP_SERIAL_STATUS_OFFSET 4
+#define SRDP_PACKET_NR_OFFSET 5
+#define SRDP_FIRMWARE_V_OFFSET 6
+#define SRDP_RANGE_OFFSET 7
+#define SRDP_DATABYTES_HIGH 10
+#define SRDP_DATABYTES_LOW 11
+#define SRDP_EXTERNAL_TRIGGER_STATUS_OFFSET 12
+#define SRDP_INTERAL_SENSOR_STATUS_OFFSET 13
+#define SRDP_PITCH_HIGH 15
+#define SRDP_PITCH_LOW 14
+#define SRDP_ROLL_HIGH 17
+#define SRDP_ROLL_LOW 16
+#define SRDP_HEADING_HIGH 19
+#define SRDP_HEADING_LOW 18
+#define SRDP_TIMER_TICK_HIGH 21
+#define SRDP_TIMER_TICK_LOW 20
+#define SRDP_RUNMODE_OFFSET 22
+#define SRDP_SENSOR_GAIN_OFFSET 24
+#define SRDP_AGC_RANGE_HIGH 25
+#define SRDP_AGC_RANGE_LOW 26
+#define SRDP_AGC_MAX_HIGH 27
+#define SRDP_AGC_MAX_LOW 28
+#define SRDP_ECHO_DATA_OFFSET 32
+
+namespace Messages
 {
 enum class SerialStatus : uint8_t
 {
@@ -28,13 +54,13 @@ enum class SerialStatus : uint8_t
     CHARSOVERRUN     = 0b10000000
 };
 
-/*
- *
+/**
+ * Implements a single packet of the SonarReturnData protocol of the DeltaT100.
  */
 class SonarReturnDataPacket : public SensorMessage
 {
   public:
-    constexpr static std::size_t command_length_ = 1033;
+    constexpr static std::size_t command_length_ = SRDP_PACKET_SIZE;
 
     SonarReturnDataPacket() : SensorMessage(command_length_)
     {
@@ -46,7 +72,7 @@ class SonarReturnDataPacket : public SensorMessage
 
     Mode getMode() const
     {
-        if (data_[1] == 0x55)
+        if (data_[SRDP_MODE_OFFSET] == 0x55)
         {
             return Mode::IUX;
         }
@@ -55,32 +81,32 @@ class SonarReturnDataPacket : public SensorMessage
 
     SerialStatus getSerialStatus() const
     {
-        return static_cast<SerialStatus>(data_[4]);
+        return static_cast<SerialStatus>(data_[SRDP_SERIAL_STATUS_OFFSET]);
     }
 
     uint8_t getPacketNumber() const
     {
-        return data_[5];
+        return data_[SRDP_PACKET_NR_OFFSET];
     }
 
     uint8_t getFirmwareVersion() const
     {
-        return data_[6];  // TODO should this be parsed as an enum?
+        return data_[SRDP_FIRMWARE_V_OFFSET];
     }
 
-    Range getRange()
+    Range getRange() const
     {
-        return static_cast<Range>(data_[7]);
+        return static_cast<Range>(data_[SRDP_RANGE_OFFSET]);
     }
 
-    uint16_t getNumberOfDataBytes()
+    uint16_t getNumberOfDataBytes() const
     {
-        return (data_[10] << 8) | data_[11];
+        return static_cast<uint16_t>((data_[SRDP_DATABYTES_HIGH] << 8) | data_[SRDP_DATABYTES_LOW]);
     }
 
-    uint8_t getExternalTriggerStatus()
+    uint8_t getExternalTriggerStatus() const
     {
-        return data_[12];  // TODO should this be parsed as an enum?
+        return data_[SRDP_EXTERNAL_TRIGGER_STATUS_OFFSET];
     }
 
     /**
@@ -94,85 +120,75 @@ class SonarReturnDataPacket : public SensorMessage
      * 6 = Reserved
      * @return The internal sensor status.
      */
-    uint8_t getInternalSensorStatus()
+    uint8_t getInternalSensorStatus() const
     {
-        return data_[13];  // TODO should this be parsed as an enum?
+        return data_[SRDP_INTERAL_SENSOR_STATUS_OFFSET];
     }
 
-    uint16_t getPitch()
+    float getPitch() const
     {
-        if ((data_[15] & 0b10000000) == 0)
+        if ((data_[SRDP_PITCH_HIGH] & 0b10000000) == 0)
         {
-            return ((data_[15] << 8) | data_[14]) * 360 / 65536;
+            return static_cast<float>((data_[SRDP_PITCH_HIGH] << 8) | data_[SRDP_PITCH_LOW]) * SRDP_CONVERT_FACTOR;
         }
         else
         {
-            return (((data_[15] << 8) | data_[14]) - 65536) * 360 / 65536;
+            return (static_cast<float>((data_[SRDP_PITCH_HIGH] << 8) | data_[SRDP_PITCH_LOW]) - 65536) * SRDP_CONVERT_FACTOR;
         }
     }
 
-    uint16_t getRoll()
+    float getRoll() const
     {
-        if ((data_[17] & 0b10000000) == 0)
+        if ((data_[SRDP_ROLL_HIGH] & 0b10000000) == 0)
         {
-            return ((data_[17] << 8) | data_[16]) * 360 / 65536;
+            return static_cast<float>((data_[SRDP_ROLL_HIGH] << 8) | data_[SRDP_ROLL_LOW]) * SRDP_CONVERT_FACTOR;
         }
         else
         {
-            return (((data_[17] << 8) | data_[16]) - 65536) * 360 / 65536;
+            return (static_cast<float>((data_[SRDP_ROLL_HIGH] << 8) | data_[SRDP_ROLL_LOW]) - 65536) * SRDP_CONVERT_FACTOR;
         }
     }
 
-    uint16_t getHeading()
+    float getHeading() const
     {
-        if ((data_[19] & 0b10000000) == 0)
+        if ((data_[SRDP_HEADING_HIGH] & 0b10000000) == 0)
         {
-            return ((data_[19] << 8) | data_[18]) * 360 / 65536;
+            return static_cast<float>((data_[SRDP_HEADING_HIGH] << 8) | data_[SRDP_HEADING_LOW]) * SRDP_CONVERT_FACTOR;
         }
         else
         {
-            return (((data_[19] << 8) | data_[18]) - 65536) * 360 / 65536;
+            return (static_cast<float>((data_[SRDP_HEADING_HIGH] << 8) | data_[SRDP_HEADING_LOW]) - 65536) * SRDP_CONVERT_FACTOR;
         }
     }
 
-    uint16_t getTimerTicks()
+    uint16_t getTimerTicks() const
     {
-        return (data_[21] << 8) | data_[20];
+        return static_cast<uint16_t>((data_[SRDP_TIMER_TICK_HIGH] << 8) | data_[SRDP_TIMER_TICK_LOW]);
     }
 
-    RunMode getRunMode()
+    RunMode getRunMode() const
     {
-        return static_cast<RunMode>(data_[22]);
+        return static_cast<RunMode>(data_[SRDP_RUNMODE_OFFSET]);
     }
 
     uint8_t getCurrentSensorGain() const
     {
-        return data_[24];  // TODO: Should this variable be made in a enum?
+        return data_[SRDP_SENSOR_GAIN_OFFSET];
     }
 
-    uint16_t getAgcRange()
+    uint16_t getAgcRange() const
     {
-        return ((data_[25] << 8) | data_[26]);
+        return static_cast<uint16_t>((data_[SRDP_AGC_RANGE_HIGH] << 8) | data_[SRDP_AGC_RANGE_LOW]);
     }
 
-    uint16_t getAgcMaximum()
+    uint16_t getAgcMaximum() const
     {
-        return ((data_[27] << 8) | data_[28]);
+        return static_cast<uint16_t>((data_[SRDP_AGC_MAX_HIGH] << 8) | data_[SRDP_AGC_MAX_LOW]);
     }
 
-    std::pair<uint8_t*, uint16_t> getEchoData()
+    std::pair<uint8_t*, uint16_t> getEchoData() const
     {
-        return std::make_pair(&data_[32], getNumberOfDataBytes());
-    }
-
-    void toString()
-    {
-        std::cout << "Mode: " << (getMode() == Mode::IUX ? "IUX" : "IVX") << std::endl;
-        std::cout << "SerialStatus: "
-                  << std::bitset<8>(static_cast<std::underlying_type<SerialStatus>::type>(getSerialStatus()))
-                  << std::endl;
-        std::cout << "PacketNumber: " << std::to_string(getPacketNumber()) << std::endl;
-        std::cout << "Internal sensor status: " << std::bitset<8>(getInternalSensorStatus()) << std::endl;
+        return std::make_pair(&data_[SRDP_ECHO_DATA_OFFSET], getNumberOfDataBytes());
     }
 
     virtual ~SonarReturnDataPacket()
@@ -182,20 +198,16 @@ class SonarReturnDataPacket : public SensorMessage
 
 } /* namespace Delta100 */
 
-constexpr Controller::DeltaT100::SerialStatus operator&(Controller::DeltaT100::SerialStatus lhs,
-                                                        Controller::DeltaT100::SerialStatus rhs)
+constexpr Messages::SerialStatus operator&(Messages::SerialStatus lhs, Messages::SerialStatus rhs)
 {
-    using underlying = typename std::underlying_type<Controller::DeltaT100::SerialStatus>::type;
-    return static_cast<Controller::DeltaT100::SerialStatus>(static_cast<underlying>(lhs) &
-                                                            static_cast<underlying>(rhs));
+    using underlying = typename std::underlying_type<Messages::SerialStatus>::type;
+    return static_cast<Messages::SerialStatus>(static_cast<underlying>(lhs) & static_cast<underlying>(rhs));
 }
 
-constexpr Controller::DeltaT100::SerialStatus operator|(Controller::DeltaT100::SerialStatus lhs,
-                                                        Controller::DeltaT100::SerialStatus rhs)
+constexpr Messages::SerialStatus operator|(Messages::SerialStatus lhs, Messages::SerialStatus rhs)
 {
-    using underlying = typename std::underlying_type<Controller::DeltaT100::SerialStatus>::type;
-    return static_cast<Controller::DeltaT100::SerialStatus>(static_cast<underlying>(lhs) |
-                                                            static_cast<underlying>(rhs));
+    using underlying = typename std::underlying_type<Messages::SerialStatus>::type;
+    return static_cast<Messages::SerialStatus>(static_cast<underlying>(lhs) | static_cast<underlying>(rhs));
 }
 
 #endif /* SRC_SONARRETURNDATAPACKET_HPP_ */

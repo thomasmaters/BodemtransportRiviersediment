@@ -6,7 +6,7 @@
  *		Email : thomasmaters@hotmail.com (TG.Maters@student.han.nl)
  */
 
-#include "DeltaT100Controller.hpp"
+#include "../../Controller/DeltaT100/DeltaT100Controller.hpp"
 
 #include "IOHandler.hpp"
 #include "SonarReturnData.hpp"

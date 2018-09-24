@@ -13,6 +13,7 @@
 #include "SensorMessage.hpp"
 
 #include <cstring>
+#include <cassert>
 
 #define BT_HEADER_SIZE 16
 #define BT_MESSAGE_SIZE 2048
@@ -164,7 +165,9 @@ class BottomTransportMessage : public SensorMessage
     template <typename T>
     T getDataAtIndex(std::size_t index) const
     {
-    	static_assert(index + sizeof(T) <= BT_MESSAGE_END, "Trying to get data outside of the message buffer.");
+    	//Trying to get data outside of the message buffer.
+    	assert(index + sizeof(T) <= BT_MESSAGE_END);
+
         T result;
         std::memcpy(&result, &(data_[index]), sizeof(T));
         return result;
@@ -178,7 +181,9 @@ class BottomTransportMessage : public SensorMessage
     template <typename T>
     void setDataToIndex(std::size_t index, T value)
     {
-    	static_assert(index + sizeof(T) <= BT_MESSAGE_END, "Trying to set data outside of the message buffer.");
+    	//Trying to set data outside of the message buffer.
+    	assert(index + sizeof(T) <= BT_MESSAGE_END);
+
         memcpy(&(data_[index]), &value, sizeof(T));
     }
 };

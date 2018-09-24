@@ -24,7 +24,10 @@ boost::asio::io_service& IOHandler::getIOService()
 
 void IOHandler::startIOService()
 {
-	io_thread_ = std::thread([this]() { io_service_.run(); });
+	if(!io_thread_.joinable())
+	{
+		io_thread_ = std::thread([this]() { io_service_.run(); });
+	}
 }
 
 void IOHandler::startIOServiceBlocking()

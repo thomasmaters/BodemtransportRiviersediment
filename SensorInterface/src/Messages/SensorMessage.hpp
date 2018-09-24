@@ -13,6 +13,8 @@
 #include <chrono>
 #include <cstdint>
 
+namespace Messages
+{
 /**
  * Base class that can be converted to every protocol derived from it.
  */
@@ -87,16 +89,28 @@ class SensorMessage
         return *this;
     }
 
+    /**
+     * Get pointer to message buffer.
+     * @return
+     */
     uint8_t* getData() const
     {
         return data_;
     }
 
+    /**
+     * Get the size of the message buffer.
+     * @return
+     */
     std::size_t getDataLength() const
     {
         return size_;
     }
 
+    /**
+     * Gets the time this sensormessage was received.
+     * @return
+     */
     std::chrono::milliseconds::rep getTime() const
     {
         return time_;
@@ -107,11 +121,11 @@ class SensorMessage
         delete[] data_;
     }
 
-  private:
   protected:
     std::size_t size_;
     uint8_t* data_;
     std::chrono::milliseconds::rep time_;
 };
+} //Namespace Messages
 
 #endif /* SRC_SENSORMESSAGE_HPP_ */

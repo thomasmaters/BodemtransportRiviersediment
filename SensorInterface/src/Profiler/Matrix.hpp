@@ -13,7 +13,7 @@
 #include <cmath>
 #include <cstdint>
 #include <initializer_list>
-#include <iostream>
+#include <fstream>
 
 template <std::size_t H /* amount of rows */, std::size_t W /* amount of columns */, typename T>
 class Matrix

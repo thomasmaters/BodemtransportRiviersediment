@@ -10,60 +10,17 @@
 #define SRC_TCPCONNECTION_HPP_
 
 #include "ConnectionInterface.hpp"
+#include "TCPSession.hpp"
 
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
 
-#define TCP_BUFFER_SIZE 4096
-
 using boost::asio::ip::tcp;
 namespace Communication::TCP
 {
-class TCPSession : public std::enable_shared_from_this<TCPSession>
-{
-  public:
-    TCPSession(boost::asio::io_service& io_service, bool keep_alive = false);
-
-    inline bool isOpen()
-    {
-        return socket_.is_open();
-    }
-
-    inline boost::asio::ip::tcp::socket& getSocket()
-    {
-        return socket_;
-    }
-
-    void handleIncommingConnection(std::shared_ptr<RequestHandler> request_handler);
-
-    template <typename Type>
-    void handleOutgoingConnection(const boost::asio::mutable_buffer& message,
-                                  Type response_indentifier,
-                                  bool has_response_head_and_body,
-                                  std::shared_ptr<ResponseHandler> response_handler);
-
-    template <typename Type>
-    void handleResponse(Type response_indentifier,
-                        bool has_response_head_and_body,
-                        const boost::system::error_code& error,
-                        std::size_t bytes_transferd,
-                        std::shared_ptr<ResponseHandler> response_handler);
-
-    void handleReceivedResponse(bool has_response_head_and_body,
-                                const boost::system::error_code& error,
-                                std::size_t bytes_transferd,
-                                std::shared_ptr<ResponseHandler> response_handler);
-
-    void handleRequest(const boost::system::error_code& error,
-                       std::size_t bytes_transferd,
-                       std::shared_ptr<RequestHandler> request_handler);
-
-  private:
-    boost::asio::ip::tcp::socket socket_;
-    std::array<uint8_t, TCP_BUFFER_SIZE> data_;
-    bool keep_alive_;
-};
-
+/**
+ * Class handles sending and starting receiving TCP connections.
+ */
 class TCPServerClient : public ConnectionInterface, public std::enable_shared_from_this<TCPServerClient>
 {
   public:
@@ -72,24 +29,62 @@ class TCPServerClient : public ConnectionInterface, public std::enable_shared_fr
                     const std::string& remote_port,
                     const std::string& local_port);
 
+    /**
+     * Sends a message.
+     * @param message To send.
+     * @param response_size Size of bytes to read into response.
+     * @param has_response_head_and_body Read in 2 parts.
+     */
     void sendRequest(const SensorMessage& message, std::size_t response_size, bool has_response_head_and_body = false);
 
+    /**
+     * Sends a message.
+     * @param message To send.
+     * @param delimiter Read till delimeter found.
+     * @param has_response_head_and_body Read in 2 parts.
+     */
     void sendRequest(const SensorMessage& message, char delimiter, bool has_response_head_and_body = false);
 
+    /**
+     * Sends a message from a string.
+     * @param message To send.
+     * @param response_size Size of bytes to read.
+     */
     void sendRequest(std::string& message, std::size_t response_size);
 
     virtual ~TCPServerClient();
 
   private:
-    void start_accept();
+    /**
+     * Starts listening on a port.
+     */
+    void startAccept();
 
-    void handle_accept(std::shared_ptr<TCPSession> new_connection, const boost::system::error_code& error);
+    /**
+     * Handles when a new incoming connection has been made.
+     * @param new_connection Session.
+     * @param error Erros while connecting.
+     */
+    void handleAccept(std::shared_ptr<TCPSession> new_connection, const boost::system::error_code& error);
 
+    /**
+     * Sends a message buffer.
+     * @param message_buffer
+     * @param response_indentifier
+     * @param has_response_head_and_body
+     */
     template <typename Type>
     void sendMessage(const boost::asio::mutable_buffer& message_buffer,
                      Type response_indentifier,
                      bool has_response_head_and_body);
 
+    /**
+     * Handles sending an outgoing message on an active session.
+     * @param message_buffer To send.
+     * @param response_indentifier Response size of delimiter.
+     * @param has_response_head_and_body Read in 2 parts.
+     * @param error Erros while connecting.
+     */
     template <typename Type>
     void handleConnect(const boost::asio::mutable_buffer& message_buffer,
                        Type response_indentifier,

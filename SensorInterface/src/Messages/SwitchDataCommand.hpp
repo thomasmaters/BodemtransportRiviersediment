@@ -139,13 +139,13 @@ class SwitchDataCommand : public SensorMessage
     {
         data_[SDC_HEADER_BYTE_1_OFFSET] = SDC_HEADER_BYTE_1;
         data_[SDC_HEADER_BYTE_2_OFFSET] = SDC_HEADER_BYTE_2;
-        data_[SDC_HEAD_ID_OFFSET] = SDC_HEAD_ID;
+        data_[SDC_HEAD_ID_OFFSET]       = SDC_HEAD_ID;
         setRange(Range::M5);
         setNadirOffsetAngle(0);
         setStartGain(30);  // Gain
         data_[SDC_INTERNAL_USE_9_OFFSET] = SDC_INTERNAL_USE_9;
-        setAbsorption(20);     // Absorption
-        setAgcThreshold(120);  // AgcThreshold
+        setAbsorption(20);                // Absorption
+        setAgcThreshold(120);             // AgcThreshold
         setPacketNumberRequest(0);        // PacketNumberRequest
         setPulseLength(PulseLength::M5);  // PulseLength
         enableExternalTriggerControl(false);
@@ -155,7 +155,7 @@ class SwitchDataCommand : public SensorMessage
         setDataBits(DataBits::BITS8);      // DataBits
         setPrhCommand(PrhCommand::NOPRH);  // PrhCommand
         setRunMode(RunMode::DISABLEALL);   // RunMode
-        setFrequency(Frequency::KHZ675);  // Frequency
+        setFrequency(Frequency::KHZ675);   // Frequency
         data_[SDC_TER_BYTE_OFFSET] = SDC_TERMINATION_BYTE;
     }
 
@@ -176,7 +176,7 @@ class SwitchDataCommand : public SensorMessage
             offsetAngle |= 0x8000;
         }
         data_[SDC_NADIR_ANGLE_HIGH] = (offsetAngle & 0xFF00) >> 8;
-        data_[SDC_NADIR_ANGLE_LOW] = offsetAngle & 0x00FF;
+        data_[SDC_NADIR_ANGLE_LOW]  = offsetAngle & 0x00FF;
     }
 
     void setStartGain(uint8_t value)
@@ -204,14 +204,16 @@ class SwitchDataCommand : public SensorMessage
 
     void setPacketNumberRequest(uint8_t value)
     {
-        if (static_cast<std::underlying_type<Mode>::type>(getMode()) == static_cast<std::underlying_type<Mode>::type>(Mode::IUX))  // IUX mode
+        if (static_cast<std::underlying_type<Mode>::type>(getMode()) ==
+            static_cast<std::underlying_type<Mode>::type>(Mode::IUX))  // IUX mode
         {
             if (value < static_cast<std::underlying_type<Mode>::type>(Mode::IUX))
             {
                 data_[SDC_PACKET_NR_REQEUST_OFFSET] = value;
             }
         }
-        else if (static_cast<std::underlying_type<Mode>::type>(getMode()) == static_cast<std::underlying_type<Mode>::type>(Mode::IVX))
+        else if (static_cast<std::underlying_type<Mode>::type>(getMode()) ==
+                 static_cast<std::underlying_type<Mode>::type>(Mode::IVX))
         {
             if (value <= static_cast<std::underlying_type<Mode>::type>(Mode::IVX))
             {
@@ -252,7 +254,7 @@ class SwitchDataCommand : public SensorMessage
         }
 
         data_[SDC_EX_TRIGGER_DELAY_HIGH] = (value >> 8) & 0xff;
-        data_[SDC_EX_TRIGGER_DELAY_LOW] = value & 0xff;
+        data_[SDC_EX_TRIGGER_DELAY_LOW]  = value & 0xff;
     }
 
     void setDataPoints(const Mode& value)
@@ -266,7 +268,7 @@ class SwitchDataCommand : public SensorMessage
      */
     Mode getMode() const
     {
-    	return static_cast<Mode>(data_[SDC_DATA_POINTS_OFFSET]);
+        return static_cast<Mode>(data_[SDC_DATA_POINTS_OFFSET]);
     }
 
     void setDataBits(uint8_t value = static_cast<std::underlying_type<Mode>::type>(DataBits::BITS8))
@@ -289,14 +291,14 @@ class SwitchDataCommand : public SensorMessage
         data_[SDC_RUN_MODE_OFFSET] = static_cast<std::underlying_type<Mode>::type>(value);
     }
 
-	/**
-	 * Sets the switch delay from a uint16_t.
-	 * @param value
-	 */
+    /**
+     * Sets the switch delay from a uint16_t.
+     * @param value
+     */
     void setSwitchDelay(uint16_t value)
     {
-        uint8_t aValue = value / 2;
-        data_[SDC_SWITCH_DELAY_OFFSET]      = aValue;
+        uint8_t aValue                 = value / 2;
+        data_[SDC_SWITCH_DELAY_OFFSET] = aValue;
     }
 
     /**

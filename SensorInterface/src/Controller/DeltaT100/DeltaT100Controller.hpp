@@ -10,12 +10,12 @@
 #define SRC_DELTAT100CONTROLLER_HPP_
 
 #include "../../Communication/ConnectionInterface.hpp"
-#include "../../DataBuffer.hpp"
-#include "../../Profiler/DepthProfiler.hpp"
-#include "../../Messages/ProfilePointOutput.hpp"
-#include "../../Messages/SwitchDataCommand.hpp"
 #include "../../Communication/TCP/TCPConnection.hpp"
 #include "../../Communication/UDP/UDPConnection.hpp"
+#include "../../DataBuffer.hpp"
+#include "../../Messages/ProfilePointOutput.hpp"
+#include "../../Messages/SwitchDataCommand.hpp"
+#include "../../Profiler/DepthProfiler.hpp"
 
 #define DELTAT100_BEAM_COUNT 480
 #define DELTAT100_BUF_SIZE 2048

@@ -13,17 +13,16 @@
 
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/placeholders.hpp>
 #include <boost/asio/read.hpp>
 #include <boost/asio/read_until.hpp>
 #include <boost/asio/streambuf.hpp>
 #include <boost/asio/write.hpp>
-#include <boost/asio/placeholders.hpp>
 #include <boost/bind.hpp>
 
 #ifdef ENABLE_IO_DEBUG
 #include <iostream>
 #endif
-
 
 #define TCP_BUFFER_SIZE 4096
 
@@ -87,10 +86,10 @@ class TCPSession : public std::enable_shared_from_this<TCPSession>
      */
     template <typename Type>
     void handleResponse(Type response_indentifier,
-                                    bool has_response_head_and_body,
-                                    const boost::system::error_code& error,
-                                    std::size_t bytes_transferd,
-                                    std::shared_ptr<ResponseHandler> response_handler);
+                        bool has_response_head_and_body,
+                        const boost::system::error_code& error,
+                        std::size_t bytes_transferd,
+                        std::shared_ptr<ResponseHandler> response_handler);
 
     /**
      * Handles when a response has been read.
@@ -122,7 +121,5 @@ class TCPSession : public std::enable_shared_from_this<TCPSession>
 }
 
 #include "TCPSession.inc"
-
-
 
 #endif /* SRC_COMMUNICATION_TCP_TCPSESSION_HPP_ */

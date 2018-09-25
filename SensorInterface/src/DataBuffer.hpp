@@ -75,7 +75,6 @@ class DataBuffer
         }
         catch (std::exception& e)
         {
-
         }
 
         return store;

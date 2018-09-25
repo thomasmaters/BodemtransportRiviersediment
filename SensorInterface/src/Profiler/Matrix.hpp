@@ -12,8 +12,8 @@
 #include <cassert>
 #include <cmath>
 #include <cstdint>
-#include <initializer_list>
 #include <fstream>
+#include <initializer_list>
 
 template <std::size_t H /* amount of rows */, std::size_t W /* amount of columns */, typename T>
 class Matrix

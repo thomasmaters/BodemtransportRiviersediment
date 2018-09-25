@@ -9,7 +9,7 @@
 #ifndef SRC_CONNECTIONINTERFACE_HPP_
 #define SRC_CONNECTIONINTERFACE_HPP_
 
-#define ENABLE_IO_DEBUG 0
+//#define ENABLE_IO_DEBUG 0
 
 #include "../Messages/SensorMessage.hpp"
 #include "RequestResponseHandler.hpp"
@@ -18,7 +18,7 @@
 
 namespace Communication
 {
-	using namespace Messages;
+using namespace Messages;
 
 /**
  * Interface for communicating over different protocols.

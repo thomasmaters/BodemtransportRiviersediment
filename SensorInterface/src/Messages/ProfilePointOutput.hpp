@@ -94,7 +94,7 @@ class ProfilePointOutput : public SensorMessage
 
     ProfilePointOutput& operator+=(const ProfilePointOutput& rhs)
     {
-        uint16_t amount_of_beams          = getNumberOfBeams();
+        uint16_t amount_of_beams = getNumberOfBeams();
 #if PPO_DEBUG > 0
         std::size_t amount_zero           = 0;
         std::size_t amount_other_not_zero = 0;
@@ -110,7 +110,7 @@ class ProfilePointOutput : public SensorMessage
             if (rhs.getBeamRangeRaw(i) != 0)
             {
                 data_[PPO_PROFILE_RANGE_START_HIGH + i * 2] = rhs.getData()[PPO_PROFILE_RANGE_START_HIGH + i * 2];
-                data_[PPO_PROFILE_RANGE_START_LOW + i * 2] = rhs.getData()[PPO_PROFILE_RANGE_START_LOW + i * 2];
+                data_[PPO_PROFILE_RANGE_START_LOW + i * 2]  = rhs.getData()[PPO_PROFILE_RANGE_START_LOW + i * 2];
 #if PPO_DEBUG > 0
                 amount_other_not_zero++;
 #endif
@@ -166,7 +166,8 @@ class ProfilePointOutput : public SensorMessage
     {
         if ((data_[PPO_SOUND_VELOCITY_LOW] & 0x80) == 0)
             return PPO_SOUND_VELOCITY;
-        return static_cast<uint16_t>(((data_[PPO_SOUND_VELOCITY_LOW] & 0x7F) << 8) | data_[PPO_SOUND_VELOCITY_HIGHT]) / 10;
+        return static_cast<uint16_t>(((data_[PPO_SOUND_VELOCITY_LOW] & 0x7F) << 8) | data_[PPO_SOUND_VELOCITY_HIGHT]) /
+               10;
     }
 
     uint16_t getRangeResolution() const
@@ -181,8 +182,8 @@ class ProfilePointOutput : public SensorMessage
 
     uint32_t getPingNumber() const
     {
-        return static_cast<uint32_t>((data_[PPO_PING_NUMBER_0] << 24) | (data_[PPO_PING_NUMBER_1] << 16) | (data_[PPO_PING_NUMBER_2] << 8) |
-               data_[PPO_PING_NUMBER_3]);
+        return static_cast<uint32_t>((data_[PPO_PING_NUMBER_0] << 24) | (data_[PPO_PING_NUMBER_1] << 16) |
+                                     (data_[PPO_PING_NUMBER_2] << 8) | data_[PPO_PING_NUMBER_3]);
     }
 
     bool hasIntensity() const
@@ -207,7 +208,7 @@ class ProfilePointOutput : public SensorMessage
      */
     float getBeamRange(uint16_t beam) const
     {
-    	assert(beam >= PPO_MAX_BEAMS);
+        assert(beam >= PPO_MAX_BEAMS);
 
         return getBeamRangeRaw(beam);
     }
@@ -219,7 +220,7 @@ class ProfilePointOutput : public SensorMessage
      */
     float getCorrectedBeamRange(uint16_t beam) const
     {
-    	assert(beam >= PPO_MAX_BEAMS);
+        assert(beam >= PPO_MAX_BEAMS);
 
         return getCorrectedBeamRangeRaw(beam);
     }
@@ -270,7 +271,8 @@ class ProfilePointOutput : public SensorMessage
      */
     float getBeamRangeRaw(uint16_t beam) const
     {
-        return static_cast<uint16_t>((data_[PPO_PROFILE_RANGE_START_HIGH + beam * 2] << 8) | data_[PPO_PROFILE_RANGE_START_LOW + beam * 2]) *
+        return static_cast<uint16_t>((data_[PPO_PROFILE_RANGE_START_HIGH + beam * 2] << 8) |
+                                     data_[PPO_PROFILE_RANGE_START_LOW + beam * 2]) *
                getRangeResolution() / 1000;
     }
 

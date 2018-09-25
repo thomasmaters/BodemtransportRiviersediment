@@ -13,7 +13,7 @@
 
 namespace Communication
 {
-	using namespace Messages;
+using namespace Messages;
 
 /**
  * Class that enables the derived class of receiving requests.
@@ -83,7 +83,6 @@ class ResponseHandler
 class RequestResponseHandler : public RequestHandler, public ResponseHandler
 {
 };
-}// Namespace Communication
-
+}  // Namespace Communication
 
 #endif /* SRC_COMMUNICATION_REQUESTRESPONSEHANDLER_HPP_ */

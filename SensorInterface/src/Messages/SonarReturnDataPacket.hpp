@@ -16,7 +16,7 @@
 #define SRDP_CONVERT_FACTOR 360 / 65536
 #define SRDP_PACKET_SIZE 1033
 
-//Offsets
+// Offsets
 #define SRDP_MODE_OFFSET 1
 #define SRDP_SERIAL_STATUS_OFFSET 4
 #define SRDP_PACKET_NR_OFFSET 5
@@ -133,7 +133,8 @@ class SonarReturnDataPacket : public SensorMessage
         }
         else
         {
-            return (static_cast<float>((data_[SRDP_PITCH_HIGH] << 8) | data_[SRDP_PITCH_LOW]) - 65536) * SRDP_CONVERT_FACTOR;
+            return (static_cast<float>((data_[SRDP_PITCH_HIGH] << 8) | data_[SRDP_PITCH_LOW]) - 65536) *
+                   SRDP_CONVERT_FACTOR;
         }
     }
 
@@ -145,7 +146,8 @@ class SonarReturnDataPacket : public SensorMessage
         }
         else
         {
-            return (static_cast<float>((data_[SRDP_ROLL_HIGH] << 8) | data_[SRDP_ROLL_LOW]) - 65536) * SRDP_CONVERT_FACTOR;
+            return (static_cast<float>((data_[SRDP_ROLL_HIGH] << 8) | data_[SRDP_ROLL_LOW]) - 65536) *
+                   SRDP_CONVERT_FACTOR;
         }
     }
 
@@ -157,7 +159,8 @@ class SonarReturnDataPacket : public SensorMessage
         }
         else
         {
-            return (static_cast<float>((data_[SRDP_HEADING_HIGH] << 8) | data_[SRDP_HEADING_LOW]) - 65536) * SRDP_CONVERT_FACTOR;
+            return (static_cast<float>((data_[SRDP_HEADING_HIGH] << 8) | data_[SRDP_HEADING_LOW]) - 65536) *
+                   SRDP_CONVERT_FACTOR;
         }
     }
 

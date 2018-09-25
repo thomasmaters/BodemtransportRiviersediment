@@ -16,7 +16,6 @@ TCPSession::TCPSession(boost::asio::io_service& io_service, bool keep_alive)
 
 TCPSession::~TCPSession()
 {
-
 }
 
 void TCPSession::handleIncommingConnection(std::shared_ptr<RequestHandler> request_handler)
@@ -63,27 +62,27 @@ void TCPSession::handleRequest(const boost::system::error_code& error,
     {
         if (request_handler.use_count() > 0)
         {
-            SensorMessage response = request_handler->handleRequest(data_.data(), bytes_transferd, ConnectionInterface::getCurrentTime());
+            SensorMessage response =
+                request_handler->handleRequest(data_.data(), bytes_transferd, ConnectionInterface::getCurrentTime());
 
-            if(response.getDataLength() > 0)
+            if (response.getDataLength() > 0)
             {
-            	boost::asio::async_write(
-            	            getSocket(),
-            	            boost::asio::buffer(response.getData(), response.getDataLength()),
-            	            [&]([[maybe_unused]] const boost::system::error_code& error, std::size_t bytes_written) {
+                boost::asio::async_write(
+                    getSocket(),
+                    boost::asio::buffer(response.getData(), response.getDataLength()),
+                    [&]([[maybe_unused]] const boost::system::error_code& error, std::size_t bytes_written) {
 #ifdef ENABLE_IO_DEBUG
-	std::cout << "TCPSession -> WRITTEN RESPONSE( " << bytes_written << ")" << std::endl;
+                        std::cout << "TCPSession -> WRITTEN RESPONSE( " << bytes_written << ")" << std::endl;
 #endif
-            	            });
+                    });
             }
             else
             {
 #ifdef ENABLE_IO_DEBUG
-	std::cout << "TCPSession -> Response to request is empty, closing connection" << std::endl;
+                std::cout << "TCPSession -> Response to request is empty, closing connection" << std::endl;
 #endif
             }
         }
-
     }
     else
     {
@@ -93,5 +92,3 @@ void TCPSession::handleRequest(const boost::system::error_code& error,
     }
 }
 }
-
-

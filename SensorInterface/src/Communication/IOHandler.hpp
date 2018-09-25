@@ -18,14 +18,14 @@ namespace Communication
 class IOHandler
 {
   public:
-	/**
-	 * Get reference to instance.
-	 * @return
-	 */
+    /**
+     * Get reference to instance.
+     * @return
+     */
     static IOHandler& getInstance()
     {
-    	static IOHandler instance;
-    	return instance;
+        static IOHandler instance;
+        return instance;
     }
 
     /**
@@ -59,6 +59,6 @@ class IOHandler
     boost::asio::io_service io_service_;
     std::thread io_thread_;
 };
-}//Namespace Communication
+}  // Namespace Communication
 
 #endif /* SRC_IOHANDLER_HPP_ */

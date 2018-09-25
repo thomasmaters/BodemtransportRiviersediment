@@ -13,7 +13,7 @@
 #include "SensorMessage.hpp"
 #include "SonarReturnDataPacket.hpp"
 
-//Values
+// Values
 #define IUX_PACKET_SIZE 8192
 #define IUX_DATA_SIZE 8013
 #define IVX_PACKET_SIZE 16384
@@ -27,7 +27,7 @@
 #define SRD_DISPLAY_GAIN 87
 #define SRD_REP_RATE 76
 
-//Offsets
+// Offsets
 #define SRD_837_HEADER_OFFSET 0
 #define SRD_DATA_BYTES_OFFSET 3
 #define SRD_TOTAL_BYTES_HIGH 4
@@ -55,7 +55,7 @@ namespace Messages
  */
 class SonarReturnData : public SensorMessage
 {
-	static constexpr std::size_t command_length_ = SonarReturnDataPacket::command_length_ * SRD_MAX_PACKETS;
+    static constexpr std::size_t command_length_ = SonarReturnDataPacket::command_length_ * SRD_MAX_PACKETS;
 
   public:
     SonarReturnData() : SensorMessage(command_length_)
@@ -64,7 +64,6 @@ class SonarReturnData : public SensorMessage
 
     virtual ~SonarReturnData()
     {
-
     }
 
     explicit SonarReturnData(std::unique_ptr<DataBuffer<>>& buffer)
@@ -72,7 +71,7 @@ class SonarReturnData : public SensorMessage
     {
         for (std::size_t i = 0; i < buffer->size(); ++i)
         {
-            SensorMessage message = buffer->asMessage(i);
+            SensorMessage message        = buffer->asMessage(i);
             SonarReturnDataPacket packet = reinterpret_cast<SonarReturnDataPacket&>(message);
 
             addPacket(packet);
@@ -109,20 +108,20 @@ class SonarReturnData : public SensorMessage
 
         if (packet.getMode() == Messages::Mode::IUX)
         {
-            data_[SRD_DATA_BYTES_OFFSET]    = SRD_DATA_BYTES_IUX;  // Mode
+            data_[SRD_DATA_BYTES_OFFSET]   = SRD_DATA_BYTES_IUX;  // Mode
             data_[SRD_TOTAL_BYTES_HIGH]    = (IUX_PACKET_SIZE >> 8) & 0xFF;
-            data_[SRD_TOTAL_BYTES_LOW]    = (IUX_PACKET_SIZE & 0xFF);
-            data_[SRD_TO_READ_BYTES_HIGH]    = (IUX_DATA_SIZE >> 8) & 0xFF;
-            data_[SRD_TO_READ_BYTES_LOW]    = (IUX_DATA_SIZE & 0xFF);
+            data_[SRD_TOTAL_BYTES_LOW]     = (IUX_PACKET_SIZE & 0xFF);
+            data_[SRD_TO_READ_BYTES_HIGH]  = (IUX_DATA_SIZE >> 8) & 0xFF;
+            data_[SRD_TO_READ_BYTES_LOW]   = (IUX_DATA_SIZE & 0xFF);
             data_[SRD_TER_BYTE_IUX_OFFSET] = SRD_TERMINATION_BYTE;
         }
         else
         {
-            data_[SRD_DATA_BYTES_OFFSET]     = SRD_DATA_BYTES_IVX;  // Mode
-            data_[SRD_TOTAL_BYTES_HIGH]     = (IVX_PACKET_SIZE >> 8) & 0xFF;
+            data_[SRD_DATA_BYTES_OFFSET]   = SRD_DATA_BYTES_IVX;  // Mode
+            data_[SRD_TOTAL_BYTES_HIGH]    = (IVX_PACKET_SIZE >> 8) & 0xFF;
             data_[SRD_TOTAL_BYTES_LOW]     = (IVX_PACKET_SIZE & 0xFF);
-            data_[SRD_TO_READ_BYTES_HIGH]     = (IVX_DATA_SIZE >> 8) & 0xFF;
-            data_[SRD_TO_READ_BYTES_LOW]     = (IVX_DATA_SIZE & 0xFF);
+            data_[SRD_TO_READ_BYTES_HIGH]  = (IVX_DATA_SIZE >> 8) & 0xFF;
+            data_[SRD_TO_READ_BYTES_LOW]   = (IVX_DATA_SIZE & 0xFF);
             data_[SRD_TER_BYTE_IVX_OFFSET] = SRD_TERMINATION_BYTE;
         }
 
@@ -130,12 +129,13 @@ class SonarReturnData : public SensorMessage
         std::memcpy(&data_[SRD_SHIP_LATITUDE_OFFSET], " dd.mm.xxxxx N", 14);
         std::memcpy(&data_[SRD_SHIP_LONGITUDE_OFFSET], "ddd.mm.xxxxx E", 14);
         data_[SRD_OP_FREQUENTY_HIGH] = (SRD_OP_FREQUENTY >> 8) & 0xFF;  // Operating frequency
-        data_[SRD_OP_FREQUENTY_LOW] = (SRD_OP_FREQUENTY & 0xFF);       // Operating frequency
-        data_[SRD_REP_RATE_HIGH] = (SRD_REP_RATE >> 8) & 0xFF;                  // Repetition rate (This one is important for file playback)
-        data_[SRD_REP_RATE_LOW] = (SRD_REP_RATE & 0xFF);                 // Repetition rate (This one is important for file playback)
-        data_[SRD_DISPLAY_GAIN_OFFSET] = SRD_DISPLAY_GAIN;                 // Display gain
+        data_[SRD_OP_FREQUENTY_LOW]  = (SRD_OP_FREQUENTY & 0xFF);       // Operating frequency
+        data_[SRD_REP_RATE_HIGH] =
+            (SRD_REP_RATE >> 8) & 0xFF;                     // Repetition rate (This one is important for file playback)
+        data_[SRD_REP_RATE_LOW] = (SRD_REP_RATE & 0xFF);    // Repetition rate (This one is important for file playback)
+        data_[SRD_DISPLAY_GAIN_OFFSET] = SRD_DISPLAY_GAIN;  // Display gain
     }
 };
-} //Namespace Messages
+}  // Namespace Messages
 
 #endif /* SRC_SONARRETURNDATA_HPP_ */

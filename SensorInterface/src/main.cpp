@@ -6,8 +6,8 @@
  *		Email : thomasmaters@hotmail.com (TG.Maters@student.han.nl)
  */
 
-#include "Controller/DeltaT100/DeltaT100Controller.hpp"
 #include "Communication/IOHandler.hpp"
+#include "Controller/DeltaT100/DeltaT100Controller.hpp"
 
 #include <iostream>
 

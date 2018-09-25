@@ -126,6 +126,6 @@ class SensorMessage
     uint8_t* data_;
     std::chrono::milliseconds::rep time_;
 };
-} //Namespace Messages
+}  // Namespace Messages
 
 #endif /* SRC_SENSORMESSAGE_HPP_ */

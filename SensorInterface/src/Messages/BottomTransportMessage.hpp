@@ -12,15 +12,15 @@
 #include "../Profiler/Dune.hpp"
 #include "SensorMessage.hpp"
 
-#include <cstring>
 #include <cassert>
+#include <cstring>
 
 #define BT_HEADER_SIZE 16
 #define BT_MESSAGE_SIZE 2048
 #define BT_MESSAGE_START 0
-#define BT_MESSAGE_START_VALUE 0xAA //170
+#define BT_MESSAGE_START_VALUE 0xAA  // 170
 #define BT_MESSAGE_END BT_MESSAGE_SIZE - 1
-#define BT_MESSAGE_END_VALUE 0xBB //187
+#define BT_MESSAGE_END_VALUE 0xBB  // 187
 
 #define BT_DUNE_AMOUNT_INDEX 1
 #define BT_AVG_TRANSPORT_INDEX 2
@@ -51,7 +51,7 @@ class BottomTransportMessage : public SensorMessage
     BottomTransportMessage() : SensorMessage(command_length_)
     {
         data_[BT_MESSAGE_START] = BT_MESSAGE_START_VALUE;
-        data_[BT_MESSAGE_END] 	= BT_MESSAGE_END_VALUE;
+        data_[BT_MESSAGE_END]   = BT_MESSAGE_END_VALUE;
     }
 
     explicit BottomTransportMessage(uint8_t* data) : SensorMessage(data, command_length_)
@@ -109,7 +109,7 @@ class BottomTransportMessage : public SensorMessage
      * Gets all the stored dunes as a vector of Matrix data.
      * @return All stored dune data.
      */
-    template<std::size_t H>
+    template <std::size_t H>
     std::vector<Matrix<H, 1, float>> getDunes() const
     {
         std::vector<Matrix<H, 1, float>> result;
@@ -148,10 +148,13 @@ class BottomTransportMessage : public SensorMessage
         {
             for (std::size_t j = 0; j < value.at(i).signature_.getHeight(); ++j)
             {
-                setDataToIndex<float>(BT_HEADER_SIZE + i * BT_DUNE_DATA_SIZE + j * sizeof(float), value.at(i).signature_.at(j, 0));
+                setDataToIndex<float>(BT_HEADER_SIZE + i * BT_DUNE_DATA_SIZE + j * sizeof(float),
+                                      value.at(i).signature_.at(j, 0));
             }
-            setDataToIndex<float>(BT_HEADER_SIZE + i * BT_DUNE_DATA_SIZE + BT_DUNE_DATA_TRANSPORT_OFFSET, value.at(i).transport_);
-            setDataToIndex<float>(BT_HEADER_SIZE + i * BT_DUNE_DATA_SIZE + BT_DUNE_DATA_XFROM_OFFSET, value.at(i).start_x_);
+            setDataToIndex<float>(BT_HEADER_SIZE + i * BT_DUNE_DATA_SIZE + BT_DUNE_DATA_TRANSPORT_OFFSET,
+                                  value.at(i).transport_);
+            setDataToIndex<float>(BT_HEADER_SIZE + i * BT_DUNE_DATA_SIZE + BT_DUNE_DATA_XFROM_OFFSET,
+                                  value.at(i).start_x_);
             setDataToIndex<float>(BT_HEADER_SIZE + i * BT_DUNE_DATA_SIZE + BT_DUNE_DATA_XTO_OFFSET, value.at(i).end_x_);
         }
     }
@@ -165,8 +168,8 @@ class BottomTransportMessage : public SensorMessage
     template <typename T>
     T getDataAtIndex(std::size_t index) const
     {
-    	//Trying to get data outside of the message buffer.
-    	assert(index + sizeof(T) <= BT_MESSAGE_END);
+        // Trying to get data outside of the message buffer.
+        assert(index + sizeof(T) <= BT_MESSAGE_END);
 
         T result;
         std::memcpy(&result, &(data_[index]), sizeof(T));
@@ -181,8 +184,8 @@ class BottomTransportMessage : public SensorMessage
     template <typename T>
     void setDataToIndex(std::size_t index, T value)
     {
-    	//Trying to set data outside of the message buffer.
-    	assert(index + sizeof(T) <= BT_MESSAGE_END);
+        // Trying to set data outside of the message buffer.
+        assert(index + sizeof(T) <= BT_MESSAGE_END);
 
         memcpy(&(data_[index]), &value, sizeof(T));
     }

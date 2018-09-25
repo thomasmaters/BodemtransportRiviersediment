@@ -13,20 +13,26 @@
 
 #include <cstdint>
 
+/**
+ * Base filter class.
+ */
 class Filter
 {
   public:
     template <std::size_t H, typename T>
-    void applyFilter(Matrix<H, 3, T>& matrix)
+    void applyFilter(Matrix<H, 3, T>& matrix) const
     {
     }
 };
 
+/**
+ * Filters Zero data and interpolates the approx values.
+ */
 class ZeroFilter : public Filter
 {
   public:
     template <std::size_t H, typename T>
-    static void applyFilter(Matrix<H, 3, T>& matrix)
+    static void applyFilter(Matrix<H, 3, T>& matrix) const
     {
         bool find_first                  = true;
         std::size_t index_first_not_zero = 0;
@@ -64,10 +70,13 @@ class ZeroFilter : public Filter
     }
 };
 
+/**
+ * Filters peaks that are diverging to much.
+ */
 class PeakFilter : public Filter
 {
     template <std::size_t H, typename T>
-    static void applyFilter(Matrix<H, 3, T>& matrix, float percentage)
+    static void applyFilter(Matrix<H, 3, T>& matrix, float percentage = 25) const
     {
         for (std::size_t i = 0; i < H - 1; ++i)
         {

@@ -39,9 +39,14 @@ class DataBuffer
         }
         return *this;
     }
+
+    /**
+     * Gets a free space of memory.
+     * @param size
+     * @return Pointer to the free memory.
+     */
     std::unique_ptr<uint8_t[]>& getFreeStorage(std::size_t size)
     {
-        //    	data_store_mutex_.lock();
         if (size < ChunckSize)
         {
             return getFromReservedStore(size);
@@ -51,70 +56,99 @@ class DataBuffer
             // Allocate custom size
             data_store_.emplace_back(
                 std::move(store_type(std::make_pair(std::unique_ptr<uint8_t[]>(new uint8_t[size]), size))));
-            //        	data_store_mutex_.unlock();
             return data_store_.back().first;
         }
     }
 
+    /**
+     * Moves some data of a length to a free space in memory.
+     * @param data
+     * @param size
+     * @return Pointer to the data.
+     */
     std::unique_ptr<uint8_t[]>& moveToBuffer(uint8_t* data, std::size_t size)
     {
-        //    	data_store_mutex_.lock();
         std::unique_ptr<uint8_t[]>& store = getFreeStorage(size);
         try
         {
             memmove(store.get(), data, size);
-            //            delete data;
         }
         catch (std::exception& e)
         {
+
         }
 
-        //    	data_store_mutex_.unlock();
         return store;
     }
 
+    /**
+     * Gets data at a index in the storage.
+     * @param index
+     * @return
+     */
     const store_type& get(std::size_t index) const
     {
         return data_store_.at(index);
     }
 
+    /**
+     * Gets the data at a index in the storage.
+     * @param index
+     * @return
+     */
     const std::unique_ptr<uint8_t*>& getData(std::size_t index) const
     {
         return data_store_.at(index).first;
     }
 
+    /**
+     * Erases data at a index.
+     * @param index
+     */
     void erase(std::size_t index)
     {
-        //    	data_store_mutex_.lock();
         data_store_.erase(data_store_.begin() + index);
-        //    	data_store_mutex_.unlock();
     }
 
+    /**
+     * Converts the data stored at an index into a SensorMessage.
+     * @param index
+     * @return
+     */
     Messages::SensorMessage asMessage(std::size_t index) const
     {
         return Messages::SensorMessage(&(data_store_.at(index).first.get()[0]), data_store_.at(index).second);
     }
 
+    /**
+     * Returns the size of the data entries stored.
+     * @return
+     */
     std::size_t size() const
     {
         return data_store_.size();
     }
 
+    /**
+     * Clears all the stored data.
+     */
     void clear()
     {
-        //    	data_store_mutex_.lock();
         data_store_.clear();
-        //    	data_store_mutex_.unlock();
     }
 
     virtual ~DataBuffer()
     {
         data_store_.clear();
         reserved_data_store_.clear();
-        // TODO: cleanup vector?
     }
 
   private:
+    /**
+     * Gets some preallocated storage.
+     * @param actual_size
+     * @return Pointer to storage.
+     */
     std::unique_ptr<uint8_t[]>& getFromReservedStore(std::size_t actual_size = ChunckSize)
     {
         if (reserved_data_store_.size() <= RESERVED_STORE_RESIZE_THRESHOLD)
@@ -129,6 +163,9 @@ class DataBuffer
         return data_store_.back().first;
     }
 
+    /**
+     * Preallocate data.
+     */
     void expendReservedStore()
     {
         while (reserved_data_store_.size() < RESERVED_STORE_RESIZE_TO_AMOUNT)
@@ -141,8 +178,6 @@ class DataBuffer
   private:
     std::vector<store_type> data_store_;
     std::vector<store_type> reserved_data_store_;
-
-    //    std::mutex data_store_mutex_;
 };
 
 #endif /* SRC_DATABUFFER_HPP_ */

@@ -12,10 +12,8 @@
 #include <fstream>
 #include <string>
 
-namespace Controller
-{
-/*
- *
+/**
+ * Convenience class for writing to files.
  */
 class FileHandler
 {
@@ -37,16 +35,28 @@ class FileHandler
     FileHandler(FileHandler const&) = delete;
     void operator=(FileHandler const&) = delete;
 
+    /**
+     * Creates a new file with a name and opens it.
+     * @param fileName
+     */
     void createNewFile(const std::string& fileName)
     {
         output_stream_.open(fileName, std::ios::trunc | std::ios::binary);
     }
 
+    /**
+     * Opens file in append mode.
+     * @param fileName
+     */
     void openFile(const std::string& fileName)
     {
         output_stream_.open(fileName, std::ios::app | std::ios::binary);
     }
 
+    /**
+     * Writes a string to a file.
+     * @param data
+     */
     void writeToFile(const std::string& data)
     {
         if (!output_stream_.is_open())
@@ -56,6 +66,10 @@ class FileHandler
         output_stream_ << data;
     }
 
+    /**
+     * Gets a reference to the filestream if opened.
+     * @return
+     */
     std::ofstream& getOutputStream()
     {
         if (!output_stream_.is_open())
@@ -68,7 +82,4 @@ class FileHandler
   private:
     std::ofstream output_stream_;
 };
-
-} /* namespace Controller */
-
 #endif /* SRC_FILEHANDLER_HPP_ */

@@ -15,7 +15,7 @@
 #define EPSILON 1e-14
 #define DEPTHPROFILER_DEBUG 1
 
-#include "DataBuffer.hpp"
+#include "../DataBuffer.hpp"
 #include "DepthProfilerProxy.hpp"
 #include "Dune.hpp"
 #include "Matrix.hpp"

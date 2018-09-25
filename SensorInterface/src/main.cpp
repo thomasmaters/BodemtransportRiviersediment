@@ -6,9 +6,8 @@
  *		Email : thomasmaters@hotmail.com (TG.Maters@student.han.nl)
  */
 
-#include "BottomTransportMessage.hpp"
-#include "DeltaT100Controller.hpp"
-#include "IOHandler.hpp"
+#include "Controller/DeltaT100/DeltaT100Controller.hpp"
+#include "Communication/IOHandler.hpp"
 
 #include <iostream>
 
@@ -28,10 +27,10 @@ int main(int argc, char* argv[])
             //            Controller::DeltaT100::DeltaT100Controller(arg1,arg2,arg3);
             Controller::DeltaT100::DeltaT100Controller* ptr =
                 new Controller::DeltaT100::DeltaT100Controller(arg1, arg2, arg3);
-            IOHandler::getInstance().startIOService();
+            Communication::IOHandler::getInstance().startIOService();
             int a;
             std::cin >> a;
-            IOHandler::getInstance().stopIOService();
+            Communication::IOHandler::getInstance().stopIOService();
             delete ptr;
         }
         else

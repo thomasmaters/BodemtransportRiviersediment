@@ -9,7 +9,7 @@
 #ifndef SRC_COMMUNICATION_REQUESTRESPONSEHANDLER_HPP_
 #define SRC_COMMUNICATION_REQUESTRESPONSEHANDLER_HPP_
 
-#include "SensorMessage.hpp"
+#include "../Messages/SensorMessage.hpp"
 
 namespace Communication
 {

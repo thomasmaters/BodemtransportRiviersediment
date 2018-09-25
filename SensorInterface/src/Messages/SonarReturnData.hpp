@@ -9,7 +9,7 @@
 #ifndef SRC_SONARRETURNDATA_HPP_
 #define SRC_SONARRETURNDATA_HPP_
 
-#include "DataBuffer.hpp"
+#include "../DataBuffer.hpp"
 #include "SensorMessage.hpp"
 #include "SonarReturnDataPacket.hpp"
 

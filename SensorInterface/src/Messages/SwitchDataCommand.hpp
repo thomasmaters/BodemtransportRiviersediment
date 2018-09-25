@@ -204,14 +204,14 @@ class SwitchDataCommand : public SensorMessage
 
     void setPacketNumberRequest(uint8_t value)
     {
-        if (getMode() == static_cast<std::underlying_type<Mode>::type>(Mode::IUX))  // IUX mode
+        if (static_cast<std::underlying_type<Mode>::type>(getMode()) == static_cast<std::underlying_type<Mode>::type>(Mode::IUX))  // IUX mode
         {
             if (value < static_cast<std::underlying_type<Mode>::type>(Mode::IUX))
             {
                 data_[SDC_PACKET_NR_REQEUST_OFFSET] = value;
             }
         }
-        else if (getMode() == static_cast<std::underlying_type<Mode>::type>(Mode::IVX))
+        else if (static_cast<std::underlying_type<Mode>::type>(getMode()) == static_cast<std::underlying_type<Mode>::type>(Mode::IVX))
         {
             if (value <= static_cast<std::underlying_type<Mode>::type>(Mode::IVX))
             {

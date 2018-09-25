@@ -11,7 +11,7 @@
 
 #define ENABLE_IO_DEBUG 0
 
-#include "SensorMessage.hpp"
+#include "../Messages/SensorMessage.hpp"
 #include "RequestResponseHandler.hpp"
 
 #include <memory>

@@ -9,7 +9,7 @@
 #ifndef SRC_PROFILEPOINTOUTPUT_HPP_
 #define SRC_PROFILEPOINTOUTPUT_HPP_
 
-#include "Matrix.hpp"
+#include "../Profiler/Matrix.hpp"
 #include "SensorMessage.hpp"
 
 #define PPO_DEBUG 0

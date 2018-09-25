@@ -9,7 +9,7 @@
 #ifndef SRC_BOTTOMTRANSPORTMESSAGE_HPP_
 #define SRC_BOTTOMTRANSPORTMESSAGE_HPP_
 
-#include "Dune.hpp"
+#include "../Profiler/Dune.hpp"
 #include "SensorMessage.hpp"
 
 #include <cstring>

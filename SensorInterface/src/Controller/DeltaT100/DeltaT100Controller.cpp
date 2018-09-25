@@ -8,9 +8,9 @@
 
 #include "../../Controller/DeltaT100/DeltaT100Controller.hpp"
 
-#include "IOHandler.hpp"
-#include "SonarReturnData.hpp"
-#include "SonarReturnDataPacket.hpp"
+#include "../../Communication/IOHandler.hpp"
+#include "../../Messages/SonarReturnData.hpp"
+#include "../../Messages/SonarReturnDataPacket.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -19,6 +19,7 @@
 
 namespace Controller::DeltaT100
 {
+	using namespace Communication;
 DeltaT100Controller::DeltaT100Controller(const std::string& host,
                                          const std::string& local_port,
                                          const std::string& remote_port)

@@ -9,7 +9,7 @@
 #ifndef SRC_DATABUFFER_HPP_
 #define SRC_DATABUFFER_HPP_
 
-#include "SensorMessage.hpp"
+#include "Messages/SensorMessage.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -90,9 +90,9 @@ class DataBuffer
         //    	data_store_mutex_.unlock();
     }
 
-    SensorMessage asMessage(std::size_t index) const
+    Messages::SensorMessage asMessage(std::size_t index) const
     {
-        return SensorMessage(&(data_store_.at(index).first.get()[0]), data_store_.at(index).second);
+        return Messages::SensorMessage(&(data_store_.at(index).first.get()[0]), data_store_.at(index).second);
     }
 
     std::size_t size() const

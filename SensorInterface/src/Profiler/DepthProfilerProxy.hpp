@@ -9,10 +9,10 @@
 #ifndef SRC_DEPTHPROFILERPROXY_HPP_
 #define SRC_DEPTHPROFILERPROXY_HPP_
 
-#include "BottomTransportMessage.hpp"
+#include "../Messages/BottomTransportMessage.hpp"
 #include "Dune.hpp"
-#include "IOHandler.hpp"
-#include "UDPConnection.hpp"
+#include "../Communication/IOHandler.hpp"
+#include "../Communication/UDP/UDPConnection.hpp"
 
 #include <thread>
 
@@ -20,7 +20,7 @@ class DepthProfilerProxy : public Communication::ResponseHandler,
                            public std::enable_shared_from_this<DepthProfilerProxy>
 {
   public:
-    DepthProfilerProxy() : outgoing_communication_(IOHandler::getInstance().getIOService(), "localhost", "2000", "2001")
+    DepthProfilerProxy() : outgoing_communication_(Communication::IOHandler::getInstance().getIOService(), "localhost", "2000", "2001")
     {
         outgoing_communication_.addResponseHandler(std::shared_ptr<ResponseHandler>(this));
     }
@@ -45,7 +45,7 @@ class DepthProfilerProxy : public Communication::ResponseHandler,
     template <std::size_t H, std::size_t W, typename T>
     void sendBottomProfile(BottomProfile<H, W, T>& profile)
     {
-        Controller::BottomTransportMessage message;
+        Messages::BottomTransportMessage message;
         message.setDunes(profile);
         message.setAverageTransport(profile.average_transport_);
         message.setTimeOfPing(profile.time_);

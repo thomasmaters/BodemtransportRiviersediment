@@ -9,19 +9,20 @@
 #ifndef SRC_DELTAT100CONTROLLER_HPP_
 #define SRC_DELTAT100CONTROLLER_HPP_
 
-#include "ConnectionInterface.hpp"
-#include "DataBuffer.hpp"
-#include "DepthProfiler.hpp"
-#include "ProfilePointOutput.hpp"
-#include "SwitchDataCommand.hpp"
-#include "TCPConnection.hpp"
-#include "UDPConnection.hpp"
+#include "../../Communication/ConnectionInterface.hpp"
+#include "../../DataBuffer.hpp"
+#include "../../Profiler/DepthProfiler.hpp"
+#include "../../Messages/ProfilePointOutput.hpp"
+#include "../../Messages/SwitchDataCommand.hpp"
+#include "../../Communication/TCP/TCPConnection.hpp"
+#include "../../Communication/UDP/UDPConnection.hpp"
 
 namespace Controller::DeltaT100
 {
 /*
  *
  */
+	using namespace Messages;
 class DeltaT100Controller : public Communication::RequestHandler, public Communication::ResponseHandler
 {
   public:

@@ -11,12 +11,6 @@
 namespace Communication
 {
 
-static IOHandler& IOHandler::getInstance()
-{
-	static IOHandler instance;
-	return instance;
-}
-
 boost::asio::io_service& IOHandler::getIOService()
 {
 	return io_service_;

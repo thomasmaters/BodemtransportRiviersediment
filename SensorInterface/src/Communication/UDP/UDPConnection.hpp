@@ -9,8 +9,8 @@
 #ifndef SRC_UDPCONNECTION_HPP_
 #define SRC_UDPCONNECTION_HPP_
 
-#include "ConnectionInterface.hpp"
-#include "SensorMessage.hpp"
+#include "../ConnectionInterface.hpp"
+#include "../../Messages/SensorMessage.hpp"
 
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/udp.hpp>

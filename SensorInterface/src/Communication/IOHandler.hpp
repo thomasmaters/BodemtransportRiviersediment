@@ -22,7 +22,11 @@ class IOHandler
 	 * Get reference to instance.
 	 * @return
 	 */
-    static IOHandler& getInstance();
+    static IOHandler& getInstance()
+    {
+    	static IOHandler instance;
+    	return instance;
+    }
 
     /**
      * Get a reference to the io_service.

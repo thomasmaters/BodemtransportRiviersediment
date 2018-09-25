@@ -9,7 +9,7 @@
 #ifndef SRC_TCPCONNECTION_HPP_
 #define SRC_TCPCONNECTION_HPP_
 
-#include "ConnectionInterface.hpp"
+#include "../ConnectionInterface.hpp"
 #include "TCPSession.hpp"
 
 #include <boost/asio/io_service.hpp>
@@ -83,7 +83,7 @@ class TCPServerClient : public ConnectionInterface, public std::enable_shared_fr
      * @param message_buffer To send.
      * @param response_indentifier Response size of delimiter.
      * @param has_response_head_and_body Read in 2 parts.
-     * @param error Erros while connecting.
+     * @param error Errors while connecting.
      */
     template <typename Type>
     void handleConnect(const boost::asio::mutable_buffer& message_buffer,

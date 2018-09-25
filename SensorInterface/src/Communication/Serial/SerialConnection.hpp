@@ -9,7 +9,7 @@
 #ifndef SRC_SERIALCONNECTION_HPP_
 #define SRC_SERIALCONNECTION_HPP_
 
-#include "ConnectionInterface.hpp"
+#include "../ConnectionInterface.hpp"
 
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/deadline_timer.hpp>

@@ -12,9 +12,12 @@
 #include "Matrix.hpp"
 
 #include <chrono>
-#include <string>
 #include <vector>
 
+#define BP_DEFAULT_PRECISION 5
+
+namespace Profiler
+{
 struct Dune
 {
     std::size_t start_index_;  // Start in Matrix
@@ -26,12 +29,6 @@ struct Dune
     Matrix<4, 1, float> signature_;  // Polynomial coefficients.
     float surface_area_;             // Surface area in m^2.
     float transport_ = 0;
-
-    std::string toString() const
-    {
-        return "start: " + std::to_string(start_index_) + " size: " + std::to_string(size_index_) + " area:" +
-               std::to_string(surface_area_);
-    }
 };
 
 template <std::size_t H, std::size_t W, typename T>
@@ -42,8 +39,7 @@ struct BottomProfile
     std::vector<Dune> dunes_;
     float average_transport_;  // Transport averaged over all the dunes as compared to the last BottomProfile in m^2/s.
 
-    // TODO: Magic numbers
-    std::vector<std::pair<Dune, Dune>> getSimularDune(const BottomProfile& profile, T precision = 5) const
+    std::vector<std::pair<Dune, Dune>> getSimularDune(const BottomProfile& profile, T precision = BP_DEFAULT_PRECISION) const
     {
         std::vector<std::pair<Dune, Dune>> result;
         for (const Dune& other_dune : profile.dunes_)
@@ -66,5 +62,6 @@ struct BottomProfile
         return result;
     }
 };
+} //Namespace Profiler
 
 #endif /* SRC_DUNE_HPP_ */

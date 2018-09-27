@@ -30,7 +30,7 @@ using namespace Messages;
 class DeltaT100Controller : public Communication::RequestHandler, public Communication::ResponseHandler
 {
   public:
-    DeltaT100Controller(const std::string& host, const std::string& local_port, const std::string& remote_port);
+    DeltaT100Controller(const std::string& host, const std::string& remote_port, const std::string& local_port);
 
     /**
      * Handles a response from the DeltaT100 Multibeam.
@@ -57,7 +57,7 @@ class DeltaT100Controller : public Communication::RequestHandler, public Communi
 
     virtual ~DeltaT100Controller();
 
-  private:
+  public:
     /**
      * Constructs a SonarReturnData message from the databuffer.
      */
@@ -72,7 +72,7 @@ class DeltaT100Controller : public Communication::RequestHandler, public Communi
     uint16_t display_gain_;
     uint16_t current_display_gain_;
 
-    DepthProfiler<DELTAT100_BEAM_COUNT, float> depth_profiler_;
+    Profiler::DepthProfiler<DELTAT100_BEAM_COUNT, float> depth_profiler_;
 
     std::unique_ptr<DataBuffer<DELTAT100_BUF_SIZE>> data_buffer_;
 };

@@ -9,7 +9,7 @@
 #ifndef SRC_FILTER_HPP_
 #define SRC_FILTER_HPP_
 
-#include "Matrix.hpp"
+#include "Profiler/Matrix.hpp"
 
 #include <cstdint>
 
@@ -32,7 +32,7 @@ class ZeroFilter : public Filter
 {
   public:
     template <std::size_t H, typename T>
-    static void applyFilter(Matrix<H, 3, T>& matrix) const
+    static void applyFilter(Matrix<H, 3, T>& matrix)
     {
         bool find_first                  = true;
         std::size_t index_first_not_zero = 0;
@@ -76,7 +76,7 @@ class ZeroFilter : public Filter
 class PeakFilter : public Filter
 {
     template <std::size_t H, typename T>
-    static void applyFilter(Matrix<H, 3, T>& matrix, float percentage = 25) const
+    static void applyFilter(Matrix<H, 3, T>& matrix, float percentage = 25)
     {
         for (std::size_t i = 0; i < H - 1; ++i)
         {

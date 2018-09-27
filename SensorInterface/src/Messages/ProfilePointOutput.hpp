@@ -12,6 +12,9 @@
 #include "../Profiler/Matrix.hpp"
 #include "SensorMessage.hpp"
 
+//TODO remove me
+#include <iostream>
+
 #define PPO_DEBUG 0
 #if PPO_DEBUG > 0
 #include <iostream>
@@ -67,6 +70,11 @@ class ProfilePointOutput : public SensorMessage
     constexpr static float toRadians(float degrees)
     {
         return degrees * PI / 180;
+    }
+
+    constexpr static float toDegrees(float radians)
+    {
+        return radians * 180 / PI;
     }
 
     ProfilePointOutput() : SensorMessage(command_length_)
@@ -240,7 +248,8 @@ class ProfilePointOutput : public SensorMessage
         float beam_angle = toRadians(getStartAngle() + getAngleIncrement() * beam);
 
         float x = beam_range * std::cos(-beam_angle);
-        float y = beam_range * std::sin(beam_angle);
+        float y = beam_range * std::sin(-beam_angle);
+//        std::cout << "range:" << beam_range << " beam_angle:" << toDegrees(beam_angle) << " x:" << x << " y:" << y << std::endl;
         return std::array<float, 3>{ x, y, beam_range };
     }
 
@@ -271,7 +280,7 @@ class ProfilePointOutput : public SensorMessage
      */
     float getBeamRangeRaw(uint16_t beam) const
     {
-        return static_cast<uint16_t>((data_[PPO_PROFILE_RANGE_START_HIGH + beam * 2] << 8) |
+        return static_cast<float>((data_[PPO_PROFILE_RANGE_START_HIGH + beam * 2] << 8) |
                                      data_[PPO_PROFILE_RANGE_START_LOW + beam * 2]) *
                getRangeResolution() / 1000;
     }

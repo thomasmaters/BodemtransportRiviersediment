@@ -5,10 +5,10 @@
  *      Author: Thomas Maters
  *		Email : thomasmaters@hotmail.com (TG.Maters@student.han.nl)
  */
-namespace Controller
+namespace Profiler
 {
 template <std::size_t N, typename T>
-DepthProfiler<N, T>::DepthProfiler() : send_transport_updates_(true)
+DepthProfiler<N, T>::DepthProfiler(bool send_transport_updates) : send_transport_updates_(send_transport_updates)
 {
 }
 
@@ -35,9 +35,9 @@ void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono
         bottom_profile.time_              = time;
 
         // Calculate ax^3 + bx^2 + cx + d
-        auto afgeleide                             = calculateDerivative(matrix);
-        std::vector<std::size_t> peaks_and_valleys = findPeaksAndValleys(afgeleide, 1);
-        std::vector<std::pair<std::size_t, std::size_t>> waves = classifyWave(afgeleide, peaks_and_valleys);
+        auto derivative                            = calculateDerivative(matrix);
+        std::vector<std::size_t> peaks_and_valleys = findPeaksAndValleys(derivative, 1);
+        std::vector<std::pair<std::size_t, std::size_t>> waves = classifyWave(derivative, peaks_and_valleys);
 
         for (std::size_t i = 0; i < waves.size(); ++i)
         {
@@ -47,16 +47,15 @@ void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono
             dune.start_x_     = matrix.at(dune.start_index_, 0);
             dune.end_x_       = matrix.at(waves[i].second, 0);
 
-            // TODO: change this magic number.
-            if (dune.size_index_ > 60)  // We have a big wave, just skip it. .
+            if (dune.size_index_ > DP_MAX_DUNE_POINTS)  // We have a big wave, just skip it. .
             {
                 continue;
             }
-            if (dune.start_index_ + 60 > N)  // Our wave doesn't fit in matrix, this is really bad coding.
+            if (dune.start_index_ + DP_MAX_DUNE_POINTS > N)  // Our wave doesn't fit in matrix, this is really bad coding.
             {
                 continue;
             }
-            Matrix<60, 2, float> single_dune_matrix(matrix, dune.start_index_, 0);
+            Matrix<DP_MAX_DUNE_POINTS, 2, float> single_dune_matrix(matrix, dune.start_index_, 0);
 
             // Translate x values so they start from 0. (This helps the Gauss-Newton algorithm find a result.)
             shiftWaveToZero(single_dune_matrix, dune.size_index_);
@@ -72,8 +71,7 @@ void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono
             catch (std::exception& e)
             {
 #if DEPTHPROFILER_DEBUG > 0
-                std::cout << "DepthProfiler: Add proccessed point error: " << e.what() << " peaks or valleys."
-                          << std::endl;
+                std::cout << "DepthProfiler: Add processed point error: " << e.what() << std::endl;
 #endif
             }
         }
@@ -93,7 +91,7 @@ void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono
     catch (std::exception& e)
     {
 #if DEPTHPROFILER_DEBUG > 0
-        std::cout << "DepthProfiler: Add proccessed point error: " << e.what() << " peaks or valleys." << std::endl;
+        std::cout << "DepthProfiler: Add processed point error: " << e.what() << std::endl;
 #endif
     }
 }
@@ -213,7 +211,6 @@ void DepthProfiler<N, T>::gaussNewton(const Matrix<H, W, T>& inputs,
         // Mean deviation over all the inputs.
         total_deviation /= H;
 
-        // TODO: Maybe change this check to only check for the current deviation |total_deviation| < precision
         // If the deviation is since last iteration is smaller then precision, we have found the best optimal value.
         if (std::abs(total_deviation - last_deviation) < precision)
         {
@@ -358,8 +355,7 @@ template <std::size_t H, std::size_t W>
 void DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& profile_first,
                                                BottomProfile<H, W, T>& profile_second) const
 {
-    // TODO: Magic number
-    std::vector<std::pair<Dune, Dune>> simular_dunes = profile_first.getSimularDune(profile_second, 2.0);
+    std::vector<std::pair<Dune, Dune>> simular_dunes = profile_first.getSimularDune(profile_second, DP_DUNE_FIND_PRECISION);
 #if DEPTHPROFILER_DEBUG > 0
     std::cout << "DepthProfiler: Found " << simular_dunes.size() << " simular dunes." << std::endl;
 #endif
@@ -386,7 +382,6 @@ void DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& pro
             }
         }
         // total_transport / total_wave_length / ms * 1000 = m^2/s
-        // TODO: Transport per dune of over de lengte van alle dunes bij elkaar?
         profile_second.average_transport_ = (total_transport) / (total_wave_length) / (float)time_difference * 1000.0;
     }
     else
@@ -419,11 +414,6 @@ float DepthProfiler<N, T>::calculateMovedArea(const Dune& dune_left, const Dune&
     {
         throw std::runtime_error("Moved dune area is smaller then 0.");
     }
-
-    //    std::cout << "DuneLeft area: " << area_of_a << " DuneRight area: " << area_of_b << " DuneRight surface: " <<
-    //    dune_right.surface_area_ << std::endl;
-    //    std::cout << "Duneleft: " << dune_left.signature_ << " Dune right: " << dune_right.signature_ << std::endl;
-    //    std::cout << "Moved area: " << moved_area << std::endl;
 
     return moved_area;
 }

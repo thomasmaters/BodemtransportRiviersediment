@@ -15,7 +15,8 @@
 #include "Dune.hpp"
 
 #include <thread>
-
+namespace Profiler
+{
 class DepthProfilerProxy : public Communication::ResponseHandler,
                            public std::enable_shared_from_this<DepthProfilerProxy>
 {
@@ -56,5 +57,6 @@ class DepthProfilerProxy : public Communication::ResponseHandler,
   private:
     Communication::UDP::UDPServerClient outgoing_communication_;
 };
+}//Namespace Profiler
 
 #endif /* SRC_DEPTHPROFILERPROXY_HPP_ */

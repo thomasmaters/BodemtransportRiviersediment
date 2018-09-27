@@ -125,7 +125,7 @@ void TCPServerClient::handleConnect(const boost::asio::mutable_buffer& message_b
     if (!error)
     {
 #ifdef ENABLE_IO_DEBUG
-        std::cout << "TCPServerClient -> CONNECTED TO HOST" << std::endl;
+        std::cout << "TCPServerClient -> CONNECTED TO HOST: " << host_ << std::endl;
 #endif
         active_sesion_->handleOutgoingConnection(
             message_buffer, response_indentifier, has_response_head_and_body, response_handler_);

@@ -22,13 +22,13 @@ namespace Controller::DeltaT100
 {
 using namespace Communication;
 DeltaT100Controller::DeltaT100Controller(const std::string& host,
-                                         const std::string& local_port,
-                                         const std::string& remote_port)
-  : sensor_communication_(IOHandler::getInstance().getIOService(), host, local_port, remote_port),
-    deltat_communication_(IOHandler::getInstance().getIOService(), "localhost", local_port, remote_port),
+                                         const std::string& remote_port,
+                                         const std::string& local_port)
+  : sensor_communication_(IOHandler::getInstance().getIOService(), host, remote_port, local_port),
+    deltat_communication_(IOHandler::getInstance().getIOService(), "localhost", remote_port, local_port),
     display_gain_(20),
     current_display_gain_(0),
-    depth_profiler_(DepthProfiler<DELTAT100_BEAM_COUNT, float>()),
+    depth_profiler_(Profiler::DepthProfiler<DELTAT100_BEAM_COUNT, float>()),
     data_buffer_(std::unique_ptr<DataBuffer<>>(new DataBuffer<>()))
 {
     depth_profiler_.setTransportUpdateEnabled(true);

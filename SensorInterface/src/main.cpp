@@ -6,8 +6,8 @@
  *		Email : thomasmaters@hotmail.com (TG.Maters@student.han.nl)
  */
 
-#include "Communication/IOHandler.hpp"
 #include "Controller/DeltaT100/DeltaT100Controller.hpp"
+#include "Communication/IOHandler.hpp"
 
 #include <iostream>
 
@@ -20,11 +20,6 @@ int main(int argc, char* argv[])
             std::string arg1 = std::string(argv[1]);
             std::string arg2 = std::string(argv[2]);
             std::string arg3 = std::string(argv[3]);
-            //            IOHandler::getInstance().startIOService();
-            //            std::unique_ptr<Controller::DeltaT100::DeltaT100Controller> ptr =
-            //            std::unique_ptr<Controller::DeltaT100::DeltaT100Controller>(new
-            //            Controller::DeltaT100::DeltaT100Controller(arg1,arg2,arg3));
-            //            Controller::DeltaT100::DeltaT100Controller(arg1,arg2,arg3);
             Controller::DeltaT100::DeltaT100Controller* ptr =
                 new Controller::DeltaT100::DeltaT100Controller(arg1, arg2, arg3);
             Communication::IOHandler::getInstance().startIOService();

@@ -132,7 +132,7 @@ class BottomTransportMessage : public SensorMessage
      * @param value
      */
     template <std::size_t H, std::size_t W, typename T>
-    void setDunes(const BottomProfile<H, W, T>& value)
+    void setDunes(const Profiler::BottomProfile<H, W, T>& value)
     {
         setDunes(value.dunes_);
     }
@@ -141,7 +141,7 @@ class BottomTransportMessage : public SensorMessage
      * Sets dunes in this message from a vector of dunes.
      * @param value
      */
-    void setDunes(const std::vector<Dune>& value)
+    void setDunes(const std::vector<Profiler::Dune>& value)
     {
         setAmoundOfDunes(value.size());
         for (std::size_t i = 0; i < value.size(); ++i)

@@ -13,7 +13,9 @@
 #define STEP_SIZE 1e-5
 #define PRECISION 1e-5
 #define EPSILON 1e-14
-#define DEPTHPROFILER_DEBUG 1
+#define DEPTHPROFILER_DEBUG 0
+#define DP_DUNE_FIND_PRECISION 2.0
+#define DP_MAX_DUNE_POINTS 50
 
 #include "../DataBuffer.hpp"
 #include "DepthProfilerProxy.hpp"
@@ -26,7 +28,7 @@
 #include <iostream>
 #endif
 
-namespace Controller
+namespace Profiler
 {
 template <std::size_t N, typename T = float>
 class DepthProfiler : public DepthProfilerProxy
@@ -37,7 +39,7 @@ class DepthProfiler : public DepthProfilerProxy
     /**
      * Constructor
      */
-    DepthProfiler();
+    DepthProfiler(bool send_transport_updates = true);
 
     /**
      * Destructor
@@ -263,7 +265,7 @@ class DepthProfiler : public DepthProfilerProxy
     bool send_transport_updates_;
 };
 
-} /* namespace Controller */
+} /* namespace Profiler */
 
 #include "DepthProfiler.inc"
 

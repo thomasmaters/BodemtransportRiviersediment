@@ -64,8 +64,7 @@ void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono
                 Matrix<4, 1, T> params({ 1, 1, 1, 1 });
                 gaussNewton(single_dune_matrix, params, dune.size_index_);
                 dune.signature_ = params;
-                dune.surface_area_ =
-                    calculateArea(params, single_dune_matrix.at(0, 0), single_dune_matrix.at(dune.size_index_, 0));
+                dune.surface_area_ = calculateArea(params, 0, single_dune_matrix.at(dune.size_index_, 0));
                 bottom_profile.dunes_.push_back(dune);
             }
             catch (std::exception& e)
@@ -139,6 +138,8 @@ T DepthProfiler<N, T>::newtonsMethod(const Matrix<H, 1, T>& params,
 #if DEPTHPROFILER_DEBUG > 1
     std::cout << "Newtons method: [" << solution_space.first << "," << solution_space.second
               << "], init: " << inital_guess << " xshift: " << x_shift << std::endl;
+    std::cout << "Params1: " << params << std::endl;
+    std::cout << "Params2: " << params2 << std::endl;
 #endif
     T guess     = inital_guess;
     T new_guess = 0;
@@ -161,7 +162,7 @@ T DepthProfiler<N, T>::newtonsMethod(const Matrix<H, 1, T>& params,
 #endif
         if (new_guess < solution_space.first || new_guess > solution_space.second)
         {
-            new_guess = solution_space.first + (solution_space.second - solution_space.first) / 1.95;
+            new_guess = inital_guess * std::pow(1.02,i);
             continue;
         }
         else if (std::abs(new_guess - guess) <= precision * abs(new_guess))
@@ -212,6 +213,9 @@ void DepthProfiler<N, T>::gaussNewton(const Matrix<H, W, T>& inputs,
         total_deviation /= H;
 
         // If the deviation is since last iteration is smaller then precision, we have found the best optimal value.
+#if DEPTHPROFILER_DEBUG > 1
+        std::cout << "GaussNewtons: Iteration: " << i << " guess: " << total_deviation << std::endl;
+#endif
         if (std::abs(total_deviation - last_deviation) < precision)
         {
             break;
@@ -403,7 +407,7 @@ float DepthProfiler<N, T>::calculateMovedArea(const Dune& dune_left, const Dune&
     auto solution_space = std::make_pair(0, max_guess + x_diff);
 
     // Calculate intersection between the dunes.
-    T root = newtonsMethod(dune_left.signature_, dune_right.signature_, solution_space, inital_guess, x_diff);
+    T root = newtonsMethod(dune_left.signature_, dune_right.signature_, solution_space, inital_guess, -x_diff);
 
     // Calculate how much of the dune has stayed in place
     float area_of_a  = calculateArea(dune_left.signature_, root, (dune_left.end_x_ - dune_left.start_x_));
@@ -456,7 +460,7 @@ DepthProfiler<N, T>::classifyWave(const Matrix<H, W, T>& afgeleide,
                                   const std::vector<std::size_t>& peaks_and_valleys) const
 {
     std::vector<std::pair<std::size_t, std::size_t>> result;
-    for (std::size_t i = 0; i < peaks_and_valleys.size() - 3; ++i)
+    for (std::size_t i = 0; i < peaks_and_valleys.size() - 2; ++i)
     {
         // Find a valley -> peak -> valley order.
         if (!isPeak(afgeleide, peaks_and_valleys[i]) && isPeak(afgeleide, peaks_and_valleys[i + 1]) &&
@@ -493,6 +497,9 @@ template <std::size_t H, std::size_t W>
 bool DepthProfiler<N, T>::isPeak(const Matrix<H, W, T>& derivative, std::size_t index) const
 {
     assert(index + 2 < H);
+#if DEPTHPROFILER_DEBUG > 1
+    std::cout << "DepthProfiler: isPeak(" << index << "):" << (derivative.at(index, 1) > derivative.at(index + 1, 1) && derivative.at(index + 1, 1) > derivative.at(index + 2, 1)) << std::endl;
+#endif
     return derivative.at(index, 1) > derivative.at(index + 1, 1) &&
            derivative.at(index + 1, 1) > derivative.at(index + 2, 1);
 }

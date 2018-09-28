@@ -190,6 +190,50 @@ BOOST_AUTO_TEST_CASE(profile_point_decode)
 	}
 }
 
+BOOST_AUTO_TEST_CASE(amount_ribbel_check)
+{
+	Profiler::DepthProfiler<DELTAT100_BEAM_COUNT,float> depth_profiler(false);
+    Matrix<DELTAT100_BEAM_COUNT, 3, float> test_matrix(5);
+    for (std::size_t i = 0; i < test_matrix.getHeight(); ++i) {
+    	test_matrix.at(i,0) = i;
+    	test_matrix.at(i,1) = 5 + abs(std::sin(i*0.1));
+	}
+
+    float expected_dunes = std::floor((float)DELTAT100_BEAM_COUNT / Messages::ProfilePointOutput::PI / 10);
+
+    depth_profiler.addRawPoint(test_matrix, Communication::ConnectionInterface::getCurrentTime());
+    BOOST_CHECK_GT((float)depth_profiler.getDepthData().begin()->dunes_.size() / expected_dunes, 0.8);
+}
+
+BOOST_AUTO_TEST_CASE(acuracy_depth_profiler)
+{
+	Profiler::DepthProfiler<DELTAT100_BEAM_COUNT,float> depth_profiler(false);
+    Matrix<DELTAT100_BEAM_COUNT, 3, float> test_matrix(5);
+    Matrix<DELTAT100_BEAM_COUNT,3, float> increase;
+    for (std::size_t i = 0; i < test_matrix.getHeight(); ++i) {
+    	increase.at(i,0) = 1;
+		test_matrix.at(i,0) = i;
+		test_matrix.at(i,1) = 5;
+		if(i > 240 && i <= 271)
+		{
+			test_matrix.at(i,1) = 5 + std::sin((i-240)*0.1);
+		}
+	}
+    test_matrix.at(240,1) = 4;
+    test_matrix.at(272,1) = 4;
+
+    depth_profiler.addRawPoint(test_matrix, Communication::ConnectionInterface::getCurrentTime());
+    test_matrix += increase;
+    depth_profiler.addRawPoint(test_matrix, Communication::ConnectionInterface::getCurrentTime());
+
+    //http://www.wolframalpha.com/widget/widgetPopup.jsp?p=v&id=d56e8a800745244232d295d3eae74aae&title=Area+under+the+Curve+Calculator&theme=green
+    //With param sin(x*0.1)+5 van x = 0 to x = 31 equals 174.991
+    float error_margin = std::abs(174.991 - depth_profiler.getDepthData().begin()->dunes_.at(0).surface_area_) / 174.991;
+    BOOST_CHECK_EQUAL(depth_profiler.getDepthData().begin()->dunes_.size(), (std::size_t)1);
+    BOOST_CHECK_LT(error_margin,0.05);
+}
+
+//Also verifies the handling of inconsistent x-axis spacing.
 BOOST_AUTO_TEST_CASE(performance_depth_profiler)
 {
 	Profiler::DepthProfiler<DELTAT100_BEAM_COUNT,float> depth_profiler(false);
@@ -244,6 +288,7 @@ BOOST_AUTO_TEST_CASE(performance_throughput)
     float throughput = ((float)bytes_handled) / total_time * std::pow(10,6);
     std::cout << "Throughput: " << throughput << std::endl;
     BOOST_CHECK_GT(throughput, 1000000);
+    delete controller;
 }
 
 BOOST_AUTO_TEST_CASE(message_with_unexpected_size)

@@ -66,6 +66,11 @@ class DepthProfiler : public DepthProfilerProxy
      */
     void addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono::milliseconds::rep time = 0);
 
+    const std::vector<BottomProfile<N, 3, T>>& getDepthData() const
+	{
+    	return depth_data_;
+	}
+
     /**
      * Enables if a udp packet will be send after calculating the transport of a bottom profile.
      * @param state

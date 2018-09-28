@@ -72,23 +72,50 @@ public:
 
 BOOST_AUTO_TEST_CASE(filter_zero)
 {
-	Matrix<DELTAT100_BEAM_COUNT,3,float> test_matrix;
+	Matrix<6,3,float> test_matrix_1;
+	test_matrix_1.at(2,0) = 6;
+	test_matrix_1.at(3,0) = 5.9;
+	test_matrix_1.at(5,0) = 6;
+	ZeroFilter::applyFilter(test_matrix_1);
+//	std::cout << test_matrix_1 << std::endl;
 
-	for (std::size_t i = 0; i < test_matrix.getHeight(); ++i) {
+	Matrix<6,3,float> test_matrix_2;
+	test_matrix_2.at(0,0) = 6;
+	test_matrix_2.at(1,0) = 6;
+	test_matrix_2.at(2,0) = 6;
+	test_matrix_2.at(3,0) = 6;
+	ZeroFilter::applyFilter(test_matrix_2);
+//	std::cout << test_matrix_2 << std::endl;
+
+	Matrix<6,3,float> test_matrix_3;
+	test_matrix_3.at(1,0) = 6;
+	test_matrix_3.at(4,0) = 5;
+	ZeroFilter::applyFilter(test_matrix_3);
+//	std::cout << test_matrix_3 << std::endl;
+
+	Matrix<DELTAT100_BEAM_COUNT,3,float> test_matrix_4;
+
+	for (std::size_t i = 0; i < test_matrix_4.getHeight(); ++i) {
 		if((std::rand() % 100) < 60 )
 		{
-			test_matrix.at(i,0) = 1 + std::rand() % 3;
+			test_matrix_4.at(i,0) = std::sin(i*0.1);
 		}
 	}
+	ZeroFilter::applyFilter(test_matrix_4);
+//	std::cout << test_matrix_4 << std::endl;
 
-	ZeroFilter::applyFilter(test_matrix);
+	for (std::size_t i = 0; i < test_matrix_1.getHeight(); ++i) {
+		BOOST_CHECK_EQUAL((test_matrix_1.at(i,0) != 0), true);
+		BOOST_CHECK_EQUAL((test_matrix_2.at(i,0) != 0), true);
+		BOOST_CHECK_EQUAL((test_matrix_3.at(i,0) != 0), true);
+	}
 
-	for (std::size_t i = 0; i < test_matrix.getHeight(); ++i) {
-		BOOST_CHECK_EQUAL((test_matrix.at(i,0) != 0), true);
+	for (std::size_t i = 0; i < test_matrix_4.getHeight(); ++i) {
+		BOOST_CHECK_EQUAL((test_matrix_4.at(i,0) != 0), true);
 	}
 }
 
-BOOST_AUTO_TEST_CASE(filter_zero)
+BOOST_AUTO_TEST_CASE(filter_peaks)
 {
 	Matrix<DELTAT100_BEAM_COUNT,3,float> test_matrix;
 

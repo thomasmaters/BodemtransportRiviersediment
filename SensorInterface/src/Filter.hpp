@@ -20,7 +20,7 @@ class Filter
 {
   public:
     template <std::size_t H, typename T>
-    void applyFilter(Matrix<H, 3, T>& matrix) const
+    void applyFilter(Matrix<H, 3, T>& matrix, std::size_t column = 0) const
     {
     }
 };
@@ -32,41 +32,44 @@ class ZeroFilter : public Filter
 {
   public:
     template <std::size_t H, typename T>
-    static void applyFilter(Matrix<H, 3, T>& matrix)
+    static void applyFilter(Matrix<H, 3, T>& matrix, std::size_t column = 0)
     {
-        bool find_first                  = true;
-        std::size_t index_first_not_zero = 0;
+    	std::vector<std::size_t> zeros;
+    	std::vector<std::size_t> not_zeros;
         for (std::size_t i = 0; i < H; ++i)
         {
-            if (matrix.at(i, 0) != 0 && find_first)
-            {
-                index_first_not_zero = i;
-                find_first           = false;
-            }
-            else if (matrix.at(i, 0) != 0 && !find_first)
-            {
-                if (i - index_first_not_zero > 1)
-                {
-                    float diff0 = matrix.at(i, 0) - matrix.at(index_first_not_zero, 0);
-                    float diff2 = matrix.at(i, 1) - matrix.at(index_first_not_zero, 1);
-
-                    for (std::size_t k = index_first_not_zero + 1; k < i; ++k)
-                    {
-                        matrix.at(k, 0) = matrix.at(i, 0) + diff0 / (i - index_first_not_zero) * (i - k + 1);
-                        matrix.at(k, 1) = matrix.at(i, 1) + diff2 / (i - index_first_not_zero) * (i - k + 1);
-                    }
-                }
-                index_first_not_zero = i;
-            }
-            else if (index_first_not_zero < H - 1 && i == H - 1)
-            {
-                for (std::size_t k = index_first_not_zero + 1; k < H; ++k)
-                {
-                    matrix.at(k, 0) = matrix.at(index_first_not_zero, 0);
-                    matrix.at(k, 1) = matrix.at(index_first_not_zero, 1);
-                }
-            }
+        	if(matrix.at(i,column) == 0)
+        	{
+        		zeros.push_back(i);
+        	}
+        	else
+        	{
+        		not_zeros.push_back(i);
+        	}
         }
+
+        float i_diff;
+        float v_diff;
+        float total_distance;
+
+        while(not_zeros.size() > 1 && zeros.size() > 0)
+        {
+        	i_diff = not_zeros.at(1) - not_zeros.at(0);
+        	v_diff = matrix.at(not_zeros.at(1), column) - matrix.at(not_zeros.at(0), column);
+
+			if((zeros.at(0) < not_zeros.at(0) && zeros.at(0) < not_zeros.at(1)) ||
+					(zeros.at(0) > not_zeros.at(0) && zeros.at(0) < not_zeros.at(1)) ||
+					(zeros.at(0) > not_zeros.at(0) && zeros.at(0) > not_zeros.at(1) && not_zeros.size() == 2))
+			{
+				total_distance = std::abs(static_cast<float>(not_zeros.at(1)) - static_cast<float>(zeros.at(0)));
+				matrix.at(zeros.at(0), column) = matrix.at(not_zeros.at(1), column) - (v_diff / i_diff) * total_distance;
+				zeros.erase(zeros.begin());
+			}
+			else
+			{
+				not_zeros.erase(not_zeros.begin());
+			}
+		}
     }
 };
 
@@ -75,15 +78,16 @@ class ZeroFilter : public Filter
  */
 class PeakFilter : public Filter
 {
+public:
     template <std::size_t H, typename T>
-    static void applyFilter(Matrix<H, 3, T>& matrix, float percentage = 25)
+    static void applyFilter(Matrix<H, 3, T>& matrix, std::size_t column = 0, float percentage = 25)
     {
         for (std::size_t i = 0; i < H - 1; ++i)
         {
-            if (matrix.at(i, 1) != 0 && matrix.at(i + 1, 1) != 0 &&
-                std::abs((matrix.at(i + 1, 1) - matrix.at(i, 1)) / matrix.at(i, 1)) * 100 > percentage)
+            if (matrix.at(i, column) != 0 && matrix.at(i + 1, column) != 0 &&
+                std::abs((matrix.at(i + 1, column) - matrix.at(i, column)) / matrix.at(i, column)) * 100 > percentage)
             {
-                matrix.at(i + 1, 1) = matrix.at(i, 1);
+                matrix.at(i + 1, column) = matrix.at(i, column);
             }
         }
     }

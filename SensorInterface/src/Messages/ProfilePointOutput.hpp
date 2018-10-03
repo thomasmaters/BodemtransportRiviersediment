@@ -12,9 +12,6 @@
 #include "../Profiler/Matrix.hpp"
 #include "SensorMessage.hpp"
 
-//TODO remove me
-#include <iostream>
-
 #define PPO_DEBUG 0
 #if PPO_DEBUG > 0
 #include <iostream>

@@ -9,8 +9,6 @@
 #include "Controller/DeltaT100/DeltaT100Controller.hpp"
 #include "Communication/IOHandler.hpp"
 
-#include <iostream>
-
 int main(int argc, char* argv[])
 {
     try
@@ -27,10 +25,6 @@ int main(int argc, char* argv[])
             std::cin >> a;
             Communication::IOHandler::getInstance().stopIOService();
             delete ptr;
-        }
-        else
-        {
-            std::cout << "We missen wat argumenten" << std::endl;
         }
     }
     catch (std::exception& e)

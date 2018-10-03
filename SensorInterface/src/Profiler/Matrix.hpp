@@ -91,6 +91,13 @@ class Matrix
     bool operator==(const Matrix<H, W, T>& rhs) const;
 
     /**
+     * Compares 2 matrices. Always returns true by comparing matrices with different sizes.
+     * @param rhs Matrix to compare against this.
+     * @return True if the matrices are NOT equal to each other, returns True otherwise.
+     */
+    bool operator!=(const Matrix<H, W, T>& rhs) const;
+
+    /**
      *@return Returns the amount of elements in the matrix (W * H).
      */
     inline static std::size_t size()

@@ -150,6 +150,12 @@ bool Matrix<H, W, T>::operator==(const Matrix<H, W, T>& rhs) const
     return innerMatrix == rhs.innerMatrix;
 }
 
+template <std::size_t H, std::size_t W, typename T>
+bool Matrix<H, W, T>::operator!=(const Matrix<H, W, T>& rhs) const
+{
+    return !(*this == rhs);
+}
+
 /************************************************************
  * Matrix functions.
  ************************************************************/

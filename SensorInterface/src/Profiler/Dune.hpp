@@ -29,6 +29,11 @@ struct Dune
     Matrix<4, 1, float> signature_;  // Polynomial coefficients.
     float surface_area_;             // Surface area in m^2.
     float transport_ = 0;
+
+    ~Dune()
+    {
+
+    }
 };
 
 template <std::size_t H, std::size_t W, typename T>
@@ -61,6 +66,7 @@ struct BottomProfile
         }
         return result;
     }
+    ~BottomProfile(){}
 };
 } //Namespace Profiler
 

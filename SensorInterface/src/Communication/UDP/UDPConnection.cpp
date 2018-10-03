@@ -59,6 +59,17 @@ void UDPServerClient::sendRequest(std::string message, std::size_t response_size
 
 UDPServerClient::~UDPServerClient()
 {
+	if (socket_incomming_.is_open()) {
+		socket_incomming_.shutdown(boost::asio::socket_base::shutdown_type::shutdown_both);
+		socket_incomming_.cancel();
+		socket_incomming_.close();
+	}
+	if( socket_outgoing_.is_open())
+	{
+		socket_outgoing_.shutdown(boost::asio::socket_base::shutdown_type::shutdown_both);
+		socket_outgoing_.cancel();
+		socket_outgoing_.close();
+	}
 }
 
 bool UDPServerClient::connectOutgoingSocket()

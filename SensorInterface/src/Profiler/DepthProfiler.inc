@@ -356,7 +356,7 @@ void DepthProfiler<N, T>::getTransportForAllData() const
 
 template <std::size_t N, typename T>
 template <std::size_t H, std::size_t W>
-void DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& profile_first,
+float DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& profile_first,
                                                BottomProfile<H, W, T>& profile_second) const
 {
     std::vector<std::pair<Dune, Dune>> simular_dunes = profile_first.getSimularDune(profile_second, DP_DUNE_FIND_PRECISION);
@@ -387,6 +387,7 @@ void DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& pro
         }
         // total_transport / total_wave_length / ms * 1000 = m^2/s
         profile_second.average_transport_ = (total_transport) / (total_wave_length) / (float)time_difference * 1000.0;
+        return profile_second.average_transport_;
     }
     else
     {
@@ -395,6 +396,7 @@ void DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& pro
 #if DEPTHPROFILER_DEBUG > 0
     std::cout << "DepthProfiler: Average transport: " << profile_second.average_transport_ << std::endl;
 #endif
+    return 0;
 }
 
 template <std::size_t N, typename T>

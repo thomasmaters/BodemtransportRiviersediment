@@ -24,20 +24,16 @@ using namespace Communication;
 DeltaT100Controller::DeltaT100Controller(const std::string& host,
                                          const std::string& remote_port,
                                          const std::string& local_port)
-  : sensor_communication_(IOHandler::getInstance().getIOService(), host, remote_port, local_port),
-    deltat_communication_(IOHandler::getInstance().getIOService(), "localhost", remote_port, local_port),
-    display_gain_(20),
+  : DeltaT100ControllerProxy(host, remote_port, local_port),
+	display_gain_(20),
     current_display_gain_(0),
     depth_profiler_(Profiler::DepthProfiler<DELTAT100_BEAM_COUNT, float>()),
     data_buffer_(std::unique_ptr<DataBuffer<>>(new DataBuffer<>()))
 {
     depth_profiler_.setTransportUpdateEnabled(true);
 
-    deltat_communication_.addRequestHandler(std::shared_ptr<RequestHandler>(this));
-    sensor_communication_.addResponseHandler(std::shared_ptr<ResponseHandler>(this));
-
     switch_data_command_ = SwitchDataCommand();
-    sensor_communication_.sendRequest(switch_data_command_, SonarReturnDataPacket::command_length_, false);
+    requestSensorPing(switch_data_command_);
 }
 
 void DeltaT100Controller::handleResponse(uint8_t* data, std::size_t length, std::chrono::milliseconds::rep)
@@ -89,7 +85,7 @@ void DeltaT100Controller::cosntructSensorPing()
     // Construct a ping by moving the buffer into the ping.
     SonarReturnData ping(data_buffer_);
     data_buffer_ = std::unique_ptr<DataBuffer<>>(new DataBuffer<>());
-    sensor_communication_.sendRequest(switch_data_command_, SonarReturnDataPacket::command_length_, false);
+    requestSensorPing(switch_data_command_);
 }
 
 SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t length, std::chrono::milliseconds::rep time)
@@ -133,12 +129,6 @@ SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t leng
 
     // Return an empty message to stop the connection.
     return SensorMessage(0);
-}
-
-void DeltaT100Controller::requestSensorPing(const SwitchDataCommand& command)
-{
-    sensor_communication_.sendRequest(
-        dynamic_cast<const SensorMessage&>(command), SonarReturnDataPacket::command_length_, false);
 }
 
 DeltaT100Controller::~DeltaT100Controller()

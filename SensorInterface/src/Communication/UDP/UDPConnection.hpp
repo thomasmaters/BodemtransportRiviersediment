@@ -14,7 +14,6 @@
 
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/udp.hpp>
-#include <boost/asio/streambuf.hpp>
 
 #define UDP_BUFFER_SIZE 4096
 
@@ -24,7 +23,7 @@ namespace Communication::UDP
 /**
  * Class handles communicating over UDP.
  */
-class UDPServerClient : public ConnectionInterface, public std::enable_shared_from_this<UDPServerClient>
+class UDPServerClient : public ConnectionInterface
 {
   public:
     UDPServerClient(boost::asio::io_service& io_service,
@@ -116,7 +115,6 @@ class UDPServerClient : public ConnectionInterface, public std::enable_shared_fr
     void handleSend(const boost::system::error_code& error, std::size_t bytes_transferred);
 
     std::array<uint8_t, UDP_BUFFER_SIZE> data_;
-    boost::asio::streambuf stream_buffer_;
 
     std::string host_;
     std::string remote_port_;

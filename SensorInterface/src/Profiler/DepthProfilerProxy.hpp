@@ -9,6 +9,7 @@
 #ifndef SRC_DEPTHPROFILERPROXY_HPP_
 #define SRC_DEPTHPROFILERPROXY_HPP_
 
+#include "../Communication/RequestResponseHandler.hpp"
 #include "../Communication/IOHandler.hpp"
 #include "../Communication/UDP/UDPConnection.hpp"
 #include "../Messages/BottomTransportMessage.hpp"
@@ -17,17 +18,16 @@
 #include <thread>
 namespace Profiler
 {
-class DepthProfilerProxy : public Communication::ResponseHandler,
-                           public std::enable_shared_from_this<DepthProfilerProxy>
+class DepthProfilerProxy : public Communication::ResponseHandler, public std::enable_shared_from_this<DepthProfilerProxy>
 {
   public:
     DepthProfilerProxy()
       : outgoing_communication_(Communication::IOHandler::getInstance().getIOService(), "localhost", "2000", "2001")
     {
-        outgoing_communication_.addResponseHandler(std::shared_ptr<ResponseHandler>(this));
+//        outgoing_communication_.addResponseHandler(std::shared_ptr<Communication::ResponseHandler>(this));
     }
 
-    ~DepthProfilerProxy()
+    virtual ~DepthProfilerProxy()
     {
     }
 

@@ -15,7 +15,9 @@
 #include "RequestResponseHandler.hpp"
 
 #include <memory>
-
+#ifdef ENABLE_IO_DEBUG
+#include <iostream>
+#endif
 namespace Communication
 {
 using namespace Messages;
@@ -26,7 +28,28 @@ using namespace Messages;
 class ConnectionInterface
 {
   public:
-    virtual ~ConnectionInterface() = default;
+	ConnectionInterface()
+	{
+
+	}
+
+    virtual ~ConnectionInterface()
+    {
+    	if(request_handler_.use_count() > 0)
+    	{
+#ifdef ENABLE_IO_DEBUG
+			std::cout << "ConnectionInterface -> Requesthandler count: " << request_handler_.use_count() << std::endl;
+#endif
+			request_handler_.reset();
+    	}
+    	if(response_handler_.use_count() > 0)
+    	{
+#ifdef ENABLE_IO_DEBUG
+			std::cout << "ConnectionInterface -> Responsehandler count: " << response_handler_.use_count() << std::endl;
+#endif
+			response_handler_.reset();
+    	}
+    }
 
     /**
      * Sends a message.

@@ -13,9 +13,10 @@
 #include <boost/asio/streambuf.hpp>
 #include <boost/bind.hpp>
 
-#include <iostream>
+#ifdef ENABLE_IO_DEBUG
+	#include <iostream>
+#endif
 
-// TODO Debugging flag voor async communication
 #define BOOST_ASIO_ENABLE_HANDLER_TRACKING 1
 
 namespace Communication::Serial
@@ -25,13 +26,13 @@ SerialClientServer::SerialClientServer(boost::asio::io_service& aIoService,
                                        uint32_t baudrate)
   : port_name_(portName), baudrate_(baudrate), serial_port_(aIoService), io_service_(aIoService), timer_(aIoService)
 {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
     boost::system::error_code ec;
     serial_port_.open(portName, ec);
     if (ec)
     {
-        std::cout << "error : port_->open() failed...com_port_name=" << portName << ", e=" << ec.message().c_str()
-                  << std::endl;
+#ifdef ENABLE_IO_DEBUG
+                std::cout << "SerialClientServer -> port_->open() failed...com_port_name=" << portName << ", e=" << ec.message().c_str() << std::endl;
+#endif
         return;
     }
 
@@ -72,12 +73,11 @@ void SerialClientServer::sendMessage(const boost::asio::mutable_buffer& messageB
                                      Type responseSize,
                                      bool hasResponseHeadAndBody)
 {
-    std::cout << __PRETTY_FUNCTION__ << ": " << (char*)messageBuffer.data() << std::endl;
     if (!serial_port_.is_open())
     {
-        // TODO: Throw here or just return?
-        std::cout << "Serial port is not open!" << std::endl;
-        return;
+#ifdef ENABLE_IO_DEBUG
+                std::cout << "SerialClientServer -> Serial port not open!" << std::endl;
+#endif
     }
     serial_port_.async_write_some(messageBuffer,
                                   boost::bind(&SerialClientServer::handleWriteComplete<Type>,
@@ -94,11 +94,11 @@ void SerialClientServer::handleWriteComplete(Type responseSize,
                                              const boost::system::error_code& error,
                                              [[maybe_unused]] std::size_t bytes_transferd)
 {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
     if (error)
     {
-        std::cout << error.message() << std::endl;
-        throw std::runtime_error("Serial write returned a error: " + error.message());
+#ifdef ENABLE_IO_DEBUG
+                std::cout << "SerialClientServer -> Send failed: " << error.message() << std::endl;
+#endif
     }
 
     timer_.expires_from_now(boost::posix_time::seconds(2));
@@ -136,11 +136,11 @@ void SerialClientServer::handleReceivedResponse(bool hasResponseHeadAndBody,
     timer_.cancel(error_c);
     if (error)
     {
-        // TODO would we throw when a read error occurs, now only returning.
-        //    		throw std::runtime_error("Serial read returned a error: " + error.message());
         return;
     }
-    std::cout << "GOT RESPONSE(" << bytesTransferd << "): " << reinterpret_cast<char*>(data_.data()) << std::endl;
+#ifdef ENABLE_IO_DEBUG
+                std::cout << "SerialClientServer -> GOT RESPONSE(" << bytesTransferd << ")" << std::endl;
+#endif
     if (response_handler_.use_count() > 0)
     {
         if (hasResponseHeadAndBody)
@@ -159,10 +159,10 @@ void SerialClientServer::timerExpired(const boost::system::error_code& error)
 {
     if (error != boost::asio::error::operation_aborted)
     {
-        std::cout << "Timer expired" << std::endl;
+#ifdef ENABLE_IO_DEBUG
+                std::cout << "SerialClientServer -> Timer expired" << std::endl;
+#endif
         stop();
-        // TODO throw here or just close and reopen the port?
-        // throw std::runtime_error("Timout occured on serial port.");
     }
 }
 

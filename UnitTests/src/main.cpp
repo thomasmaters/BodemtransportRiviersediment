@@ -69,7 +69,7 @@ public:
 	bool has_resend_ = false;
 
 };
-
+BOOST_AUTO_TEST_SUITE( filters )
 BOOST_AUTO_TEST_CASE(filter_zero)
 {
 	Matrix<6,3,float> test_matrix_1;
@@ -103,16 +103,10 @@ BOOST_AUTO_TEST_CASE(filter_zero)
 	}
 	ZeroFilter::applyFilter(test_matrix_4);
 //	std::cout << test_matrix_4 << std::endl;
-
-	for (std::size_t i = 0; i < test_matrix_1.getHeight(); ++i) {
-		BOOST_CHECK_EQUAL((test_matrix_1.at(i,0) != 0), true);
-		BOOST_CHECK_EQUAL((test_matrix_2.at(i,0) != 0), true);
-		BOOST_CHECK_EQUAL((test_matrix_3.at(i,0) != 0), true);
-	}
-
-	for (std::size_t i = 0; i < test_matrix_4.getHeight(); ++i) {
-		BOOST_CHECK_EQUAL((test_matrix_4.at(i,0) != 0), true);
-	}
+	BOOST_CHECK_EQUAL((Matrix<6,3,float>() != test_matrix_1), true);
+	BOOST_CHECK_EQUAL((Matrix<6,3,float>() != test_matrix_2), true);
+	BOOST_CHECK_EQUAL((Matrix<6,3,float>() != test_matrix_3), true);
+	BOOST_CHECK_EQUAL((Matrix<DELTAT100_BEAM_COUNT,3,float>() != test_matrix_4), true);
 }
 
 BOOST_AUTO_TEST_CASE(filter_peaks)
@@ -134,6 +128,8 @@ BOOST_AUTO_TEST_CASE(filter_peaks)
 	}
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+
 BOOST_AUTO_TEST_CASE(performance_data_write)
 {
 	FileHandler file_handler("performance_data_write.txt");
@@ -148,6 +144,7 @@ BOOST_AUTO_TEST_CASE(performance_data_write)
     BOOST_CHECK_LT(std::chrono::duration_cast<std::chrono::nanoseconds>( t2 - t1 ).count(), 1000000);
 }
 
+BOOST_AUTO_TEST_SUITE( accuracy )
 BOOST_AUTO_TEST_CASE(profile_point_decode)
 {
 	//Create a message the sensor can send.
@@ -192,18 +189,24 @@ BOOST_AUTO_TEST_CASE(profile_point_decode)
 
 BOOST_AUTO_TEST_CASE(amount_ribbel_check)
 {
-	Profiler::DepthProfiler<DELTAT100_BEAM_COUNT,float> depth_profiler(false);
-    Matrix<DELTAT100_BEAM_COUNT, 3, float> test_matrix(5);
-    for (std::size_t i = 0; i < test_matrix.getHeight(); ++i) {
-    	test_matrix.at(i,0) = i;
-    	test_matrix.at(i,1) = 5 + abs(std::sin(i*0.1));
+	try {
+		Profiler::DepthProfiler<DELTAT100_BEAM_COUNT,float> depth_profiler(false);
+	    Matrix<DELTAT100_BEAM_COUNT, 3, float> test_matrix(5);
+	    for (std::size_t i = 0; i < test_matrix.getHeight(); ++i) {
+	    	test_matrix.at(i,0) = i;
+	    	test_matrix.at(i,1) = 5 + abs(std::sin(i*0.1));
+		}
+
+	    float expected_dunes = std::floor((float)DELTAT100_BEAM_COUNT / Messages::ProfilePointOutput::PI / 10);
+	    std::cout << "Expected dunes: " << expected_dunes << std::endl;
+	    depth_profiler.addRawPoint(test_matrix, Communication::ConnectionInterface::getCurrentTime());
+	    BOOST_CHECK_GT((float)depth_profiler.getDepthData().begin()->dunes_.size() / expected_dunes, 0.8);
+	    std::cout << "Actual dunes: " << depth_profiler.getDepthData().begin()->dunes_.size() << std::endl;
+	} catch (std::exception& e) {
+		std::cerr << e.what() << std::endl;
 	}
-
-    float expected_dunes = std::floor((float)DELTAT100_BEAM_COUNT / Messages::ProfilePointOutput::PI / 10);
-
-    depth_profiler.addRawPoint(test_matrix, Communication::ConnectionInterface::getCurrentTime());
-    BOOST_CHECK_GT((float)depth_profiler.getDepthData().begin()->dunes_.size() / expected_dunes, 0.8);
 }
+BOOST_AUTO_TEST_SUITE_END();
 
 BOOST_AUTO_TEST_CASE(acuracy_depth_profiler)
 {

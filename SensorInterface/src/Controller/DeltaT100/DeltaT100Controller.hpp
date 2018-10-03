@@ -9,13 +9,11 @@
 #ifndef SRC_DELTAT100CONTROLLER_HPP_
 #define SRC_DELTAT100CONTROLLER_HPP_
 
-#include "../../Communication/ConnectionInterface.hpp"
-#include "../../Communication/TCP/TCPConnection.hpp"
-#include "../../Communication/UDP/UDPConnection.hpp"
 #include "../../DataBuffer.hpp"
 #include "../../Messages/ProfilePointOutput.hpp"
 #include "../../Messages/SwitchDataCommand.hpp"
 #include "../../Profiler/DepthProfiler.hpp"
+#include "DeltaT100ControllerProxy.hpp"
 
 #define DELTAT100_BEAM_COUNT 480
 #define DELTAT100_BUF_SIZE 2048
@@ -27,7 +25,7 @@ namespace Controller::DeltaT100
  * Class responsible for communicating with DeltaT100 Multibeam or DeltaT.exe.
  */
 using namespace Messages;
-class DeltaT100Controller : public Communication::RequestHandler, public Communication::ResponseHandler
+class DeltaT100Controller : public DeltaT100ControllerProxy
 {
   public:
     DeltaT100Controller(const std::string& host, const std::string& remote_port, const std::string& local_port);
@@ -49,12 +47,6 @@ class DeltaT100Controller : public Communication::RequestHandler, public Communi
      */
     SensorMessage handleRequest(uint8_t* data, std::size_t length, std::chrono::milliseconds::rep time = 0) override;
 
-    /**
-     * Sends a request for a SonarReturnDataPacket.
-     * @param command Switch command.
-     */
-    void requestSensorPing(const SwitchDataCommand& command);
-
     virtual ~DeltaT100Controller();
 
   public:
@@ -62,9 +54,6 @@ class DeltaT100Controller : public Communication::RequestHandler, public Communi
      * Constructs a SonarReturnData message from the databuffer.
      */
     void cosntructSensorPing();
-
-    Communication::TCP::TCPServerClient sensor_communication_;
-    Communication::UDP::UDPServerClient deltat_communication_;
 
     SwitchDataCommand switch_data_command_;
     ProfilePointOutput profile_point_output_;

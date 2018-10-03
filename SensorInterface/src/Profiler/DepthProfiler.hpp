@@ -39,7 +39,7 @@ class DepthProfiler : public DepthProfilerProxy
     /**
      * Constructor
      */
-    DepthProfiler(bool send_transport_updates = true);
+    explicit DepthProfiler(bool send_transport_updates = true);
 
     /**
      * Destructor
@@ -196,13 +196,13 @@ class DepthProfiler : public DepthProfilerProxy
     void getTransportForAllData() const;
 
     /**
-     * TODO: maybe return the transport rate as of just setting a field in the second BottomProfile.
      * Calculates the transport between two BottomProfiles.
      * @param profile_first BottomProfile that comes first in time.
      * @param profile_second BottomProfile that comes after the first BottomProfile in time.
+     * @return Average transport over all the found dunes.
      */
     template <std::size_t H, std::size_t W>
-    void getTransportOverTime(const BottomProfile<H, W, T>& profile_first,
+    float getTransportOverTime(const BottomProfile<H, W, T>& profile_first,
                               BottomProfile<H, W, T>& profile_second) const;
 
     /**

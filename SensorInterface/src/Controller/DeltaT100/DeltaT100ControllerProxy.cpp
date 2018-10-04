@@ -20,7 +20,7 @@ DeltaT100ControllerProxy::DeltaT100ControllerProxy(
 		sensor_communication_(Communication::IOHandler::getInstance().getIOService(), host, remote_port, local_port),
 	    deltat_communication_(Communication::IOHandler::getInstance().getIOService(), "localhost", remote_port, local_port)
 {
-    deltat_communication_.addRequestHandler(std::shared_ptr<RequestHandler>(this));
+    deltat_communication_.addRequestHandler(std::move(std::shared_ptr<RequestHandler>(this)));
     sensor_communication_.addResponseHandler(std::shared_ptr<ResponseHandler>(this));
 }
 

@@ -4,8 +4,7 @@ template <typename Type>
 void TCPSession::handleResponse(Type response_indentifier,
                                 bool has_response_head_and_body,
                                 const boost::system::error_code& error,
-                                std::size_t bytes_transferd,
-                                std::shared_ptr<ResponseHandler> response_handler)
+                                std::size_t bytes_transferd)
 {
 #ifdef ENABLE_IO_DEBUG
     std::cout << "TCPSession -> SEND( " << bytes_transferd << ")" << std::endl;
@@ -23,8 +22,7 @@ void TCPSession::handleResponse(Type response_indentifier,
                                                           shared_from_this(),
                                                           has_response_head_and_body,
                                                           boost::asio::placeholders::error,
-                                                          boost::asio::placeholders::bytes_transferred,
-                                                          response_handler));
+                                                          boost::asio::placeholders::bytes_transferred));
             }
         else
         {
@@ -34,8 +32,7 @@ void TCPSession::handleResponse(Type response_indentifier,
                                                 shared_from_this(),
                                                 has_response_head_and_body,
                                                 boost::asio::placeholders::error,
-                                                boost::asio::placeholders::bytes_transferred,
-                                                response_handler));
+                                                boost::asio::placeholders::bytes_transferred));
         }
     }
     else
@@ -49,8 +46,7 @@ void TCPSession::handleResponse(Type response_indentifier,
 template <typename Type>
 void TCPSession::handleOutgoingConnection(const boost::asio::mutable_buffer& message,
                                           Type response_indentifier,
-                                          bool has_response_head_and_body,
-                                          std::shared_ptr<ResponseHandler> response_handler)
+                                          bool has_response_head_and_body)
 {
 #ifdef ENABLE_IO_DEBUG
     std::cout << "TCPSession -> SENDING( " << message.size() << ")" << std::endl;
@@ -62,7 +58,6 @@ void TCPSession::handleOutgoingConnection(const boost::asio::mutable_buffer& mes
                                          response_indentifier,
                                          has_response_head_and_body,
                                          boost::asio::placeholders::error,
-                                         boost::asio::placeholders::bytes_transferred,
-                                         response_handler));
+                                         boost::asio::placeholders::bytes_transferred));
 }
 }

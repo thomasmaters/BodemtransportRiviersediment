@@ -30,11 +30,16 @@ class ConnectionInterface
   public:
 	ConnectionInterface()
 	{
-
+#ifdef ENABLE_IO_DEBUG
+			std::cout << "ConnectionInterface -> Constructor" << std::endl;
+#endif
 	}
 
     virtual ~ConnectionInterface()
     {
+#ifdef ENABLE_IO_DEBUG
+			std::cout << "ConnectionInterface -> Destructor" << std::endl;
+#endif
     	if(request_handler_.use_count() > 0)
     	{
 #ifdef ENABLE_IO_DEBUG

@@ -225,8 +225,10 @@ BOOST_AUTO_TEST_CASE(acuracy_depth_profiler)
     test_matrix.at(240,1) = 4;
     test_matrix.at(272,1) = 4;
 
+    std::cout << "add first" << std::endl;
     depth_profiler.addRawPoint(test_matrix, Communication::ConnectionInterface::getCurrentTime());
     test_matrix += increase;
+    std::cout << "add second" << std::endl;
     depth_profiler.addRawPoint(test_matrix, Communication::ConnectionInterface::getCurrentTime());
 
     //http://www.wolframalpha.com/widget/widgetPopup.jsp?p=v&id=d56e8a800745244232d295d3eae74aae&title=Area+under+the+Curve+Calculator&theme=green
@@ -264,6 +266,20 @@ BOOST_AUTO_TEST_CASE(performance_depth_profiler)
     BOOST_CHECK_LT(average, 50000);
 }
 
+BOOST_AUTO_TEST_CASE(message_with_unexpected_size)
+{
+	Test* io_test_class = new Test();
+	Communication::TCP::TCPServerClient sensor(Communication::IOHandler::getInstance().getIOService(), "localhost", "103", "101");
+	sensor.addRequestHandler(std::unique_ptr<Communication::RequestHandler>(io_test_class));
+    Controller::DeltaT100::DeltaT100Controller* controller =
+        new Controller::DeltaT100::DeltaT100Controller("localhost", "101", "100");
+	Communication::IOHandler::getInstance().startIOService();
+	Communication::IOHandler::getInstance().stopIOService();
+	BOOST_CHECK_EQUAL(io_test_class->has_resend_,true);
+	delete controller;
+	delete io_test_class;
+}
+
 BOOST_AUTO_TEST_CASE(performance_throughput)
 {
 	Messages::ProfilePointOutput ppo_template;
@@ -277,7 +293,7 @@ BOOST_AUTO_TEST_CASE(performance_throughput)
 	std::size_t bytes_handled = 0;
     uint64_t total_time = 0;
 
-    for (std::size_t i = 0; i < 10000; ++i)
+    for (std::size_t i = 0; i < 10; ++i)
     {
     	t1  = std::chrono::high_resolution_clock::now();
     	Messages::SensorMessage response = controller->handleRequest(ppo_template.getData(), ppo_template.getDataLength(), Communication::ConnectionInterface::getCurrentTime());
@@ -292,20 +308,6 @@ BOOST_AUTO_TEST_CASE(performance_throughput)
     std::cout << "Throughput: " << throughput << std::endl;
     BOOST_CHECK_GT(throughput, 1000000);
     delete controller;
-}
-
-BOOST_AUTO_TEST_CASE(message_with_unexpected_size)
-{
-	Test* io_test_class = new Test();
-	Communication::TCP::TCPServerClient sensor(Communication::IOHandler::getInstance().getIOService(), "localhost", "103", "101");
-	sensor.addRequestHandler(std::shared_ptr<Communication::RequestHandler>(io_test_class));
-    Controller::DeltaT100::DeltaT100Controller* controller =
-        new Controller::DeltaT100::DeltaT100Controller("localhost", "101", "100");
-	Communication::IOHandler::getInstance().startIOService();
-	BOOST_CHECK_EQUAL(io_test_class->has_resend_,true);
-	Communication::IOHandler::getInstance().stopIOService();
-	delete controller;
-	delete io_test_class;
 }
 
 

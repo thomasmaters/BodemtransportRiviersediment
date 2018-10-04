@@ -35,7 +35,12 @@ namespace Communication::TCP
 class TCPSession : public std::enable_shared_from_this<TCPSession>
 {
   public:
-    TCPSession(boost::asio::io_service& io_service, bool keep_alive = false);
+	static std::shared_ptr<TCPSession> create(boost::asio::io_service& io_service, std::shared_ptr<RequestHandler>& a, std::shared_ptr<ResponseHandler>& b)
+	{
+		return std::shared_ptr<TCPSession>(new TCPSession(io_service,a,b));
+	}
+
+    TCPSession(boost::asio::io_service& io_service, std::shared_ptr<RequestHandler>& a, std::shared_ptr<ResponseHandler>& b, bool keep_alive = false);
 
     virtual ~TCPSession();
 
@@ -61,7 +66,7 @@ class TCPSession : public std::enable_shared_from_this<TCPSession>
      * Handles when a request is being send.
      * @param request_handler To handle the request.
      */
-    void handleIncommingConnection(std::shared_ptr<RequestHandler> request_handler);
+    void handleIncommingConnection();
 
     /**
      * Handles writing to a remote host.
@@ -73,8 +78,7 @@ class TCPSession : public std::enable_shared_from_this<TCPSession>
     template <typename Type>
     void handleOutgoingConnection(const boost::asio::mutable_buffer& message,
                                   Type response_indentifier,
-                                  bool has_response_head_and_body,
-                                  std::shared_ptr<ResponseHandler> response_handler);
+                                  bool has_response_head_and_body);
 
     /**
      * Handles reading response on a request.
@@ -88,8 +92,7 @@ class TCPSession : public std::enable_shared_from_this<TCPSession>
     void handleResponse(Type response_indentifier,
                         bool has_response_head_and_body,
                         const boost::system::error_code& error,
-                        std::size_t bytes_transferd,
-                        std::shared_ptr<ResponseHandler> response_handler);
+                        std::size_t bytes_transferd);
 
     /**
      * Handles when a response has been read.
@@ -100,8 +103,7 @@ class TCPSession : public std::enable_shared_from_this<TCPSession>
      */
     void handleReceivedResponse(bool has_response_head_and_body,
                                 const boost::system::error_code& error,
-                                std::size_t bytes_transferd,
-                                std::shared_ptr<ResponseHandler> response_handler);
+                                std::size_t bytes_transferd);
 
     /**
      * Handles when a request has been read.
@@ -110,13 +112,15 @@ class TCPSession : public std::enable_shared_from_this<TCPSession>
      * @param request_handler Users handle to handle the request.
      */
     void handleRequest(const boost::system::error_code& error,
-                       std::size_t bytes_transferd,
-                       std::shared_ptr<RequestHandler> request_handler);
+                       std::size_t bytes_transferd);
 
   private:
     boost::asio::ip::tcp::socket socket_;
     std::array<uint8_t, TCP_BUFFER_SIZE> data_;
     bool keep_alive_;
+
+    std::shared_ptr<RequestHandler>& request_handler;
+    std::shared_ptr<ResponseHandler>& response_handler;
 };
 }
 

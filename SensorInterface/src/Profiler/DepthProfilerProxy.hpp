@@ -24,7 +24,8 @@ class DepthProfilerProxy : public Communication::ResponseHandler, public std::en
     DepthProfilerProxy()
       : outgoing_communication_(Communication::IOHandler::getInstance().getIOService(), "localhost", "2000", "2001")
     {
-//        outgoing_communication_.addResponseHandler(std::shared_ptr<Communication::ResponseHandler>(this));
+    	self_ptr_ = weak_from_this();
+        outgoing_communication_.addResponseHandler(self_ptr_.lock());
     }
 
     virtual ~DepthProfilerProxy()
@@ -55,6 +56,7 @@ class DepthProfilerProxy : public Communication::ResponseHandler, public std::en
     }
 
   private:
+    std::weak_ptr<DepthProfilerProxy> self_ptr_;
     Communication::UDP::UDPServerClient outgoing_communication_;
 };
 }//Namespace Profiler

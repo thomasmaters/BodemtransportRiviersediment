@@ -14,6 +14,8 @@
 
 #include <fstream>
 
+#include <iostream>
+
 #if DELTAT100_DEBUG > 0
 #include <iostream>
 #endif

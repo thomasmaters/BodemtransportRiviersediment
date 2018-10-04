@@ -8,7 +8,7 @@
 namespace Profiler
 {
 template <std::size_t N, typename T>
-DepthProfiler<N, T>::DepthProfiler(bool send_transport_updates) : send_transport_updates_(send_transport_updates)
+DepthProfiler<N, T>::DepthProfiler(bool send_transport_updates) : DepthProfilerProxy(), send_transport_updates_(send_transport_updates)
 {
 }
 
@@ -462,7 +462,13 @@ DepthProfiler<N, T>::classifyWave(const Matrix<H, W, T>& afgeleide,
                                   const std::vector<std::size_t>& peaks_and_valleys) const
 {
     std::vector<std::pair<std::size_t, std::size_t>> result;
-    for (std::size_t i = 0; i < peaks_and_valleys.size() - 2; ++i)
+    if(peaks_and_valleys.size() < 3)
+    {
+    	return result;
+    }
+
+    std::size_t i = peaks_and_valleys.size() - 3;
+    do
     {
         // Find a valley -> peak -> valley order.
         if (!isPeak(afgeleide, peaks_and_valleys[i]) && isPeak(afgeleide, peaks_and_valleys[i + 1]) &&
@@ -475,7 +481,12 @@ DepthProfiler<N, T>::classifyWave(const Matrix<H, W, T>& afgeleide,
                       << " to_x: " << afgeleide.at(peaks_and_valleys[i + 2], 0) << std::endl;
 #endif
         }
-    }
+        if(i != 0)
+        {
+        	i--;
+        }
+
+    }while(i != 0);
 
 #if DEPTHPROFILER_DEBUG > 0
     std::cout << "DepthProfiler: Found: " << result.size() << " Waves" << std::endl;
@@ -498,7 +509,7 @@ template <std::size_t N, typename T>
 template <std::size_t H, std::size_t W>
 bool DepthProfiler<N, T>::isPeak(const Matrix<H, W, T>& derivative, std::size_t index) const
 {
-    assert(index + 2 < H);
+    assert(index + 2 <= H);
 #if DEPTHPROFILER_DEBUG > 1
     std::cout << "DepthProfiler: isPeak(" << index << "):" << (derivative.at(index, 1) > derivative.at(index + 1, 1) && derivative.at(index + 1, 1) > derivative.at(index + 2, 1)) << std::endl;
 #endif

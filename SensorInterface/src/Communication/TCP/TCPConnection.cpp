@@ -27,6 +27,9 @@ TCPServerClient::TCPServerClient(boost::asio::io_service& io_service,
     acceptor_(io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), std::atoi(local_port_.c_str()))),
     io_service_(io_service)
 {
+#ifdef ENABLE_IO_DEBUG
+			std::cout << "TCPServerClient -> Constructor" << std::endl;
+#endif
     startAccept();
 }
 
@@ -53,18 +56,21 @@ void TCPServerClient::sendRequest(std::string& message, std::size_t response_siz
 
 TCPServerClient::~TCPServerClient()
 {
+#ifdef ENABLE_IO_DEBUG
+			std::cout << "TCPServerClient -> Destructor" << std::endl;
+#endif
     acceptor_.cancel();
     acceptor_.close();
 }
 
 void TCPServerClient::startAccept()
 {
-    std::shared_ptr<TCPSession> session = std::shared_ptr<TCPSession>(new TCPSession(io_service_));
+	active_sesion_ =  TCPSession::create(io_service_, request_handler_, response_handler_);
     try
     {
         acceptor_.async_accept(
-            session->getSocket(),
-            boost::bind(&TCPServerClient::handleAccept, this, session, boost::asio::placeholders::error));
+        		active_sesion_->getSocket(),
+            boost::bind(&TCPServerClient::handleAccept, this, active_sesion_, boost::asio::placeholders::error));
     }
     catch (std::exception& e)
     {
@@ -78,7 +84,7 @@ void TCPServerClient::handleAccept(std::shared_ptr<TCPSession> new_connection, c
 {
     if (!error)
     {
-        new_connection->handleIncommingConnection(request_handler_);
+        new_connection->handleIncommingConnection();
         startAccept();
     }
 }
@@ -92,7 +98,7 @@ void TCPServerClient::sendMessage(const boost::asio::mutable_buffer& message_buf
                   "Message responsetype has to be char or std::size_t.");
     if (active_sesion_.use_count() == 0 || !active_sesion_->isOpen())
     {
-        active_sesion_ = std::shared_ptr<TCPSession>(new TCPSession(io_service_));
+        active_sesion_ = TCPSession::create(io_service_, request_handler_, response_handler_);
     }
 
     if (!active_sesion_->isOpen())
@@ -128,7 +134,7 @@ void TCPServerClient::handleConnect(const boost::asio::mutable_buffer& message_b
         std::cout << "TCPServerClient -> CONNECTED TO HOST: " << host_ << std::endl;
 #endif
         active_sesion_->handleOutgoingConnection(
-            message_buffer, response_indentifier, has_response_head_and_body, response_handler_);
+            message_buffer, response_indentifier, has_response_head_and_body);
     }
     else
     {

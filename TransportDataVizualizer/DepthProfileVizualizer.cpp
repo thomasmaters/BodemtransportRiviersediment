@@ -1,4 +1,5 @@
 #include "DepthProfileVizualizer.hpp"
+#include <iostream>
 
 DepthProfileVizualizer::DepthProfileVizualizer(QCustomPlot* custom_plot, QWidget* parent)
   : DepthProfileVizualizerProxy(parent), custom_plot_(custom_plot), transport_data_(200), transport_key_(200)
@@ -22,11 +23,11 @@ DepthProfileVizualizer::DepthProfileVizualizer(QCustomPlot* custom_plot, QWidget
     custom_plot_->xAxis2->setTicker(timeTicker);
 }
 
-void DepthProfileVizualizer::messageReceived(Controller::BottomTransportMessage message)
+void DepthProfileVizualizer::messageReceived(Messages::BottomTransportMessage message)
 {
     std::cout << __PRETTY_FUNCTION__ << std::endl;
     std::cout << "Transport: " << message.getAverageTransport() << std::endl;
-    auto dune_data = message.getDunes();
+    auto dune_data = message.getDunes<4>();
 
     QVector<double> x(message.getAmoundOfDunes() * 25);
     QVector<double> y(message.getAmoundOfDunes() * 25);

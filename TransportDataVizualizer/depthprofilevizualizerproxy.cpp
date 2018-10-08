@@ -1,4 +1,5 @@
 #include "depthprofilevizualizerproxy.hpp"
+#include <iostream>
 
 DepthProfileVizualizerProxy::DepthProfileVizualizerProxy(QWidget* parent) : QWidget(parent)
 {
@@ -24,7 +25,7 @@ void DepthProfileVizualizerProxy::readPendingDatagrams()
         udp_socket_->readDatagram(datagram.data(), datagram.size());
 
         QTextStream(stdout) << "\nConstructed SensorMessage: " << datagram.size() << "\n";
-        Controller::BottomTransportMessage depth_profile(reinterpret_cast<uint8_t*>(datagram.data()));
+        Messages::BottomTransportMessage depth_profile(reinterpret_cast<uint8_t*>(datagram.data()));
 
         messageReceived(depth_profile);
     }
@@ -34,6 +35,6 @@ void DepthProfileVizualizerProxy::readPendingDatagrams()
     }
 }
 
-void DepthProfileVizualizerProxy::messageReceived(Controller::BottomTransportMessage message)
+void DepthProfileVizualizerProxy::messageReceived(Messages::BottomTransportMessage message)
 {
 }

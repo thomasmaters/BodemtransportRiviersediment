@@ -14,7 +14,7 @@ class DepthProfileVizualizer : public DepthProfileVizualizerProxy
     explicit DepthProfileVizualizer(QCustomPlot* custom_plot, QWidget* parent = nullptr);
 
   protected:
-    void messageReceived(Controller::BottomTransportMessage message) override;
+    void messageReceived(Messages::BottomTransportMessage message) override;
   signals:
 
   private:

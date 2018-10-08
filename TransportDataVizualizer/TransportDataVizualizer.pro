@@ -32,9 +32,9 @@ SOURCES += \
 HEADERS += \
         MainApplication.hpp \
     DepthProfileVizualizerProxy.hpp \
-    ../SensorInterface/src/BottomTransportMessage.hpp \
-    ../SensorInterface/src/BottomTransportMessage.hpp \
-    ../SensorInterface/src/SensorMessage.hpp \
+    ../SensorInterface/src/Messages/BottomTransportMessage.hpp \
+    ../SensorInterface/src/Messages/BottomTransportMessage.hpp \
+    ../SensorInterface/src/Messages/SensorMessage.hpp \
     DepthProfileVizualizer.hpp \
     qcustomplot.h
 

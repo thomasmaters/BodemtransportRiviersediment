@@ -1,7 +1,7 @@
 #ifndef DEPTHPROFILEVIZUALIZERPROXY_HPP
 #define DEPTHPROFILEVIZUALIZERPROXY_HPP
 
-#include "../SensorInterface/src/BottomTransportMessage.hpp"
+#include "../SensorInterface/src/Messages/BottomTransportMessage.hpp"
 
 #include <QString>
 #include <QTextStream>
@@ -20,7 +20,7 @@ class DepthProfileVizualizerProxy : public QWidget
     virtual ~DepthProfileVizualizerProxy();
 
   protected:
-    virtual void messageReceived(Controller::BottomTransportMessage message);
+    virtual void messageReceived(Messages::BottomTransportMessage message);
   signals:
 
   public slots:

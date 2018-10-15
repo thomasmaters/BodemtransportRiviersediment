@@ -18,6 +18,7 @@
 #define DELTAT100_BEAM_COUNT 480
 #define DELTAT100_BUF_SIZE 2048
 #define DELTAT100_DEBUG 0
+#define DELTAT100_DISPLAY_GAIN 0
 
 namespace Controller::DeltaT100
 {

@@ -4,7 +4,7 @@ template <typename Type>
 void TCPSession::handleResponse(Type response_indentifier,
                                 bool has_response_head_and_body,
                                 const boost::system::error_code& error,
-                                std::size_t bytes_transferd)
+                                [[maybe_unused]] std::size_t bytes_transferd)
 {
 #ifdef ENABLE_IO_DEBUG
     std::cout << "TCPSession -> SEND( " << bytes_transferd << ")" << std::endl;

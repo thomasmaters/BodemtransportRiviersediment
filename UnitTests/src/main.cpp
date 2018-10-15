@@ -7,6 +7,7 @@
  */
 
 #define MDP_TESTING
+//#define DEPTHPROFILER_DEBUG 2
 
 #include "../MultibeamDataProcessor/src/Profiler/DepthProfiler.hpp"
 #include "../MultibeamDataProcessor/src/Messages/SwitchDataCommand.hpp"
@@ -212,18 +213,16 @@ BOOST_AUTO_TEST_CASE(acuracy_depth_profiler)
 {
 	Profiler::DepthProfiler<DELTAT100_BEAM_COUNT,float> depth_profiler(false);
     Matrix<DELTAT100_BEAM_COUNT, 3, float> test_matrix(5);
-    Matrix<DELTAT100_BEAM_COUNT,3, float> increase;
+    Matrix<DELTAT100_BEAM_COUNT,3, float> increase(0);
     for (std::size_t i = 0; i < test_matrix.getHeight(); ++i) {
     	increase.at(i,0) = 1;
 		test_matrix.at(i,0) = i;
 		test_matrix.at(i,1) = 5;
 		if(i > 240 && i <= 271)
 		{
-			test_matrix.at(i,1) = 5 + std::sin((i-240)*0.1);
+			test_matrix.at(i,1) = 5 - std::sin((i-240)*0.1);
 		}
 	}
-    test_matrix.at(240,1) = 4;
-    test_matrix.at(272,1) = 4;
 
     std::cout << "add first" << std::endl;
     depth_profiler.addRawPoint(test_matrix, Communication::ConnectionInterface::getCurrentTime());
@@ -232,8 +231,8 @@ BOOST_AUTO_TEST_CASE(acuracy_depth_profiler)
     depth_profiler.addRawPoint(test_matrix, Communication::ConnectionInterface::getCurrentTime());
 
     //http://www.wolframalpha.com/widget/widgetPopup.jsp?p=v&id=d56e8a800745244232d295d3eae74aae&title=Area+under+the+Curve+Calculator&theme=green
-    //With param sin(x*0.1)+5 van x = 0 to x = 31 equals 174.991
-    float error_margin = std::abs(174.991 - depth_profiler.getDepthData().begin()->dunes_.at(0).surface_area_) / 174.991;
+    //With param sin(x*0.1)+5 van x = 0 to x = 34 equals 150.332
+    float error_margin = std::abs(150.332 - depth_profiler.getDepthData().begin()->dunes_.at(0).surface_area_) / 150.332;
     BOOST_CHECK_EQUAL(depth_profiler.getDepthData().begin()->dunes_.size(), (std::size_t)1);
     BOOST_CHECK_LT(error_margin,0.05);
 }
@@ -264,6 +263,18 @@ BOOST_AUTO_TEST_CASE(performance_depth_profiler)
     float average = total_time / max_iterations;
     std::cout << "Everage profiler time: " << average <<  std::endl;
     BOOST_CHECK_LT(average, 50000);
+}
+
+BOOST_AUTO_TEST_CASE(depth_profiler_flat_surfaces)
+{
+	Profiler::DepthProfiler<DELTAT100_BEAM_COUNT,float> depth_profiler(false);
+    std::ifstream matrixInput("C:\\Projecten\\Eclipse-workspace\\MultibeamDataProcessor\\Debug\\sim_output.txt");
+    Matrix<DELTAT100_BEAM_COUNT, 3, float> matrix(matrixInput, false);
+    auto deriverative = depth_profiler.calculateDerivative(matrix);
+	SmoothFilter::applyFilter(deriverative, 1, 5);
+
+    std::vector<std::size_t> peaks_and_valleys = depth_profiler.findPeaksAndValleys(matrix, deriverative,1);
+    BOOST_CHECK_EQUAL(peaks_and_valleys.size(), 8);
 }
 
 BOOST_AUTO_TEST_CASE(message_with_unexpected_size)

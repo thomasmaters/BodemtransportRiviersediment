@@ -33,7 +33,7 @@ class Matrix
     Matrix(const Matrix<H, W, T>& rhs);
 
     template <std::size_t aH, std::size_t aW>
-    Matrix(const Matrix<aH, aW, T>& rhs, std::size_t heightStart, std::size_t widthStart);
+    Matrix(const Matrix<aH, aW, T>& rhs, std::size_t heightStart, std::size_t widthStart, std::size_t heightEnd = H, std::size_t widthEnd = W);
 
     Matrix(std::ifstream& file, bool commaSeperated);
 

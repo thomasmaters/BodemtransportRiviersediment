@@ -10,6 +10,7 @@
 #define SRC_BOTTOMTRANSPORTMESSAGE_HPP_
 
 #include "../Profiler/Dune.hpp"
+#include "../Profiler/BottomProfile.hpp"
 #include "SensorMessage.hpp"
 
 #include <cassert>
@@ -29,7 +30,7 @@
 #define BT_DUNE_DATA_SIZE 28
 #define BT_DUNE_DATA_TRANSPORT_OFFSET 16
 #define BT_DUNE_DATA_XFROM_OFFSET 20
-#define BT_DUNE_DATA_XTO_OFFSET 20
+#define BT_DUNE_DATA_XTO_OFFSET 24
 
 namespace Messages
 {

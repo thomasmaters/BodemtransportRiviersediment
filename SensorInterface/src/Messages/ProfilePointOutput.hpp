@@ -44,8 +44,9 @@
 #define PPO_PROFILE_RANGE_START_LOW 257
 #define PPO_PROFILE_RANGE_START_HIGH 256
 
-#define PPO_BEAM_DATA_START 255
+#define PPO_BEAM_DATA_START 256
 #define PPO_MAX_BEAMS 480
+#define PPO_MIN_MESSAGE_SIZE PPO_BEAM_DATA_START + 2 * PPO_MAX_BEAMS
 #define PPO_SOUND_VELOCITY 1500
 
 namespace Messages
@@ -244,8 +245,9 @@ class ProfilePointOutput : public SensorMessage
         float beam_range = getBeamRangeRaw(beam);
         float beam_angle = toRadians(getStartAngle() + getAngleIncrement() * beam);
 
-        float x = beam_range * std::cos(-beam_angle);
-        float y = beam_range * std::sin(-beam_angle);
+        float y = beam_range * std::cos(beam_angle);
+        float x = beam_range * std::sin(beam_angle);
+//        std::cout << "Beam: " << beam << " range: " << beam_range << " angle: " << toDegrees(beam_angle) << " x: " << x << " y: " << y << std::endl;
         return std::array<float, 3>{ x, y, beam_range };
     }
 
@@ -276,9 +278,16 @@ class ProfilePointOutput : public SensorMessage
      */
     float getBeamRangeRaw(uint16_t beam) const
     {
+//    	std::cout << "I: " << std::to_string(beam) << " " << std::to_string(((data_[PPO_PROFILE_RANGE_START_HIGH + beam * 2] << 8) | data_[PPO_PROFILE_RANGE_START_LOW + beam * 2]) / 1000.0) << std::endl;
         return static_cast<float>((data_[PPO_PROFILE_RANGE_START_HIGH + beam * 2] << 8) |
                                      data_[PPO_PROFILE_RANGE_START_LOW + beam * 2]) *
-               getRangeResolution() / 1000;
+        		static_cast<float>(getRangeResolution()) / 1000.0;
+
+//        float temp = static_cast<float>((data_[PPO_PROFILE_RANGE_START_HIGH + beam * 2] << 8) | data_[PPO_PROFILE_RANGE_START_LOW + beam * 2]);
+//        float resolution = static_cast<float>(getRangeResolution());
+//        float result = temp * resolution / 1000;
+//        std::cout << "Beam: " << beam  << " range: " << temp << " resolution: " << resolution << " result: " << result << std::endl;
+//        return result;
     }
 
     /**

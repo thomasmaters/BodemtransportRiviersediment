@@ -9,7 +9,7 @@
 #ifndef SRC_CONNECTIONINTERFACE_HPP_
 #define SRC_CONNECTIONINTERFACE_HPP_
 
-#define ENABLE_IO_DEBUG 0
+//#define ENABLE_IO_DEBUG 0
 
 #include "../Messages/SensorMessage.hpp"
 #include "RequestResponseHandler.hpp"
@@ -112,3 +112,11 @@ class ConnectionInterface
 }
 
 #endif /* SRC_CONNECTIONINTERFACE_HPP_ */
+//Verantwoording van de kwaliteit
+//Waarom mijn oplossings is van het probleem, validiteit aantonen van producten en resultaten
+//Makkelijkere beschirjven opdracht.(overview)
+//Overal conclusie in stageverslag
+//Berekenen sediment, linken aan componenten.
+//20min presentatie.
+//min demo
+//Link diagrammen naar wat ze doen aka overview.

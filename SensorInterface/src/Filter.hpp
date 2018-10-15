@@ -19,8 +19,8 @@
 class Filter
 {
   public:
-    template <std::size_t H, typename T>
-    void applyFilter(Matrix<H, 3, T>& matrix, std::size_t column = 0) const
+    template <std::size_t H, std::size_t W, typename T>
+    void applyFilter(Matrix<H, W, T>& matrix, std::size_t column = 0) const
     {
     }
 };
@@ -31,8 +31,8 @@ class Filter
 class ZeroFilter : public Filter
 {
   public:
-    template <std::size_t H, typename T>
-    static void applyFilter(Matrix<H, 3, T>& matrix, std::size_t column = 0)
+    template <std::size_t H, std::size_t W, typename T>
+    static void applyFilter(Matrix<H, W, T>& matrix, std::size_t column = 0)
     {
     	std::vector<std::size_t> zeros;
     	std::vector<std::size_t> not_zeros;
@@ -79,8 +79,8 @@ class ZeroFilter : public Filter
 class PeakFilter : public Filter
 {
 public:
-    template <std::size_t H, typename T>
-    static void applyFilter(Matrix<H, 3, T>& matrix, std::size_t column = 0, float percentage = 25)
+    template <std::size_t H, std::size_t W, typename T>
+    static void applyFilter(Matrix<H, W, T>& matrix, std::size_t column = 0, float percentage = 25)
     {
         for (std::size_t i = 0; i < H - 1; ++i)
         {
@@ -90,6 +90,27 @@ public:
                 matrix.at(i + 1, column) = matrix.at(i, column);
             }
         }
+    }
+};
+
+class SmoothFilter : public Filter
+{
+public:
+    template <std::size_t H, std::size_t W, typename T>
+    static void applyFilter(Matrix<H, W, T>& matrix, std::size_t column = 0, std::size_t kernel_size = 5)
+    {
+    	for (std::size_t i = 0; i < H - kernel_size; ++i) {
+        	float sum = 0;
+        	for (std::size_t k = 0; k < kernel_size; ++k) {
+        		if(matrix[i+k][column] == 0)
+        		{
+        			sum = kernel_size * matrix[i][column];
+        			break;
+        		}
+        		sum += matrix[i+k][column];
+			}
+        	matrix[i][column] = sum / kernel_size;
+		}
     }
 };
 

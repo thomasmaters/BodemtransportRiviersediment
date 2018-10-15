@@ -27,7 +27,7 @@ DeltaT100Controller::DeltaT100Controller(const std::string& host,
                                          const std::string& remote_port,
                                          const std::string& local_port)
   : DeltaT100ControllerProxy(host, remote_port, local_port),
-	display_gain_(20),
+	display_gain_(DELTAT100_DISPLAY_GAIN),
     current_display_gain_(0),
     depth_profiler_(Profiler::DepthProfiler<DELTAT100_BEAM_COUNT, float>()),
     data_buffer_(std::unique_ptr<DataBuffer<>>(new DataBuffer<>()))
@@ -93,7 +93,7 @@ void DeltaT100Controller::cosntructSensorPing()
 SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t length, std::chrono::milliseconds::rep time)
 {
     // We received a ProfilePointOutput message from DeltaT.exe
-    if (length == ProfilePointOutput::command_length_)
+    if (length == ProfilePointOutput::command_length_ || length == PPO_MIN_MESSAGE_SIZE)
     {
         ProfilePointOutput sonar_data(data);
 

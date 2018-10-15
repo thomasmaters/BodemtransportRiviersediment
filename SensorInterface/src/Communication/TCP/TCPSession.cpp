@@ -73,7 +73,7 @@ void TCPSession::handleRequest(const boost::system::error_code& error,
                 boost::asio::async_write(
                     getSocket(),
                     boost::asio::buffer(response.getData(), response.getDataLength()),
-                    [&]([[maybe_unused]] const boost::system::error_code& error, std::size_t bytes_written) {
+                    [&]([[maybe_unused]] const boost::system::error_code& error, [[maybe_unused]] std::size_t bytes_written) {
 #ifdef ENABLE_IO_DEBUG
                         std::cout << "TCPSession -> WRITTEN RESPONSE( " << bytes_written << ")" << std::endl;
 #endif

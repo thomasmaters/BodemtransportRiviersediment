@@ -5,6 +5,8 @@
  *      Author: Thomas Maters
  *		Email : thomasmaters@hotmail.com (TG.Maters@student.han.nl)
  */
+#include "../Filter.hpp"
+
 namespace Profiler
 {
 template <std::size_t N, typename T>
@@ -36,7 +38,8 @@ void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono
 
         // Calculate ax^3 + bx^2 + cx + d
         auto derivative                            = calculateDerivative(matrix);
-        std::vector<std::size_t> peaks_and_valleys = findPeaksAndValleys(derivative, 1);
+        SmoothFilter::applyFilter(derivative,1,5);
+        std::vector<std::size_t> peaks_and_valleys = findPeaksAndValleys(matrix, derivative, 5);
         std::vector<std::pair<std::size_t, std::size_t>> waves = classifyWave(derivative, peaks_and_valleys);
 
         for (std::size_t i = 0; i < waves.size(); ++i)
@@ -49,22 +52,27 @@ void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono
 
             if (dune.size_index_ > DP_MAX_DUNE_POINTS)  // We have a big wave, just skip it. .
             {
+#if DEPTHPROFILER_DEBUG > 0
+                std::cout << "DepthProfiler: Dune is to big: " << dune.size_index_ << std::endl;
+#endif
                 continue;
             }
             if (dune.start_index_ + DP_MAX_DUNE_POINTS > N)  // Our wave doesn't fit in matrix, this is really bad coding.
             {
+#if DEPTHPROFILER_DEBUG > 0
+                std::cout << "DepthProfiler: Dune is to big to fit in measurement." << std::endl;
+#endif
                 continue;
             }
-            Matrix<DP_MAX_DUNE_POINTS, 2, float> single_dune_matrix(matrix, dune.start_index_, 0);
-
+            Matrix<DP_MAX_DUNE_POINTS, 2, float> single_dune_matrix(matrix, dune.start_index_, 0, dune.size_index_);
             // Translate x values so they start from 0. (This helps the Gauss-Newton algorithm find a result.)
             shiftWaveToZero(single_dune_matrix, dune.size_index_);
             try
             {
-                Matrix<4, 1, T> params({ 1, 1, 1, 1 });
+                Matrix<4, 1, T> params({ 1, 1, 1, single_dune_matrix.at(0,1) });
                 gaussNewton(single_dune_matrix, params, dune.size_index_);
                 dune.signature_ = params;
-                dune.surface_area_ = calculateArea(params, 0, single_dune_matrix.at(dune.size_index_, 0));
+                dune.surface_area_ = calculateArea(params, 0, single_dune_matrix.at(dune.size_index_ - 1, 0));
                 bottom_profile.dunes_.push_back(dune);
             }
             catch (std::exception& e)
@@ -210,7 +218,7 @@ void DepthProfiler<N, T>::gaussNewton(const Matrix<H, W, T>& inputs,
         }
 
         // Mean deviation over all the inputs.
-        total_deviation /= H;
+        total_deviation /= iterations;
 
         // If the deviation is since last iteration is smaller then precision, we have found the best optimal value.
 #if DEPTHPROFILER_DEBUG > 1
@@ -222,8 +230,8 @@ void DepthProfiler<N, T>::gaussNewton(const Matrix<H, W, T>& inputs,
         }
 
         // beta^(s+1) = beta^s - (Jf.T * Jf)^-1 * Jf.T * r(beta^s)
-        auto jacobijnTranspose = jacobian.transpose();
-        auto delta             = (jacobijnTranspose * jacobian).inverse() * jacobijnTranspose * residuals;
+        auto jacobianTranspose = jacobian.transpose();
+        auto delta             = (jacobianTranspose * jacobian).inverse() * jacobianTranspose * residuals;
         last_deviation         = total_deviation;
 
         params += delta;
@@ -363,7 +371,7 @@ float DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& pr
 #if DEPTHPROFILER_DEBUG > 0
     std::cout << "DepthProfiler: Found " << simular_dunes.size() << " simular dunes." << std::endl;
 #endif
-    if (simular_dunes.size() > 0)
+    if (simular_dunes.size() >= DP_MINIMUM_WAVE_COUNT)
     {
         float total_transport    = 0;
         float total_wave_length  = 0;
@@ -385,17 +393,18 @@ float DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& pr
                 continue;
             }
         }
+        std::cout << "Time difference: " << time_difference << std::endl;
         // total_transport / total_wave_length / ms * 1000 = m^2/s
-        profile_second.average_transport_ = (total_transport) / (total_wave_length) / (float)time_difference * 1000.0;
+        profile_second.average_transport_ = (total_transport)/ simular_dunes.size() / (float)time_difference * 1000.0;
+#if DEPTHPROFILER_DEBUG > 0
+    std::cout << "DepthProfiler: Average transport: " << profile_second.average_transport_ << std::endl;
+#endif
         return profile_second.average_transport_;
     }
     else
     {
         profile_second.average_transport_ = 0;
     }
-#if DEPTHPROFILER_DEBUG > 0
-    std::cout << "DepthProfiler: Average transport: " << profile_second.average_transport_ << std::endl;
-#endif
     return 0;
 }
 
@@ -409,17 +418,20 @@ float DepthProfiler<N, T>::calculateMovedArea(const Dune& dune_left, const Dune&
     auto solution_space = std::make_pair(0, max_guess + x_diff);
 
     // Calculate intersection between the dunes.
-    T root = newtonsMethod(dune_left.signature_, dune_right.signature_, solution_space, inital_guess, -x_diff);
+    T intersection = newtonsMethod(dune_left.signature_, dune_right.signature_, solution_space, inital_guess, -x_diff);
 
     // Calculate how much of the dune has stayed in place
-    float area_of_a  = calculateArea(dune_left.signature_, root, (dune_left.end_x_ - dune_left.start_x_));
-    float area_of_b  = calculateArea(dune_right.signature_, 0, root + x_diff);
+    float area_of_a  = calculateArea(dune_left.signature_, intersection, (dune_left.end_x_ - dune_left.start_x_));
+    float area_of_b  = calculateArea(dune_right.signature_, 0, intersection + x_diff);
     float moved_area = dune_right.surface_area_ - (area_of_a + area_of_b);
+#if DEPTHPROFILER_DEBUG > 0
+    std::cout << "DepthProfiler: Moved area: " << moved_area << " a: " << area_of_a << " b: " << area_of_b << " dune_r: " << dune_right.surface_area_ << std::endl;
+#endif
 
-    if (moved_area < 0)
-    {
-        throw std::runtime_error("Moved dune area is smaller then 0.");
-    }
+//    if (moved_area < 0)
+//    {
+//        throw std::runtime_error("Moved dune area is smaller then 0.");
+//    }
 
     return moved_area;
 }
@@ -434,20 +446,79 @@ T DepthProfiler<N, T>::calculateArea(const Matrix<4, 1, T>& params, T start, T e
 
 template <std::size_t N, typename T>
 template <std::size_t H, std::size_t W>
-std::vector<std::size_t> DepthProfiler<N, T>::findPeaksAndValleys(const Matrix<H, W, T>& derivative,
+std::vector<std::size_t> DepthProfiler<N, T>::findPeaksAndValleys(const Matrix<H, W, T>& matrix, const Matrix<H - 1, W - 1, T>& derivative,
                                                                   std::size_t minimal_x_diff) const
 {
     std::vector<std::size_t> result;
-    float last_found_x = 0;
-    for (std::size_t i = 0; i < H - 1; ++i)
+    std::vector<std::size_t> straights;
+    std::size_t last_x = 0;
+    float sum_derivative = 0;
+
+    for (std::size_t i = 2; i < H - 3; ++i)
     {
-        if (((derivative[i][1] < 0 && derivative[i + 1][1] > 0) ||
-             (derivative[i][1] > 0 && derivative[i + 1][1] < 0)) &&
-            abs(derivative[i][0] - last_found_x) > minimal_x_diff)
-        {
-            last_found_x = derivative[i][0];
-            result.push_back(i);
-        }
+    	if(i >= 5)
+    	{
+			straights.erase(std::remove(straights.begin(), straights.end(), i - 5), straights.end());
+    	}
+
+    	//We found a zero measurement do not check this 'i' value.
+    	if(matrix[i-2][1] == 0 || matrix[i-1][1] == 0 || matrix[i][1] == 0 || matrix[i+1][1] == 0 || matrix[i+2][1] == 0)
+    	{
+#if DEPTHPROFILER_DEBUG > 2
+    		std::cout << "DepthProfiler (" << i << "): Zero found " << std::endl;
+#endif
+    		straights.push_back(i);
+    		continue;
+    	}
+
+    	//Sum the amount the derivative increases.
+    	sum_derivative = 0;
+    	for (std::size_t k = 0; k < 5; ++k) {
+    		sum_derivative += derivative[i - 2 + k][1];
+		}
+
+    	//Does it increase by a small amount, then is properly a straight line.
+    	if(std::abs(sum_derivative) < 0.005)
+    	{
+    		straights.push_back(i);
+    		//Do we have multiple occuring straight lines?
+    		if(!(i >= 5 && straights.size() >= 1 && straights.size() < 3))
+    		{
+#if DEPTHPROFILER_DEBUG > 2
+    		std::cout << "DepthProfiler (" << i << "): Straight line" << std::endl;
+#endif
+    			continue;
+    		}
+#if DEPTHPROFILER_DEBUG > 2
+    		else
+    		{
+				std::cout << "DepthProfiler (" << i << "): Possible straight line" << std::endl;
+    		}
+#endif
+    	}
+
+    	//Check is it is a peak or valley.
+    	if(derivative[i-2][1] >= 0 && derivative[i-1][1] >= 0 && derivative[i][1] <= 0 && derivative[i+1][1] <= 0 && derivative[i+2][1] <= 0 && i - last_x > minimal_x_diff)
+    	{
+#if DEPTHPROFILER_DEBUG > 2
+    std::cout << "DepthProfiler: Positive to negative: " << i << std::endl;
+#endif
+    		straights.erase(std::remove(straights.begin(), straights.end(), i), straights.end());
+    		last_x = i;
+    		result.push_back(i);
+    	}
+    	else if(derivative[i-2][1] <= 0 && derivative[i-1][1] <= 0 && derivative[i][1] >= 0 && derivative[i+1][1] >= 0 && derivative[i+2][1] >= 0 && i - last_x > minimal_x_diff)
+    	{
+#if DEPTHPROFILER_DEBUG > 2
+    std::cout << "DepthProfiler: Negative to positive: " << i << std::endl;
+#endif
+        	straights.erase(std::remove(straights.begin(), straights.end(), i), straights.end());
+    		last_x = i;
+    		result.push_back(i);
+    	}
+#if DEPTHPROFILER_DEBUG > 2
+    		std::cout << "DepthProfiler (" << i << "): Something else? " << derivative[i-2][1] << "," << derivative[i-1][1] << "," << derivative[i][1] << "," << derivative[i+1][1] << "," << derivative[i+2][1] << std::endl;
+#endif
     }
 #if DEPTHPROFILER_DEBUG > 0
     std::cout << "DepthProfiler: Found: " << result.size() << " peaks or valleys." << std::endl;
@@ -467,26 +538,23 @@ DepthProfiler<N, T>::classifyWave(const Matrix<H, W, T>& afgeleide,
     	return result;
     }
 
-    std::size_t i = peaks_and_valleys.size() - 3;
+    std::size_t i = 0;
     do
     {
         // Find a valley -> peak -> valley order.
-        if (!isPeak(afgeleide, peaks_and_valleys[i]) && isPeak(afgeleide, peaks_and_valleys[i + 1]) &&
-            !isPeak(afgeleide, peaks_and_valleys[i + 2]))
+        if (isPeak(afgeleide, peaks_and_valleys[i]) && !isPeak(afgeleide, peaks_and_valleys[i + 1]) &&
+            isPeak(afgeleide, peaks_and_valleys[i + 2]))
         {
-            result.push_back(std::make_pair(peaks_and_valleys[i], peaks_and_valleys[i + 2]));
 #if DEPTHPROFILER_DEBUG > 1
             std::cout << "DepthProfiler: Wave from: " << peaks_and_valleys[i] << " to: " << peaks_and_valleys[i + 2]
                       << "   from_x: " << afgeleide.at(peaks_and_valleys[i], 0)
                       << " to_x: " << afgeleide.at(peaks_and_valleys[i + 2], 0) << std::endl;
+            std::cout << "---" << std::endl;
 #endif
+            result.push_back(std::make_pair(peaks_and_valleys[i], peaks_and_valleys[i + 2]));
         }
-        if(i != 0)
-        {
-        	i--;
-        }
-
-    }while(i != 0);
+        i++;
+    }while(i < peaks_and_valleys.size() - 2);
 
 #if DEPTHPROFILER_DEBUG > 0
     std::cout << "DepthProfiler: Found: " << result.size() << " Waves" << std::endl;
@@ -499,7 +567,7 @@ template <std::size_t H, std::size_t W>
 void DepthProfiler<N, T>::shiftWaveToZero(Matrix<H, W, T>& matrix, std::size_t dune_size) const
 {
     T start_x = matrix.at(0, 0);
-    for (std::size_t i = 0; i < dune_size + 1; ++i)
+    for (std::size_t i = 0; i < dune_size; ++i)
     {
         matrix.at(i, 0) -= start_x;
     }
@@ -510,10 +578,10 @@ template <std::size_t H, std::size_t W>
 bool DepthProfiler<N, T>::isPeak(const Matrix<H, W, T>& derivative, std::size_t index) const
 {
     assert(index + 2 <= H);
+    assert(index >= 2);
 #if DEPTHPROFILER_DEBUG > 1
-    std::cout << "DepthProfiler: isPeak(" << index << "):" << (derivative.at(index, 1) > derivative.at(index + 1, 1) && derivative.at(index + 1, 1) > derivative.at(index + 2, 1)) << std::endl;
+    std::cout << "DepthProfiler: isPeak(" << index << "):" << (derivative[index-2][1] > 0 && derivative[index-1][1] > 0 && derivative[index][1] < 0 && derivative[index+1][1] < 0 && derivative[index+2][1] <= 0) << std::endl;
 #endif
-    return derivative.at(index, 1) > derivative.at(index + 1, 1) &&
-           derivative.at(index + 1, 1) > derivative.at(index + 2, 1);
+    return derivative[index-2][1] >= 0 && derivative[index-1][1] >= 0 && derivative[index][1] <= 0 && derivative[index+1][1] <= 0 && derivative[index+2][1] <= 0;
 }
 }

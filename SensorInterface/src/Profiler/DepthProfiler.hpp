@@ -13,12 +13,16 @@
 #define STEP_SIZE 1e-5
 #define PRECISION 1e-5
 #define EPSILON 1e-14
-#define DEPTHPROFILER_DEBUG 1
 #define DP_DUNE_FIND_PRECISION 2.0
-#define DP_MAX_DUNE_POINTS 50
+#define DP_MAX_DUNE_POINTS 100
+#define DP_MINIMUM_WAVE_COUNT 3
+#ifndef DEPTHPROFILER_DEBUG
+	#define DEPTHPROFILER_DEBUG 1
+#endif
 
 #include "../DataBuffer.hpp"
 #include "DepthProfilerProxy.hpp"
+#include "BottomProfile.hpp"
 #include "Dune.hpp"
 #include "Matrix.hpp"
 
@@ -79,8 +83,11 @@ class DepthProfiler : public DepthProfilerProxy
     {
         send_transport_updates_ = state;
     }
-
+#ifdef MDP_TESTING
+  public:
+#else
   private:
+#endif
     /**
      * Tries to find a where the polynomial intersects 0 using NewtonsMethod.
      * https://en.wikipedia.org/wiki/Newton%27s_method
@@ -129,7 +136,7 @@ class DepthProfiler : public DepthProfilerProxy
     void gaussNewton(const Matrix<H, W, T>& inputs,
                      Matrix<aH, 1, T>& params,
                      std::size_t iterations = H,
-                     float precision        = 1e-8) const;
+                     float precision        = PRECISION) const;
 
     /**
      * Function that the GaussNewton tries to calculate the parameters for by calculating y = ax^3 + bx^2 + cx + d.
@@ -233,7 +240,7 @@ class DepthProfiler : public DepthProfilerProxy
      * @return Vector with indexes in derivative matrix where a peak or valley can be found.
      */
     template <std::size_t H, std::size_t W>
-    std::vector<std::size_t> findPeaksAndValleys(const Matrix<H, W, T>& derivative,
+    std::vector<std::size_t> findPeaksAndValleys(const Matrix<H, W, T>& matrix, const Matrix<H - 1, W - 1, T>& derivative,
                                                  std::size_t minimal_x_diff = 0) const;
 
     /**

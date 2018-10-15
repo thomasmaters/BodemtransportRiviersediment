@@ -13,6 +13,7 @@
 #include "../Communication/IOHandler.hpp"
 #include "../Communication/UDP/UDPConnection.hpp"
 #include "../Messages/BottomTransportMessage.hpp"
+#include "BottomProfile.hpp"
 #include "Dune.hpp"
 
 #include <thread>

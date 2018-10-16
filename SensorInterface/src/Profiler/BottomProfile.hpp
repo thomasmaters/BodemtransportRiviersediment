@@ -9,13 +9,11 @@
 #ifndef SRC_PROFILER_BOTTOMPROFILE_HPP_
 #define SRC_PROFILER_BOTTOMPROFILE_HPP_
 
-#define BP_DEFAULT_PRECISION 5
-#define BP_DIFFERENCE_PRECISION 0.9f
+#define BP_DEFAULT_PRECISION 0.9f
 
 #include "Matrix.hpp"
 #include "Dune.hpp"
 
-#include <iostream>
 #include <vector>
 #include <chrono>
 
@@ -30,11 +28,44 @@ public:
 
 	virtual ~BottomProfile();
 
+	/**
+	 * Finds dunes that are almost equal to each other.
+	 * @param profile To compare against.
+	 * @param precision Tolerance
+	 * @return Vector of pairs of similar dunes.
+	 */
     std::vector<std::pair<Dune, Dune>> getSimularDune(const BottomProfile& profile, T precision = BP_DEFAULT_PRECISION) const;
 private:
-    bool checkSize(const Dune& dune, const Dune& other_dune, T precision = BP_DIFFERENCE_PRECISION) const;
-    bool checkArea(const Dune& dune, const Dune& other_dune, T precision = BP_DIFFERENCE_PRECISION) const;
-    bool checkPosition(const Dune& dune, const Dune& other_dune, T precision = BP_DIFFERENCE_PRECISION) const;
+    /**
+     * Compares the size along the x axis.
+     * @param dune
+     * @param other_dune
+     * @param precision
+     * @return True if higher then precision.
+     */
+    bool checkSize(const Dune& dune, const Dune& other_dune, T precision = BP_DEFAULT_PRECISION) const;
+    /**
+     * Compares surface area of the dune.
+     * @param dune
+     * @param other_dune
+     * @param precision
+     * @return True if higher then precision.
+     */
+    bool checkArea(const Dune& dune, const Dune& other_dune, T precision = BP_DEFAULT_PRECISION) const;
+    /**
+     * Compares the position in the whole measurement.
+     * @param dune
+     * @param other_dune
+     * @param precision
+     * @return True if higher then precision.
+     */
+    bool checkPosition(const Dune& dune, const Dune& other_dune, T precision = BP_DEFAULT_PRECISION) const;
+    /**
+     * Checks if the dune already has a similar dune.
+     * @param dune
+     * @param result
+     * @return True if already found.
+     */
     bool checkAlreadyFound(const Dune& dune, const std::vector<std::pair<Dune, Dune>>& result) const;
 public:
 

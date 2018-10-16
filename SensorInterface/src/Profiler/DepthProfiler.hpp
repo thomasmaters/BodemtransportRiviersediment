@@ -17,7 +17,7 @@
 #define DP_MAX_DUNE_POINTS 100
 #define DP_MINIMUM_WAVE_COUNT 3
 #ifndef DEPTHPROFILER_DEBUG
-	#define DEPTHPROFILER_DEBUG 1
+	#define DEPTHPROFILER_DEBUG 0
 #endif
 
 #include "../DataBuffer.hpp"

@@ -87,7 +87,7 @@ void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono
         if (depth_data_.size() > 0)
         {
             getTransportOverTime(depth_data_.back(), bottom_profile);
-            if (send_transport_updates_)
+            if (send_transport_updates_ && !std::isnan(bottom_profile.average_transport_) && bottom_profile.average_transport_ != 0)
             {
                 sendBottomProfile(bottom_profile);
             }
@@ -146,8 +146,6 @@ T DepthProfiler<N, T>::newtonsMethod(const Matrix<H, 1, T>& params,
 #if DEPTHPROFILER_DEBUG > 1
     std::cout << "Newtons method: [" << solution_space.first << "," << solution_space.second
               << "], init: " << inital_guess << " xshift: " << x_shift << std::endl;
-    std::cout << "Params1: " << params << std::endl;
-    std::cout << "Params2: " << params2 << std::endl;
 #endif
     T guess     = inital_guess;
     T new_guess = 0;
@@ -367,14 +365,13 @@ template <std::size_t H, std::size_t W>
 float DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& profile_first,
                                                BottomProfile<H, W, T>& profile_second) const
 {
-    std::vector<std::pair<Dune, Dune>> simular_dunes = profile_first.getSimularDune(profile_second, DP_DUNE_FIND_PRECISION);
+    std::vector<std::pair<Dune, Dune>> simular_dunes = profile_first.getSimularDune(profile_second, BP_DEFAULT_PRECISION);
 #if DEPTHPROFILER_DEBUG > 0
     std::cout << "DepthProfiler: Found " << simular_dunes.size() << " simular dunes." << std::endl;
 #endif
     if (simular_dunes.size() >= DP_MINIMUM_WAVE_COUNT)
     {
         float total_transport    = 0;
-        float total_wave_length  = 0;
         uint64_t time_difference = std::abs(profile_second.time_ - profile_first.time_);  // In ms.
 
         for (auto& i : simular_dunes)
@@ -383,7 +380,6 @@ float DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& pr
             {
                 float transport = calculateMovedArea(i.first, i.second);
                 total_transport += transport;
-                total_wave_length += i.first.end_x_ - i.first.start_x_;
             }
             catch (std::exception& e)
             {
@@ -393,9 +389,7 @@ float DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& pr
                 continue;
             }
         }
-        std::cout << "Time difference: " << time_difference << std::endl;
-        // total_transport / total_wave_length / ms * 1000 = m^2/s
-        profile_second.average_transport_ = (total_transport)/ simular_dunes.size() / (float)time_difference * 1000.0;
+        profile_second.average_transport_ = (total_transport)/ simular_dunes.size() / static_cast<float>(time_difference) * 1000.0;
 #if DEPTHPROFILER_DEBUG > 0
     std::cout << "DepthProfiler: Average transport: " << profile_second.average_transport_ << std::endl;
 #endif
@@ -409,30 +403,36 @@ float DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& pr
 }
 
 template <std::size_t N, typename T>
-float DepthProfiler<N, T>::calculateMovedArea(const Dune& dune_left, const Dune& dune_right) const
+float DepthProfiler<N, T>::calculateMovedArea(const Dune& dune, const Dune& other_dune) const
 {
     // Calculate the how much our dune has moved across the x axis.
-    T x_diff            = dune_right.start_x_ - dune_left.start_x_;
-    T max_guess         = (dune_left.end_x_ - dune_right.start_x_);
+    T x_diff            = other_dune.start_x_ - dune.start_x_;
+    T max_guess         = dune.end_x_ - other_dune.start_x_;
     T inital_guess      = (max_guess + x_diff) / 2;
     auto solution_space = std::make_pair(0, max_guess + x_diff);
 
-    // Calculate intersection between the dunes.
-    T intersection = newtonsMethod(dune_left.signature_, dune_right.signature_, solution_space, inital_guess, -x_diff);
+    // Calculate intersection between the dunes.a
+    T intersection = newtonsMethod(dune.signature_, other_dune.signature_, solution_space, inital_guess, x_diff);
 
     // Calculate how much of the dune has stayed in place
-    float area_of_a  = calculateArea(dune_left.signature_, intersection, (dune_left.end_x_ - dune_left.start_x_));
-    float area_of_b  = calculateArea(dune_right.signature_, 0, intersection + x_diff);
-    float moved_area = dune_right.surface_area_ - (area_of_a + area_of_b);
+    float area_of_a = 0;
+    float area_of_b = 0;
+
+    if(x_diff >= 0)
+    {
+        area_of_a  = calculateArea(dune.signature_, intersection, (dune.end_x_ - dune.start_x_));
+        area_of_b  = calculateArea(other_dune.signature_, 0, intersection + x_diff);
+    }
+    else
+    {
+        area_of_a  = calculateArea(other_dune.signature_, intersection + x_diff, (other_dune.end_x_ - other_dune.start_x_));
+        area_of_b  = calculateArea(dune.signature_, 0, intersection);
+    }
+
+    float moved_area = std::abs(other_dune.surface_area_ - (area_of_a + area_of_b));
 #if DEPTHPROFILER_DEBUG > 0
-    std::cout << "DepthProfiler: Moved area: " << moved_area << " a: " << area_of_a << " b: " << area_of_b << " dune_r: " << dune_right.surface_area_ << std::endl;
+    std::cout << "DepthProfiler: Moved area: " << moved_area << " a: " << area_of_a << " b: " << area_of_b << " dune_r: " << other_dune.surface_area_ << " intersec: " << intersection << std::endl;
 #endif
-
-//    if (moved_area < 0)
-//    {
-//        throw std::runtime_error("Moved dune area is smaller then 0.");
-//    }
-
     return moved_area;
 }
 

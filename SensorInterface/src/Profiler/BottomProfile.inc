@@ -23,14 +23,12 @@ namespace Profiler
 	template<std::size_t H, std::size_t W, typename T>
     std::vector<std::pair<Dune, Dune>> BottomProfile<H,W,T>::getSimularDune(const BottomProfile& profile, T precision) const
     {
-    	std::cout << "Simular dunes, self: " << dunes_.size() << " other: " << profile.dunes_.size() << std::endl;
         std::vector<std::pair<Dune, Dune>> result;
         for (const Dune& other_dune : profile.dunes_)
         {
             for (const Dune& dune : dunes_)
             {
-            	//std::cout << "Size: " << checkSize(dune, other_dune) << " area: " << checkArea(dune, other_dune) << " position: " << checkPosition(dune, other_dune) << " already found: " << !checkAlreadyFound(dune,result) << std::endl;
-                if (checkSize(dune, other_dune) && checkArea(dune, other_dune) && checkPosition(dune, other_dune) && !checkAlreadyFound(dune,result))
+				if (checkSize(dune, other_dune, precision) && checkArea(dune, other_dune, precision) && checkPosition(dune, other_dune, precision) && !checkAlreadyFound(dune,result))
                 {
                     result.push_back(std::make_pair(other_dune, dune));
                     break;

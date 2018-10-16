@@ -8,6 +8,7 @@
 
 #include "Controller/DeltaT100/DeltaT100Controller.hpp"
 #include "Communication/IOHandler.hpp"
+#include <iostream>
 
 int main(int argc, char* argv[])
 {

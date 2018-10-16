@@ -7,7 +7,7 @@
  */
 
 #define MDP_TESTING
-//#define DEPTHPROFILER_DEBUG 2
+#define DEPTHPROFILER_DEBUG 0
 
 #include "../MultibeamDataProcessor/src/Profiler/DepthProfiler.hpp"
 #include "../MultibeamDataProcessor/src/Messages/SwitchDataCommand.hpp"
@@ -29,6 +29,9 @@
 #include <iostream>
 #include <random>
 
+/**
+ * Testclass for communicating/handling requests.
+ */
 class Test: public Communication::RequestHandler
 {
 public:
@@ -71,6 +74,9 @@ public:
 
 };
 BOOST_AUTO_TEST_SUITE( filters )
+/**
+ * Check if zero numbers get filtered.
+ */
 BOOST_AUTO_TEST_CASE(filter_zero)
 {
 	Matrix<6,3,float> test_matrix_1;
@@ -110,6 +116,9 @@ BOOST_AUTO_TEST_CASE(filter_zero)
 	BOOST_CHECK_EQUAL((Matrix<DELTAT100_BEAM_COUNT,3,float>() != test_matrix_4), true);
 }
 
+/**
+ * Checks if peaks get filtered.
+ */
 BOOST_AUTO_TEST_CASE(filter_peaks)
 {
 	Matrix<DELTAT100_BEAM_COUNT,3,float> test_matrix;
@@ -131,6 +140,9 @@ BOOST_AUTO_TEST_CASE(filter_peaks)
 
 BOOST_AUTO_TEST_SUITE_END()
 
+/**
+ * Checks the performance of writing data to a file.
+ */
 BOOST_AUTO_TEST_CASE(performance_data_write)
 {
 	FileHandler file_handler("performance_data_write.txt");
@@ -146,6 +158,9 @@ BOOST_AUTO_TEST_CASE(performance_data_write)
 }
 
 BOOST_AUTO_TEST_SUITE( accuracy )
+/**
+ * Checks the accuracy of decoding PPO messages.
+ */
 BOOST_AUTO_TEST_CASE(profile_point_decode)
 {
 	//Create a message the sensor can send.
@@ -188,6 +203,9 @@ BOOST_AUTO_TEST_CASE(profile_point_decode)
 	}
 }
 
+/**
+ * Checks the accuracy of finding ribbels in the depthprofiler.
+ */
 BOOST_AUTO_TEST_CASE(amount_ribbel_check)
 {
 	try {
@@ -209,6 +227,9 @@ BOOST_AUTO_TEST_CASE(amount_ribbel_check)
 }
 BOOST_AUTO_TEST_SUITE_END();
 
+/**
+ * Checks the accuracy of the depthprofiler with a basic wave.
+ */
 BOOST_AUTO_TEST_CASE(acuracy_depth_profiler)
 {
 	Profiler::DepthProfiler<DELTAT100_BEAM_COUNT,float> depth_profiler(false);
@@ -237,7 +258,10 @@ BOOST_AUTO_TEST_CASE(acuracy_depth_profiler)
     BOOST_CHECK_LT(error_margin,0.05);
 }
 
-//Also verifies the handling of inconsistent x-axis spacing.
+/**
+ * Checks if the executing performance of the depthprofiler is lower then 50ms.
+ * Also verifies the handling of inconsistent x-axis spacing.
+ */
 BOOST_AUTO_TEST_CASE(performance_depth_profiler)
 {
 	Profiler::DepthProfiler<DELTAT100_BEAM_COUNT,float> depth_profiler(false);
@@ -265,6 +289,9 @@ BOOST_AUTO_TEST_CASE(performance_depth_profiler)
     BOOST_CHECK_LT(average, 50000);
 }
 
+/**
+ * Check how the depthprofiler handles flat surfaces.
+ */
 BOOST_AUTO_TEST_CASE(depth_profiler_flat_surfaces)
 {
 	Profiler::DepthProfiler<DELTAT100_BEAM_COUNT,float> depth_profiler(false);
@@ -275,6 +302,34 @@ BOOST_AUTO_TEST_CASE(depth_profiler_flat_surfaces)
 
     std::vector<std::size_t> peaks_and_valleys = depth_profiler.findPeaksAndValleys(matrix, deriverative,1);
     BOOST_CHECK_EQUAL(peaks_and_valleys.size(), 8);
+}
+
+/**
+ * Test if the controller can have a throughput of more then 1mb/s.
+ */
+BOOST_AUTO_TEST_CASE(performance_throughput)
+{
+	Messages::ProfilePointOutput ppo_template;
+    Controller::DeltaT100::DeltaT100Controller controller = Controller::DeltaT100::DeltaT100Controller("localhost", "101", "100");
+
+    std::chrono::high_resolution_clock::time_point t1;
+    std::chrono::high_resolution_clock::time_point t2;
+	std::size_t bytes_handled = 0;
+    uint64_t total_time = 0;
+
+    for (std::size_t i = 0; i < 1000; ++i)
+    {
+    	t1  = std::chrono::high_resolution_clock::now();
+    	Messages::SensorMessage response = controller.handleRequest(ppo_template.getData(), ppo_template.getDataLength(), Communication::ConnectionInterface::getCurrentTime());
+        t2  = std::chrono::high_resolution_clock::now();
+        total_time += std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
+        bytes_handled += response.getDataLength();
+        bytes_handled += Messages::ProfilePointOutput::command_length_;
+	}
+
+    float throughput = ((float)bytes_handled) / total_time * std::pow(10,6);
+    std::cout << "Throughput: " << throughput << std::endl;
+    BOOST_CHECK_GT(throughput, 1000000);
 }
 
 BOOST_AUTO_TEST_CASE(message_with_unexpected_size)
@@ -290,35 +345,4 @@ BOOST_AUTO_TEST_CASE(message_with_unexpected_size)
 	delete controller;
 	delete io_test_class;
 }
-
-BOOST_AUTO_TEST_CASE(performance_throughput)
-{
-	Messages::ProfilePointOutput ppo_template;
-
-	Communication::UDP::UDPServerClient sensor(Communication::IOHandler::getInstance().getIOService(), "localhost", "103", "101");
-    Controller::DeltaT100::DeltaT100Controller* controller = new Controller::DeltaT100::DeltaT100Controller("localhost", "101", "100");
-	Communication::IOHandler::getInstance().startIOService();
-
-    std::chrono::high_resolution_clock::time_point t1;
-    std::chrono::high_resolution_clock::time_point t2;
-	std::size_t bytes_handled = 0;
-    uint64_t total_time = 0;
-
-    for (std::size_t i = 0; i < 10; ++i)
-    {
-    	t1  = std::chrono::high_resolution_clock::now();
-    	Messages::SensorMessage response = controller->handleRequest(ppo_template.getData(), ppo_template.getDataLength(), Communication::ConnectionInterface::getCurrentTime());
-        t2  = std::chrono::high_resolution_clock::now();
-        total_time += std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
-        bytes_handled += response.getDataLength();
-        bytes_handled += Messages::ProfilePointOutput::command_length_;
-	}
-	Communication::IOHandler::getInstance().stopIOService();
-
-    float throughput = ((float)bytes_handled) / total_time * std::pow(10,6);
-    std::cout << "Throughput: " << throughput << std::endl;
-    BOOST_CHECK_GT(throughput, 1000000);
-    delete controller;
-}
-
 

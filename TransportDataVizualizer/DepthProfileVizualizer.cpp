@@ -1,37 +1,47 @@
 #include "DepthProfileVizualizer.hpp"
 #include <iostream>
 
-DepthProfileVizualizer::DepthProfileVizualizer(QCustomPlot* custom_plot, QWidget* parent)
-  : DepthProfileVizualizerProxy(parent), custom_plot_(custom_plot), transport_data_(200), transport_key_(200)
+DepthProfileVizualizer::DepthProfileVizualizer(QCustomPlot* custom_plot, QCustomPlot* custom_plot2, QWidget* parent)
+  : DepthProfileVizualizerProxy(parent), custom_plot_(custom_plot), custom_plot2_(custom_plot2), transport_data_(200), transport_key_(200), transport_average_(200), total_average_(0)
 {
     custom_plot_->addGraph();
-    custom_plot_->addGraph();
     custom_plot_->xAxis->setRange(0.0, 180.0);
-    custom_plot_->yAxis2->setRange(-10.0, 10.0);
-    custom_plot_->xAxis2->setRange(0.0, 5.0);
-    custom_plot_->yAxis2->setVisible(true);
-    custom_plot_->xAxis2->setVisible(true);
-    custom_plot_->graph(1)->setKeyAxis(custom_plot_->xAxis2);
-    custom_plot_->graph(1)->setValueAxis(custom_plot_->yAxis2);
 
-    //    QSharedPointer<QCPAxisTickerDateTime> dateTicker(new QCPAxisTickerDateTime);
-    //    dateTicker->setDateTimeFormat("yyyy-MM-dd\nhh:mm:ss-zzz");
-    //    custom_plot_->xAxis2->setTicker(dateTicker);
+    custom_plot2_->addGraph();
+    custom_plot2_->graph(0)->setPen(QPen(Qt::red));
+
+    custom_plot2_->addGraph();
+    custom_plot2_->graph(1)->setPen(QPen(Qt::black));
+    custom_plot2_->graph(1)->setKeyAxis(custom_plot2_->xAxis);
+    custom_plot2_->graph(1)->setValueAxis(custom_plot2_->yAxis);
+
+
+    custom_plot_->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iSelectItems);
+    custom_plot2_->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iSelectItems);
 
     QSharedPointer<QCPAxisTickerTime> timeTicker(new QCPAxisTickerTime);
     timeTicker->setTimeFormat("%h:%m:%s");
-    custom_plot_->xAxis2->setTicker(timeTicker);
+    custom_plot2_->xAxis->setTicker(timeTicker);
 }
 
 void DepthProfileVizualizer::messageReceived(Messages::BottomTransportMessage message)
 {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    total_average_ += message.getAverageTransport();
+    if(transport_data_.size() >= DPV_AVERAGE_LENGTH)
+    {
+        total_average_ -= transport_data_.at(transport_data_.length() - DPV_AVERAGE_LENGTH);
+    }
+
+#ifdef DPV_DEBUG
     std::cout << "Transport: " << message.getAverageTransport() << std::endl;
     std::cout << "Amount dunes: " << std::to_string(message.getAmoundOfDunes()) << std::endl;
+    std::cout << "Average: " << total_average_ / DPV_AVERAGE_LENGTH;
+#endif
     std::vector<Matrix<7, 1, float>> dune_data = message.getDunes<7>();
 
     QVector<double> x(message.getAmoundOfDunes() * 25);
     QVector<double> y(message.getAmoundOfDunes() * 25);
+    QDateTime ping_time = QDateTime::fromMSecsSinceEpoch(message.getTimeOfPing());
 
     x.clear();
     y.clear();
@@ -47,25 +57,17 @@ void DepthProfileVizualizer::messageReceived(Messages::BottomTransportMessage me
                      i.at(3, 0)));
         }
     }
-    std::cout << message.getTimeOfPing() % 1000000 << std::endl;
-
-    //    custom_plot_->yAxis->rescale(true);
     custom_plot_->graph(0)->setData(x, y);
-    custom_plot_->graph(1)->setPen(QPen(Qt::red));
-    transport_key_.push_back(message.getTimeOfPing() % 1000000);
+
+    transport_key_.push_back(ping_time.toMSecsSinceEpoch());
     transport_data_.push_back(message.getAverageTransport());
-    custom_plot_->graph(1)->setData(transport_key_, transport_data_);
-    custom_plot_->xAxis2->setRange(transport_key_.last(), 15000, Qt::AlignRight);
-    //    custom_plot_->xAxis2->setRange((transport_key_.first()), (transport_key_.last()));
+    transport_average_.push_back(total_average_ / DPV_AVERAGE_LENGTH);
 
-    //    if(transport_data_.size() > 200)
-    //    {
-    //        transport_key_.erase(transport_key_.begin());
-    //        transport_data_.erase(transport_data_.begin());
-    //    }
-    custom_plot_->graph(1)->addData(custom_plot_->graph(1)->dataCount() + 1, message.getAverageTransport());
+    custom_plot2_->graph(0)->setData(transport_key_, transport_data_);
+    custom_plot2_->graph(1)->addData(ping_time.toMSecsSinceEpoch(), (total_average_ / DPV_AVERAGE_LENGTH));
 
-    custom_plot_->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iSelectItems);
+    custom_plot2_->xAxis->setRange(ping_time.addSecs(-50).toMSecsSinceEpoch(), ping_time.addSecs(10).toMSecsSinceEpoch());
 
     custom_plot_->replot();
+    custom_plot2_->replot();
 }

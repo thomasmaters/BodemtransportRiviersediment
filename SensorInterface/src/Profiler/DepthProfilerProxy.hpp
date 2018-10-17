@@ -24,8 +24,9 @@ class DepthProfilerProxy : public Communication::ResponseHandler,
 {
   public:
     DepthProfilerProxy()
-      : outgoing_communication_(Communication::IOHandler::getInstance().getIOService(), "localhost", "2000", "2001"),
-        self_ptr_(weak_from_this())
+      : self_ptr_(weak_from_this()),
+        outgoing_communication_(Communication::IOHandler::getInstance().getIOService(), "localhost", "2000", "2001")
+
     {
         outgoing_communication_.addResponseHandler(self_ptr_.lock());
     }

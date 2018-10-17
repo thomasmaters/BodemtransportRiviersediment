@@ -10,7 +10,8 @@
 namespace Profiler
 {
 template <std::size_t N, typename T>
-DepthProfiler<N, T>::DepthProfiler(bool send_transport_updates) : DepthProfilerProxy(), send_transport_updates_(send_transport_updates)
+DepthProfiler<N, T>::DepthProfiler(bool send_transport_updates)
+  : DepthProfilerProxy(), send_transport_updates_(send_transport_updates)
 {
 }
 
@@ -37,8 +38,8 @@ void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono
         bottom_profile.time_              = time;
 
         // Calculate ax^3 + bx^2 + cx + d
-        auto derivative                            = calculateDerivative(matrix);
-        SmoothFilter::applyFilter(derivative,1,5);
+        auto derivative = calculateDerivative(matrix);
+        SmoothFilter::applyFilter(derivative, 1, 5);
         std::vector<std::size_t> peaks_and_valleys = findPeaksAndValleys(matrix, derivative, 5);
         std::vector<std::pair<std::size_t, std::size_t>> waves = classifyWave(derivative, peaks_and_valleys);
 
@@ -57,7 +58,8 @@ void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono
 #endif
                 continue;
             }
-            if (dune.start_index_ + DP_MAX_DUNE_POINTS > N)  // Our wave doesn't fit in matrix, this is really bad coding.
+            if (dune.start_index_ + DP_MAX_DUNE_POINTS >
+                N)  // Our wave doesn't fit in matrix, this is really bad coding.
             {
 #if DEPTHPROFILER_DEBUG > 0
                 std::cout << "DepthProfiler: Dune is to big to fit in measurement." << std::endl;
@@ -69,9 +71,9 @@ void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono
             shiftWaveToZero(single_dune_matrix, dune.size_index_);
             try
             {
-                Matrix<4, 1, T> params({ 1, 1, 1, single_dune_matrix.at(0,1) });
+                Matrix<4, 1, T> params({ 1, 1, 1, single_dune_matrix.at(0, 1) });
                 gaussNewton(single_dune_matrix, params, dune.size_index_);
-                dune.signature_ = params;
+                dune.signature_    = params;
                 dune.surface_area_ = calculateArea(params, 0, single_dune_matrix.at(dune.size_index_ - 1, 0));
                 bottom_profile.dunes_.push_back(dune);
             }
@@ -87,7 +89,8 @@ void DepthProfiler<N, T>::addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono
         if (depth_data_.size() > 0)
         {
             getTransportOverTime(depth_data_.back(), bottom_profile);
-            if (send_transport_updates_ && !std::isnan(bottom_profile.average_transport_) && bottom_profile.average_transport_ != 0)
+            if (send_transport_updates_ && !std::isnan(bottom_profile.average_transport_) &&
+                bottom_profile.average_transport_ != 0)
             {
                 sendBottomProfile(bottom_profile);
             }
@@ -168,7 +171,7 @@ T DepthProfiler<N, T>::newtonsMethod(const Matrix<H, 1, T>& params,
 #endif
         if (new_guess < solution_space.first || new_guess > solution_space.second)
         {
-            new_guess = inital_guess * std::pow(1.02,i);
+            new_guess = inital_guess * std::pow(1.02, i);
             continue;
         }
         else if (std::abs(new_guess - guess) <= precision * abs(new_guess))
@@ -218,7 +221,7 @@ void DepthProfiler<N, T>::gaussNewton(const Matrix<H, W, T>& inputs,
         // Mean deviation over all the inputs.
         total_deviation /= iterations;
 
-        // If the deviation is since last iteration is smaller then precision, we have found the best optimal value.
+// If the deviation is since last iteration is smaller then precision, we have found the best optimal value.
 #if DEPTHPROFILER_DEBUG > 1
         std::cout << "GaussNewtons: Iteration: " << i << " guess: " << total_deviation << std::endl;
 #endif
@@ -363,9 +366,10 @@ void DepthProfiler<N, T>::getTransportForAllData() const
 template <std::size_t N, typename T>
 template <std::size_t H, std::size_t W>
 float DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& profile_first,
-                                               BottomProfile<H, W, T>& profile_second) const
+                                                BottomProfile<H, W, T>& profile_second) const
 {
-    std::vector<std::pair<Dune, Dune>> simular_dunes = profile_first.getSimularDune(profile_second, BP_DEFAULT_PRECISION);
+    std::vector<std::pair<Dune, Dune>> simular_dunes =
+        profile_first.getSimularDune(profile_second, BP_DEFAULT_PRECISION);
 #if DEPTHPROFILER_DEBUG > 0
     std::cout << "DepthProfiler: Found " << simular_dunes.size() << " simular dunes." << std::endl;
 #endif
@@ -389,9 +393,10 @@ float DepthProfiler<N, T>::getTransportOverTime(const BottomProfile<H, W, T>& pr
                 continue;
             }
         }
-        profile_second.average_transport_ = (total_transport)/ simular_dunes.size() / static_cast<float>(time_difference) * 1000.0;
+        profile_second.average_transport_ =
+            (total_transport) / simular_dunes.size() / static_cast<float>(time_difference) * 1000.0;
 #if DEPTHPROFILER_DEBUG > 0
-    std::cout << "DepthProfiler: Average transport: " << profile_second.average_transport_ << std::endl;
+        std::cout << "DepthProfiler: Average transport: " << profile_second.average_transport_ << std::endl;
 #endif
         return profile_second.average_transport_;
     }
@@ -418,20 +423,22 @@ float DepthProfiler<N, T>::calculateMovedArea(const Dune& dune, const Dune& othe
     float area_of_a = 0;
     float area_of_b = 0;
 
-    if(x_diff >= 0)
+    if (x_diff >= 0)
     {
-        area_of_a  = calculateArea(dune.signature_, intersection, (dune.end_x_ - dune.start_x_));
-        area_of_b  = calculateArea(other_dune.signature_, 0, intersection + x_diff);
+        area_of_a = calculateArea(dune.signature_, intersection, (dune.end_x_ - dune.start_x_));
+        area_of_b = calculateArea(other_dune.signature_, 0, intersection + x_diff);
     }
     else
     {
-        area_of_a  = calculateArea(other_dune.signature_, intersection + x_diff, (other_dune.end_x_ - other_dune.start_x_));
-        area_of_b  = calculateArea(dune.signature_, 0, intersection);
+        area_of_a =
+            calculateArea(other_dune.signature_, intersection + x_diff, (other_dune.end_x_ - other_dune.start_x_));
+        area_of_b = calculateArea(dune.signature_, 0, intersection);
     }
 
     float moved_area = std::abs(other_dune.surface_area_ - (area_of_a + area_of_b));
 #if DEPTHPROFILER_DEBUG > 0
-    std::cout << "DepthProfiler: Moved area: " << moved_area << " a: " << area_of_a << " b: " << area_of_b << " dune_r: " << other_dune.surface_area_ << " intersec: " << intersection << std::endl;
+    std::cout << "DepthProfiler: Moved area: " << moved_area << " a: " << area_of_a << " b: " << area_of_b
+              << " dune_r: " << other_dune.surface_area_ << " intersec: " << intersection << std::endl;
 #endif
     return moved_area;
 }
@@ -446,78 +453,85 @@ T DepthProfiler<N, T>::calculateArea(const Matrix<4, 1, T>& params, T start, T e
 
 template <std::size_t N, typename T>
 template <std::size_t H, std::size_t W>
-std::vector<std::size_t> DepthProfiler<N, T>::findPeaksAndValleys(const Matrix<H, W, T>& matrix, const Matrix<H - 1, W - 1, T>& derivative,
+std::vector<std::size_t> DepthProfiler<N, T>::findPeaksAndValleys(const Matrix<H, W, T>& matrix,
+                                                                  const Matrix<H - 1, W - 1, T>& derivative,
                                                                   std::size_t minimal_x_diff) const
 {
     std::vector<std::size_t> result;
     std::vector<std::size_t> straights;
-    std::size_t last_x = 0;
+    std::size_t last_x   = 0;
     float sum_derivative = 0;
 
     for (std::size_t i = 2; i < H - 3; ++i)
     {
-    	if(i >= 5)
-    	{
-			straights.erase(std::remove(straights.begin(), straights.end(), i - 5), straights.end());
-    	}
+        if (i >= 5)
+        {
+            straights.erase(std::remove(straights.begin(), straights.end(), i - 5), straights.end());
+        }
 
-    	//We found a zero measurement do not check this 'i' value.
-    	if(matrix[i-2][1] == 0 || matrix[i-1][1] == 0 || matrix[i][1] == 0 || matrix[i+1][1] == 0 || matrix[i+2][1] == 0)
-    	{
+        // We found a zero measurement do not check this 'i' value.
+        if (matrix[i - 2][1] == 0 || matrix[i - 1][1] == 0 || matrix[i][1] == 0 || matrix[i + 1][1] == 0 ||
+            matrix[i + 2][1] == 0)
+        {
 #if DEPTHPROFILER_DEBUG > 2
-    		std::cout << "DepthProfiler (" << i << "): Zero found " << std::endl;
+            std::cout << "DepthProfiler (" << i << "): Zero found " << std::endl;
 #endif
-    		straights.push_back(i);
-    		continue;
-    	}
+            straights.push_back(i);
+            continue;
+        }
 
-    	//Sum the amount the derivative increases.
-    	sum_derivative = 0;
-    	for (std::size_t k = 0; k < 5; ++k) {
-    		sum_derivative += derivative[i - 2 + k][1];
-		}
+        // Sum the amount the derivative increases.
+        sum_derivative = 0;
+        for (std::size_t k = 0; k < 5; ++k)
+        {
+            sum_derivative += derivative[i - 2 + k][1];
+        }
 
-    	//Does it increase by a small amount, then is properly a straight line.
-    	if(std::abs(sum_derivative) < 0.005)
-    	{
-    		straights.push_back(i);
-    		//Do we have multiple occuring straight lines?
-    		if(!(i >= 5 && straights.size() >= 1 && straights.size() < 3))
-    		{
+        // Does it increase by a small amount, then is properly a straight line.
+        if (std::abs(sum_derivative) < 0.005)
+        {
+            straights.push_back(i);
+            // Do we have multiple occuring straight lines?
+            if (!(i >= 5 && straights.size() >= 1 && straights.size() < 3))
+            {
 #if DEPTHPROFILER_DEBUG > 2
-    		std::cout << "DepthProfiler (" << i << "): Straight line" << std::endl;
+                std::cout << "DepthProfiler (" << i << "): Straight line" << std::endl;
 #endif
-    			continue;
-    		}
+                continue;
+            }
 #if DEPTHPROFILER_DEBUG > 2
-    		else
-    		{
-				std::cout << "DepthProfiler (" << i << "): Possible straight line" << std::endl;
-    		}
+            else
+            {
+                std::cout << "DepthProfiler (" << i << "): Possible straight line" << std::endl;
+            }
 #endif
-    	}
+        }
 
-    	//Check is it is a peak or valley.
-    	if(derivative[i-2][1] >= 0 && derivative[i-1][1] >= 0 && derivative[i][1] <= 0 && derivative[i+1][1] <= 0 && derivative[i+2][1] <= 0 && i - last_x > minimal_x_diff)
-    	{
+        // Check is it is a peak or valley.
+        if (derivative[i - 2][1] >= 0 && derivative[i - 1][1] >= 0 && derivative[i][1] <= 0 &&
+            derivative[i + 1][1] <= 0 && derivative[i + 2][1] <= 0 && i - last_x > minimal_x_diff)
+        {
 #if DEPTHPROFILER_DEBUG > 2
-    std::cout << "DepthProfiler: Positive to negative: " << i << std::endl;
+            std::cout << "DepthProfiler: Positive to negative: " << i << std::endl;
 #endif
-    		straights.erase(std::remove(straights.begin(), straights.end(), i), straights.end());
-    		last_x = i;
-    		result.push_back(i);
-    	}
-    	else if(derivative[i-2][1] <= 0 && derivative[i-1][1] <= 0 && derivative[i][1] >= 0 && derivative[i+1][1] >= 0 && derivative[i+2][1] >= 0 && i - last_x > minimal_x_diff)
-    	{
+            straights.erase(std::remove(straights.begin(), straights.end(), i), straights.end());
+            last_x = i;
+            result.push_back(i);
+        }
+        else if (derivative[i - 2][1] <= 0 && derivative[i - 1][1] <= 0 && derivative[i][1] >= 0 &&
+                 derivative[i + 1][1] >= 0 && derivative[i + 2][1] >= 0 && i - last_x > minimal_x_diff)
+        {
 #if DEPTHPROFILER_DEBUG > 2
-    std::cout << "DepthProfiler: Negative to positive: " << i << std::endl;
+            std::cout << "DepthProfiler: Negative to positive: " << i << std::endl;
 #endif
-        	straights.erase(std::remove(straights.begin(), straights.end(), i), straights.end());
-    		last_x = i;
-    		result.push_back(i);
-    	}
+            straights.erase(std::remove(straights.begin(), straights.end(), i), straights.end());
+            last_x = i;
+            result.push_back(i);
+        }
 #if DEPTHPROFILER_DEBUG > 2
-    		std::cout << "DepthProfiler (" << i << "): Something else? " << derivative[i-2][1] << "," << derivative[i-1][1] << "," << derivative[i][1] << "," << derivative[i+1][1] << "," << derivative[i+2][1] << std::endl;
+        std::cout << "DepthProfiler (" << i << "): Something else? " << derivative[i - 2][1] << ","
+                  << derivative[i - 1][1] << "," << derivative[i][1] << "," << derivative[i + 1][1] << ","
+                  << derivative[i + 2][1] << std::endl;
 #endif
     }
 #if DEPTHPROFILER_DEBUG > 0
@@ -533,9 +547,9 @@ DepthProfiler<N, T>::classifyWave(const Matrix<H, W, T>& afgeleide,
                                   const std::vector<std::size_t>& peaks_and_valleys) const
 {
     std::vector<std::pair<std::size_t, std::size_t>> result;
-    if(peaks_and_valleys.size() < 3)
+    if (peaks_and_valleys.size() < 3)
     {
-    	return result;
+        return result;
     }
 
     std::size_t i = 0;
@@ -554,7 +568,7 @@ DepthProfiler<N, T>::classifyWave(const Matrix<H, W, T>& afgeleide,
             result.push_back(std::make_pair(peaks_and_valleys[i], peaks_and_valleys[i + 2]));
         }
         i++;
-    }while(i < peaks_and_valleys.size() - 2);
+    } while (i < peaks_and_valleys.size() - 2);
 
 #if DEPTHPROFILER_DEBUG > 0
     std::cout << "DepthProfiler: Found: " << result.size() << " Waves" << std::endl;
@@ -580,8 +594,12 @@ bool DepthProfiler<N, T>::isPeak(const Matrix<H, W, T>& derivative, std::size_t 
     assert(index + 2 <= H);
     assert(index >= 2);
 #if DEPTHPROFILER_DEBUG > 1
-    std::cout << "DepthProfiler: isPeak(" << index << "):" << (derivative[index-2][1] > 0 && derivative[index-1][1] > 0 && derivative[index][1] < 0 && derivative[index+1][1] < 0 && derivative[index+2][1] <= 0) << std::endl;
+    std::cout << "DepthProfiler: isPeak(" << index
+              << "):" << (derivative[index - 2][1] > 0 && derivative[index - 1][1] > 0 && derivative[index][1] < 0 &&
+                          derivative[index + 1][1] < 0 && derivative[index + 2][1] <= 0)
+              << std::endl;
 #endif
-    return derivative[index-2][1] >= 0 && derivative[index-1][1] >= 0 && derivative[index][1] <= 0 && derivative[index+1][1] <= 0 && derivative[index+2][1] <= 0;
+    return derivative[index - 2][1] >= 0 && derivative[index - 1][1] >= 0 && derivative[index][1] <= 0 &&
+           derivative[index + 1][1] <= 0 && derivative[index + 2][1] <= 0;
 }
 }

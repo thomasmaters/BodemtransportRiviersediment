@@ -28,32 +28,32 @@ using namespace Messages;
 class ConnectionInterface
 {
   public:
-	ConnectionInterface()
-	{
+    ConnectionInterface()
+    {
 #ifdef ENABLE_IO_DEBUG
-			std::cout << "ConnectionInterface -> Constructor" << std::endl;
+        std::cout << "ConnectionInterface -> Constructor" << std::endl;
 #endif
-	}
+    }
 
     virtual ~ConnectionInterface()
     {
 #ifdef ENABLE_IO_DEBUG
-			std::cout << "ConnectionInterface -> Destructor" << std::endl;
+        std::cout << "ConnectionInterface -> Destructor" << std::endl;
 #endif
-    	if(request_handler_.use_count() > 0)
-    	{
+        if (request_handler_.use_count() > 0)
+        {
 #ifdef ENABLE_IO_DEBUG
-			std::cout << "ConnectionInterface -> Requesthandler count: " << request_handler_.use_count() << std::endl;
+            std::cout << "ConnectionInterface -> Requesthandler count: " << request_handler_.use_count() << std::endl;
 #endif
-			request_handler_.reset();
-    	}
-    	if(response_handler_.use_count() > 0)
-    	{
+            request_handler_.reset();
+        }
+        if (response_handler_.use_count() > 0)
+        {
 #ifdef ENABLE_IO_DEBUG
-			std::cout << "ConnectionInterface -> Responsehandler count: " << response_handler_.use_count() << std::endl;
+            std::cout << "ConnectionInterface -> Responsehandler count: " << response_handler_.use_count() << std::endl;
 #endif
-			response_handler_.reset();
-    	}
+            response_handler_.reset();
+        }
     }
 
     /**
@@ -112,11 +112,3 @@ class ConnectionInterface
 }
 
 #endif /* SRC_CONNECTIONINTERFACE_HPP_ */
-//Verantwoording van de kwaliteit
-//Waarom mijn oplossings is van het probleem, validiteit aantonen van producten en resultaten
-//Makkelijkere beschirjven opdracht.(overview)
-//Overal conclusie in stageverslag
-//Berekenen sediment, linken aan componenten.
-//20min presentatie.
-//min demo
-//Link diagrammen naar wat ze doen aka overview.

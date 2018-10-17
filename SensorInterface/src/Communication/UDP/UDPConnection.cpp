@@ -30,7 +30,7 @@ UDPServerClient::UDPServerClient(boost::asio::io_service& io_service,
     socket_incomming_(io_service, udp::endpoint(udp::v4(), std::atoi(local_port.c_str())))
 {
 #ifdef ENABLE_IO_DEBUG
-			std::cout << "UDPServerClient -> Constructor" << std::endl;
+    std::cout << "UDPServerClient -> Constructor" << std::endl;
 #endif
     startReceive();
 }
@@ -63,19 +63,20 @@ void UDPServerClient::sendRequest(std::string message, std::size_t response_size
 UDPServerClient::~UDPServerClient()
 {
 #ifdef ENABLE_IO_DEBUG
-			std::cout << "UDPServerClient -> Destructor" << std::endl;
+    std::cout << "UDPServerClient -> Destructor" << std::endl;
 #endif
-	if (socket_incomming_.is_open()) {
-		socket_incomming_.shutdown(boost::asio::socket_base::shutdown_type::shutdown_both);
-		socket_incomming_.cancel();
-		socket_incomming_.close();
-	}
-	if( socket_outgoing_.is_open())
-	{
-		socket_outgoing_.shutdown(boost::asio::socket_base::shutdown_type::shutdown_both);
-		socket_outgoing_.cancel();
-		socket_outgoing_.close();
-	}
+    if (socket_incomming_.is_open())
+    {
+        socket_incomming_.shutdown(boost::asio::socket_base::shutdown_type::shutdown_both);
+        socket_incomming_.cancel();
+        socket_incomming_.close();
+    }
+    if (socket_outgoing_.is_open())
+    {
+        socket_outgoing_.shutdown(boost::asio::socket_base::shutdown_type::shutdown_both);
+        socket_outgoing_.cancel();
+        socket_outgoing_.close();
+    }
 }
 
 bool UDPServerClient::connectOutgoingSocket()
@@ -116,7 +117,7 @@ void UDPServerClient::sendMessage(const boost::asio::mutable_buffer& buffer,
 void UDPServerClient::getResponse(std::size_t response_size,
                                   bool has_response_head_and_body,
                                   const boost::system::error_code& error,
-								  [[maybe_unused]] std::size_t bytes_transferred)
+                                  [[maybe_unused]] std::size_t bytes_transferred)
 {
 #ifdef ENABLE_IO_DEBUG
     std::cout << "UDPServerClient -> SEND( " << bytes_transferred << ")" << std::endl;
@@ -215,7 +216,8 @@ void UDPServerClient::handleReceive(const boost::system::error_code& error, std:
     }
 }
 
-void UDPServerClient::handleSend([[maybe_unused]]const boost::system::error_code& error, [[maybe_unused]] std::size_t bytes_transferred)
+void UDPServerClient::handleSend([[maybe_unused]] const boost::system::error_code& error,
+                                 [[maybe_unused]] std::size_t bytes_transferred)
 {
 #ifdef ENABLE_IO_DEBUG
     std::cout << "UDPServerClient -> SEND( " << bytes_transferred << ")" << std::endl;

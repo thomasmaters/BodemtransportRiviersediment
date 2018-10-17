@@ -16,16 +16,13 @@
 
 namespace Controller::DeltaT100
 {
-
 /*
  *
  */
-class DeltaT100ControllerProxy: public Communication::RequestResponseHandler
+class DeltaT100ControllerProxy : public Communication::RequestResponseHandler
 {
-public:
-	DeltaT100ControllerProxy(const std::string& host,
-            const std::string& remote_port,
-            const std::string& local_port);
+  public:
+    DeltaT100ControllerProxy(const std::string& host, const std::string& remote_port, const std::string& local_port);
 
     /**
      * Handles a response from the DeltaT100 Multibeam.
@@ -42,18 +39,20 @@ public:
      * @param time of request.
      * @return Response message
      */
-    Messages::SensorMessage handleRequest(uint8_t* data, std::size_t length, std::chrono::milliseconds::rep time = 0) override;
+    Messages::SensorMessage handleRequest(uint8_t* data,
+                                          std::size_t length,
+                                          std::chrono::milliseconds::rep time = 0) override;
 
-	virtual ~DeltaT100ControllerProxy();
-protected:
+    virtual ~DeltaT100ControllerProxy();
+
+  protected:
     /**
      * Sends a request for a SonarReturnDataPacket.
      * @param command Switch command.
      */
     void requestSensorPing(const Messages::SwitchDataCommand& command);
 
-private:
-
+  private:
     Communication::TCP::TCPServerClient sensor_communication_;
     Communication::UDP::UDPServerClient deltat_communication_;
 };

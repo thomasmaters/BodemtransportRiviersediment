@@ -2,7 +2,13 @@
 #include <iostream>
 
 DepthProfileVizualizer::DepthProfileVizualizer(QCustomPlot* custom_plot, QCustomPlot* custom_plot2, QWidget* parent)
-  : DepthProfileVizualizerProxy(parent), custom_plot_(custom_plot), custom_plot2_(custom_plot2), transport_data_(200), transport_key_(200), transport_average_(200), total_average_(0)
+  : DepthProfileVizualizerProxy(parent),
+    custom_plot_(custom_plot),
+    custom_plot2_(custom_plot2),
+    transport_data_(200),
+    transport_key_(200),
+    transport_average_(200),
+    total_average_(0)
 {
     custom_plot_->addGraph();
     custom_plot_->xAxis->setRange(0.0, 180.0);
@@ -15,7 +21,6 @@ DepthProfileVizualizer::DepthProfileVizualizer(QCustomPlot* custom_plot, QCustom
     custom_plot2_->graph(1)->setKeyAxis(custom_plot2_->xAxis);
     custom_plot2_->graph(1)->setValueAxis(custom_plot2_->yAxis);
 
-
     custom_plot_->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iSelectItems);
     custom_plot2_->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables | QCP::iSelectItems);
 
@@ -27,7 +32,7 @@ DepthProfileVizualizer::DepthProfileVizualizer(QCustomPlot* custom_plot, QCustom
 void DepthProfileVizualizer::messageReceived(Messages::BottomTransportMessage message)
 {
     total_average_ += message.getAverageTransport();
-    if(transport_data_.size() >= DPV_AVERAGE_LENGTH)
+    if (transport_data_.size() >= DPV_AVERAGE_LENGTH)
     {
         total_average_ -= transport_data_.at(transport_data_.length() - DPV_AVERAGE_LENGTH);
     }
@@ -53,8 +58,8 @@ void DepthProfileVizualizer::messageReceived(Messages::BottomTransportMessage me
             double cur_x = (i.at(6, 0) - i.at(5, 0)) / 24 * j;
 
             x.append(i.at(5, 0) + cur_x);
-            y.append(-(i.at(0, 0) * std::pow(cur_x, 3) + i.at(1, 0) * std::pow(cur_x, 2) + i.at(2, 0) * cur_x +
-                     i.at(3, 0)));
+            y.append(
+                -(i.at(0, 0) * std::pow(cur_x, 3) + i.at(1, 0) * std::pow(cur_x, 2) + i.at(2, 0) * cur_x + i.at(3, 0)));
         }
     }
     custom_plot_->graph(0)->setData(x, y);
@@ -66,7 +71,8 @@ void DepthProfileVizualizer::messageReceived(Messages::BottomTransportMessage me
     custom_plot2_->graph(0)->setData(transport_key_, transport_data_);
     custom_plot2_->graph(1)->addData(ping_time.toMSecsSinceEpoch(), (total_average_ / DPV_AVERAGE_LENGTH));
 
-    custom_plot2_->xAxis->setRange(ping_time.addSecs(-50).toMSecsSinceEpoch(), ping_time.addSecs(10).toMSecsSinceEpoch());
+    custom_plot2_->xAxis->setRange(ping_time.addSecs(-50).toMSecsSinceEpoch(),
+                                   ping_time.addSecs(10).toMSecsSinceEpoch());
 
     custom_plot_->replot();
     custom_plot2_->replot();

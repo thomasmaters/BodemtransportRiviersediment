@@ -9,8 +9,8 @@
 #ifndef SRC_BOTTOMTRANSPORTMESSAGE_HPP_
 #define SRC_BOTTOMTRANSPORTMESSAGE_HPP_
 
-#include "../Profiler/Dune.hpp"
 #include "../Profiler/BottomProfile.hpp"
+#include "../Profiler/Dune.hpp"
 #include "SensorMessage.hpp"
 
 #include <cassert>

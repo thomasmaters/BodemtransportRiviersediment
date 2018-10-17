@@ -6,15 +6,15 @@
  *		Email : thomasmaters@hotmail.com (TG.Maters@student.han.nl)
  */
 
-#include "Controller/DeltaT100/DeltaT100Controller.hpp"
-#include "Communication/IOHandler.hpp"
 #include <iostream>
+#include "Communication/IOHandler.hpp"
+#include "Controller/DeltaT100/DeltaT100Controller.hpp"
 
 int main(int argc, char* argv[])
 {
     try
     {
-        if (argc == 5)
+        if (argc >= 4)
         {
             std::string arg1 = std::string(argv[1]);
             std::string arg2 = std::string(argv[2]);

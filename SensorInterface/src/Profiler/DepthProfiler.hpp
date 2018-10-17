@@ -17,12 +17,12 @@
 #define DP_MAX_DUNE_POINTS 100
 #define DP_MINIMUM_WAVE_COUNT 3
 #ifndef DEPTHPROFILER_DEBUG
-	#define DEPTHPROFILER_DEBUG 0
+#define DEPTHPROFILER_DEBUG 0
 #endif
 
 #include "../DataBuffer.hpp"
-#include "DepthProfilerProxy.hpp"
 #include "BottomProfile.hpp"
+#include "DepthProfilerProxy.hpp"
 #include "Dune.hpp"
 #include "Matrix.hpp"
 
@@ -71,9 +71,9 @@ class DepthProfiler : public DepthProfilerProxy
     void addProcessedPoint(Matrix<N, 3, T>& matrix, std::chrono::milliseconds::rep time = 0);
 
     const std::vector<BottomProfile<N, 3, T>>& getDepthData() const
-	{
-    	return depth_data_;
-	}
+    {
+        return depth_data_;
+    }
 
     /**
      * Enables if a udp packet will be send after calculating the transport of a bottom profile.
@@ -210,7 +210,7 @@ class DepthProfiler : public DepthProfilerProxy
      */
     template <std::size_t H, std::size_t W>
     float getTransportOverTime(const BottomProfile<H, W, T>& profile_first,
-                              BottomProfile<H, W, T>& profile_second) const;
+                               BottomProfile<H, W, T>& profile_second) const;
 
     /**
      * Calculates how much surface area has been moved between two dunes.
@@ -240,7 +240,8 @@ class DepthProfiler : public DepthProfilerProxy
      * @return Vector with indexes in derivative matrix where a peak or valley can be found.
      */
     template <std::size_t H, std::size_t W>
-    std::vector<std::size_t> findPeaksAndValleys(const Matrix<H, W, T>& matrix, const Matrix<H - 1, W - 1, T>& derivative,
+    std::vector<std::size_t> findPeaksAndValleys(const Matrix<H, W, T>& matrix,
+                                                 const Matrix<H - 1, W - 1, T>& derivative,
                                                  std::size_t minimal_x_diff = 0) const;
 
     /**

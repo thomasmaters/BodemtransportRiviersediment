@@ -28,7 +28,7 @@ TCPServerClient::TCPServerClient(boost::asio::io_service& io_service,
     io_service_(io_service)
 {
 #ifdef ENABLE_IO_DEBUG
-			std::cout << "TCPServerClient -> Constructor" << std::endl;
+    std::cout << "TCPServerClient -> Constructor" << std::endl;
 #endif
     startAccept();
 }
@@ -57,7 +57,7 @@ void TCPServerClient::sendRequest(std::string& message, std::size_t response_siz
 TCPServerClient::~TCPServerClient()
 {
 #ifdef ENABLE_IO_DEBUG
-			std::cout << "TCPServerClient -> Destructor" << std::endl;
+    std::cout << "TCPServerClient -> Destructor" << std::endl;
 #endif
     acceptor_.cancel();
     acceptor_.close();
@@ -65,11 +65,11 @@ TCPServerClient::~TCPServerClient()
 
 void TCPServerClient::startAccept()
 {
-	active_sesion_ =  TCPSession::create(io_service_, request_handler_, response_handler_);
+    active_sesion_ = TCPSession::create(io_service_, request_handler_, response_handler_);
     try
     {
         acceptor_.async_accept(
-        		active_sesion_->getSocket(),
+            active_sesion_->getSocket(),
             boost::bind(&TCPServerClient::handleAccept, this, active_sesion_, boost::asio::placeholders::error));
     }
     catch (std::exception& e)
@@ -133,8 +133,7 @@ void TCPServerClient::handleConnect(const boost::asio::mutable_buffer& message_b
 #ifdef ENABLE_IO_DEBUG
         std::cout << "TCPServerClient -> CONNECTED TO HOST: " << host_ << std::endl;
 #endif
-        active_sesion_->handleOutgoingConnection(
-            message_buffer, response_indentifier, has_response_head_and_body);
+        active_sesion_->handleOutgoingConnection(message_buffer, response_indentifier, has_response_head_and_body);
     }
     else
     {

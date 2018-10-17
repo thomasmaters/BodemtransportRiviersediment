@@ -7,14 +7,11 @@
  */
 
 #include "../../Controller/DeltaT100/DeltaT100Controller.hpp"
-
 #include "../../Communication/IOHandler.hpp"
 #include "../../Messages/SonarReturnData.hpp"
 #include "../../Messages/SonarReturnDataPacket.hpp"
 
 #include <fstream>
-
-#include <iostream>
 
 #if DELTAT100_DEBUG > 0
 #include <iostream>
@@ -27,7 +24,7 @@ DeltaT100Controller::DeltaT100Controller(const std::string& host,
                                          const std::string& remote_port,
                                          const std::string& local_port)
   : DeltaT100ControllerProxy(host, remote_port, local_port),
-	display_gain_(DELTAT100_DISPLAY_GAIN),
+    display_gain_(DELTAT100_DISPLAY_GAIN),
     current_display_gain_(0),
     depth_profiler_(Profiler::DepthProfiler<DELTAT100_BEAM_COUNT, float>()),
     data_buffer_(std::unique_ptr<DataBuffer<>>(new DataBuffer<>()))

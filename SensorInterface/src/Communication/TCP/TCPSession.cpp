@@ -9,18 +9,21 @@
 
 namespace Communication::TCP
 {
-TCPSession::TCPSession(boost::asio::io_service& io_service, std::shared_ptr<RequestHandler>& a, std::shared_ptr<ResponseHandler>& b, bool keep_alive)
-  : socket_(io_service), keep_alive_(keep_alive),request_handler(a), response_handler(b)
+TCPSession::TCPSession(boost::asio::io_service& io_service,
+                       std::shared_ptr<RequestHandler>& a,
+                       std::shared_ptr<ResponseHandler>& b,
+                       bool keep_alive)
+  : socket_(io_service), keep_alive_(keep_alive), request_handler(a), response_handler(b)
 {
 #ifdef ENABLE_IO_DEBUG
-			std::cout << "TCPSession -> Constructor" << std::endl;
+    std::cout << "TCPSession -> Constructor" << std::endl;
 #endif
 }
 
 TCPSession::~TCPSession()
 {
 #ifdef ENABLE_IO_DEBUG
-			std::cout << "TCPSession -> Destructor" << std::endl;
+    std::cout << "TCPSession -> Destructor" << std::endl;
 #endif
 }
 
@@ -55,8 +58,7 @@ void TCPSession::handleReceivedResponse(bool has_response_head_and_body,
     }
 }
 
-void TCPSession::handleRequest(const boost::system::error_code& error,
-                               std::size_t bytes_transferd)
+void TCPSession::handleRequest(const boost::system::error_code& error, std::size_t bytes_transferd)
 {
 #ifdef ENABLE_IO_DEBUG
     std::cout << "TCPSession -> GOT REQUEST( " << bytes_transferd << ")" << std::endl;
@@ -70,14 +72,15 @@ void TCPSession::handleRequest(const boost::system::error_code& error,
 
             if (response.getDataLength() > 0)
             {
-                boost::asio::async_write(
-                    getSocket(),
-                    boost::asio::buffer(response.getData(), response.getDataLength()),
-                    [&]([[maybe_unused]] const boost::system::error_code& error, [[maybe_unused]] std::size_t bytes_written) {
+                boost::asio::async_write(getSocket(),
+                                         boost::asio::buffer(response.getData(), response.getDataLength()),
+                                         [&]([[maybe_unused]] const boost::system::error_code& error,
+                                             [[maybe_unused]] std::size_t bytes_written) {
 #ifdef ENABLE_IO_DEBUG
-                        std::cout << "TCPSession -> WRITTEN RESPONSE( " << bytes_written << ")" << std::endl;
+                                             std::cout << "TCPSession -> WRITTEN RESPONSE( " << bytes_written << ")"
+                                                       << std::endl;
 #endif
-                    });
+                                         });
             }
             else
             {

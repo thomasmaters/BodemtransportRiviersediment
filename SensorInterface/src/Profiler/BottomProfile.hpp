@@ -11,31 +11,32 @@
 
 #define BP_DEFAULT_PRECISION 0.9f
 
-#include "Matrix.hpp"
 #include "Dune.hpp"
+#include "Matrix.hpp"
 
-#include <vector>
 #include <chrono>
+#include <vector>
 
 namespace Profiler
 {
-
 template <std::size_t H, std::size_t W, typename T>
 class BottomProfile
 {
-public:
-	BottomProfile();
+  public:
+    BottomProfile();
 
-	virtual ~BottomProfile();
+    virtual ~BottomProfile();
 
-	/**
-	 * Finds dunes that are almost equal to each other.
-	 * @param profile To compare against.
-	 * @param precision Tolerance
-	 * @return Vector of pairs of similar dunes.
-	 */
-    std::vector<std::pair<Dune, Dune>> getSimularDune(const BottomProfile& profile, T precision = BP_DEFAULT_PRECISION) const;
-private:
+    /**
+     * Finds dunes that are almost equal to each other.
+     * @param profile To compare against.
+     * @param precision Tolerance
+     * @return Vector of pairs of similar dunes.
+     */
+    std::vector<std::pair<Dune, Dune>> getSimularDune(const BottomProfile& profile,
+                                                      T precision = BP_DEFAULT_PRECISION) const;
+
+  private:
     /**
      * Compares the size along the x axis.
      * @param dune
@@ -67,16 +68,15 @@ private:
      * @return True if already found.
      */
     bool checkAlreadyFound(const Dune& dune, const std::vector<std::pair<Dune, Dune>>& result) const;
-public:
 
+  public:
     Matrix<H, W, T> raw_data_;
     std::chrono::milliseconds::rep time_;
     std::vector<Dune> dunes_;
     float average_transport_;  // Transport averaged over all the dunes as compared to the last BottomProfile in m^2/s.
 };
 
-
-}// Namespace Profiler
+}  // Namespace Profiler
 
 #include "BottomProfile.inc"
 

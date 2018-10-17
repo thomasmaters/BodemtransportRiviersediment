@@ -34,42 +34,43 @@ class ZeroFilter : public Filter
     template <std::size_t H, std::size_t W, typename T>
     static void applyFilter(Matrix<H, W, T>& matrix, std::size_t column = 0)
     {
-    	std::vector<std::size_t> zeros;
-    	std::vector<std::size_t> not_zeros;
+        std::vector<std::size_t> zeros;
+        std::vector<std::size_t> not_zeros;
         for (std::size_t i = 0; i < H; ++i)
         {
-        	if(matrix.at(i,column) == 0)
-        	{
-        		zeros.push_back(i);
-        	}
-        	else
-        	{
-        		not_zeros.push_back(i);
-        	}
+            if (matrix.at(i, column) == 0)
+            {
+                zeros.push_back(i);
+            }
+            else
+            {
+                not_zeros.push_back(i);
+            }
         }
 
         float i_diff;
         float v_diff;
         float total_distance;
 
-        while(not_zeros.size() > 1 && zeros.size() > 0)
+        while (not_zeros.size() > 1 && zeros.size() > 0)
         {
-        	i_diff = not_zeros.at(1) - not_zeros.at(0);
-        	v_diff = matrix.at(not_zeros.at(1), column) - matrix.at(not_zeros.at(0), column);
+            i_diff = not_zeros.at(1) - not_zeros.at(0);
+            v_diff = matrix.at(not_zeros.at(1), column) - matrix.at(not_zeros.at(0), column);
 
-			if((zeros.at(0) < not_zeros.at(0) && zeros.at(0) < not_zeros.at(1)) ||
-					(zeros.at(0) > not_zeros.at(0) && zeros.at(0) < not_zeros.at(1)) ||
-					(zeros.at(0) > not_zeros.at(0) && zeros.at(0) > not_zeros.at(1) && not_zeros.size() == 2))
-			{
-				total_distance = std::abs(static_cast<float>(not_zeros.at(1)) - static_cast<float>(zeros.at(0)));
-				matrix.at(zeros.at(0), column) = matrix.at(not_zeros.at(1), column) - (v_diff / i_diff) * total_distance;
-				zeros.erase(zeros.begin());
-			}
-			else
-			{
-				not_zeros.erase(not_zeros.begin());
-			}
-		}
+            if ((zeros.at(0) < not_zeros.at(0) && zeros.at(0) < not_zeros.at(1)) ||
+                (zeros.at(0) > not_zeros.at(0) && zeros.at(0) < not_zeros.at(1)) ||
+                (zeros.at(0) > not_zeros.at(0) && zeros.at(0) > not_zeros.at(1) && not_zeros.size() == 2))
+            {
+                total_distance = std::abs(static_cast<float>(not_zeros.at(1)) - static_cast<float>(zeros.at(0)));
+                matrix.at(zeros.at(0), column) =
+                    matrix.at(not_zeros.at(1), column) - (v_diff / i_diff) * total_distance;
+                zeros.erase(zeros.begin());
+            }
+            else
+            {
+                not_zeros.erase(not_zeros.begin());
+            }
+        }
     }
 };
 
@@ -78,7 +79,7 @@ class ZeroFilter : public Filter
  */
 class PeakFilter : public Filter
 {
-public:
+  public:
     template <std::size_t H, std::size_t W, typename T>
     static void applyFilter(Matrix<H, W, T>& matrix, std::size_t column = 0, float percentage = 25)
     {
@@ -95,22 +96,24 @@ public:
 
 class SmoothFilter : public Filter
 {
-public:
+  public:
     template <std::size_t H, std::size_t W, typename T>
     static void applyFilter(Matrix<H, W, T>& matrix, std::size_t column = 0, std::size_t kernel_size = 5)
     {
-    	for (std::size_t i = 0; i < H - kernel_size; ++i) {
-        	float sum = 0;
-        	for (std::size_t k = 0; k < kernel_size; ++k) {
-        		if(matrix[i+k][column] == 0)
-        		{
-        			sum = kernel_size * matrix[i][column];
-        			break;
-        		}
-        		sum += matrix[i+k][column];
-			}
-        	matrix[i][column] = sum / kernel_size;
-		}
+        for (std::size_t i = 0; i < H - kernel_size; ++i)
+        {
+            float sum = 0;
+            for (std::size_t k = 0; k < kernel_size; ++k)
+            {
+                if (matrix[i + k][column] == 0)
+                {
+                    sum = kernel_size * matrix[i][column];
+                    break;
+                }
+                sum += matrix[i + k][column];
+            }
+            matrix[i][column] = sum / kernel_size;
+        }
     }
 };
 

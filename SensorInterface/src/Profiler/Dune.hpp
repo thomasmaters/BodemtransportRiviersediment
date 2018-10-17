@@ -25,15 +25,15 @@ struct Dune
     float surface_area_;             // Surface area in m^2.
     float transport_ = 0;
 
-    bool operator==(const Dune& other) const {
-    	return signature_ == other.signature_ && surface_area_ == other.surface_area_;
+    bool operator==(const Dune& other) const
+    {
+        return signature_ == other.signature_ && surface_area_ == other.surface_area_;
     }
 
     ~Dune()
     {
-
     }
 };
-} //Namespace Profiler
+}  // Namespace Profiler
 
 #endif /* SRC_DUNE_HPP_ */

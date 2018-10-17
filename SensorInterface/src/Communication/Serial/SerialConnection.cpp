@@ -14,7 +14,7 @@
 #include <boost/bind.hpp>
 
 #ifdef ENABLE_IO_DEBUG
-	#include <iostream>
+#include <iostream>
 #endif
 
 #define BOOST_ASIO_ENABLE_HANDLER_TRACKING 1
@@ -31,7 +31,8 @@ SerialClientServer::SerialClientServer(boost::asio::io_service& aIoService,
     if (ec)
     {
 #ifdef ENABLE_IO_DEBUG
-                std::cout << "SerialClientServer -> port_->open() failed...com_port_name=" << portName << ", e=" << ec.message().c_str() << std::endl;
+        std::cout << "SerialClientServer -> port_->open() failed...com_port_name=" << portName
+                  << ", e=" << ec.message().c_str() << std::endl;
 #endif
         return;
     }
@@ -76,7 +77,7 @@ void SerialClientServer::sendMessage(const boost::asio::mutable_buffer& messageB
     if (!serial_port_.is_open())
     {
 #ifdef ENABLE_IO_DEBUG
-                std::cout << "SerialClientServer -> Serial port not open!" << std::endl;
+        std::cout << "SerialClientServer -> Serial port not open!" << std::endl;
 #endif
     }
     serial_port_.async_write_some(messageBuffer,
@@ -97,7 +98,7 @@ void SerialClientServer::handleWriteComplete(Type responseSize,
     if (error)
     {
 #ifdef ENABLE_IO_DEBUG
-                std::cout << "SerialClientServer -> Send failed: " << error.message() << std::endl;
+        std::cout << "SerialClientServer -> Send failed: " << error.message() << std::endl;
 #endif
     }
 
@@ -139,7 +140,7 @@ void SerialClientServer::handleReceivedResponse(bool hasResponseHeadAndBody,
         return;
     }
 #ifdef ENABLE_IO_DEBUG
-                std::cout << "SerialClientServer -> GOT RESPONSE(" << bytesTransferd << ")" << std::endl;
+    std::cout << "SerialClientServer -> GOT RESPONSE(" << bytesTransferd << ")" << std::endl;
 #endif
     if (response_handler_.use_count() > 0)
     {
@@ -160,7 +161,7 @@ void SerialClientServer::timerExpired(const boost::system::error_code& error)
     if (error != boost::asio::error::operation_aborted)
     {
 #ifdef ENABLE_IO_DEBUG
-                std::cout << "SerialClientServer -> Timer expired" << std::endl;
+        std::cout << "SerialClientServer -> Timer expired" << std::endl;
 #endif
         stop();
     }

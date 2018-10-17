@@ -35,12 +35,17 @@ namespace Communication::TCP
 class TCPSession : public std::enable_shared_from_this<TCPSession>
 {
   public:
-	static std::shared_ptr<TCPSession> create(boost::asio::io_service& io_service, std::shared_ptr<RequestHandler>& a, std::shared_ptr<ResponseHandler>& b)
-	{
-		return std::shared_ptr<TCPSession>(new TCPSession(io_service,a,b));
-	}
+    static std::shared_ptr<TCPSession> create(boost::asio::io_service& io_service,
+                                              std::shared_ptr<RequestHandler>& a,
+                                              std::shared_ptr<ResponseHandler>& b)
+    {
+        return std::shared_ptr<TCPSession>(new TCPSession(io_service, a, b));
+    }
 
-    TCPSession(boost::asio::io_service& io_service, std::shared_ptr<RequestHandler>& a, std::shared_ptr<ResponseHandler>& b, bool keep_alive = false);
+    TCPSession(boost::asio::io_service& io_service,
+               std::shared_ptr<RequestHandler>& a,
+               std::shared_ptr<ResponseHandler>& b,
+               bool keep_alive = false);
 
     virtual ~TCPSession();
 
@@ -111,8 +116,7 @@ class TCPSession : public std::enable_shared_from_this<TCPSession>
      * @param bytes_transferd Bytes received.
      * @param request_handler Users handle to handle the request.
      */
-    void handleRequest(const boost::system::error_code& error,
-                       std::size_t bytes_transferd);
+    void handleRequest(const boost::system::error_code& error, std::size_t bytes_transferd);
 
   private:
     boost::asio::ip::tcp::socket socket_;

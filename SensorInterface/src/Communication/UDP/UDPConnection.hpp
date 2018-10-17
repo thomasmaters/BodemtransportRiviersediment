@@ -83,7 +83,7 @@ class UDPServerClient : public ConnectionInterface
     void getResponse(std::size_t response_size,
                      bool has_response_head_and_body,
                      const boost::system::error_code& error,
-                     [[maybe_unused]]std::size_t bytes_transferred);
+                     [[maybe_unused]] std::size_t bytes_transferred);
 
     /**
      * Handler when response has been read.

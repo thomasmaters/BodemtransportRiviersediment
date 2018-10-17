@@ -58,20 +58,24 @@ Matrix<H, W, T>::Matrix(const Matrix<H, W, T>& rhs) : innerMatrix(rhs.innerMatri
 
 template <std::size_t H, std::size_t W, typename T>
 template <std::size_t aH, std::size_t aW>
-Matrix<H, W, T>::Matrix(const Matrix<aH, aW, T>& rhs, std::size_t heightStart, std::size_t widthStart, std::size_t heightEnd, std::size_t widthEnd)
+Matrix<H, W, T>::Matrix(const Matrix<aH, aW, T>& rhs,
+                        std::size_t heightStart,
+                        std::size_t widthStart,
+                        std::size_t heightEnd,
+                        std::size_t widthEnd)
 {
     assert(heightStart + H <= aH);
     assert(heightEnd <= H);
     assert(widthStart + W <= aW);
     assert(widthEnd <= W);
 
-    //Fill to zero.
+    // Fill to zero.
     for (std::size_t i = 0; i < H; ++i)
     {
         innerMatrix.at(i).fill(0);
     }
 
-    //Copy data.
+    // Copy data.
     for (std::size_t i = 0; i < heightEnd; ++i)
     {
         for (std::size_t j = 0; j < widthEnd; ++j)

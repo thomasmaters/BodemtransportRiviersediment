@@ -26,34 +26,77 @@ class SerialClientServer : public Communication::ConnectionInterface,
   public:
     SerialClientServer(boost::asio::io_service& io_service, const std::string& port_name, uint32_t baudrate);
 
+    /**
+     * Sends a request over serial. Implemented form ConnectionInterface.
+     * @param message
+     * @param response_size
+     * @param has_response_head_and_body
+     */
     void sendRequest(const SensorMessage& message,
                      std::size_t response_size,
                      bool has_response_head_and_body = false) override;
 
+    /**
+     * Sends a request over serial. Implemented form ConnectionInterface.
+     * @param message
+     * @param delimiter
+     * @param has_response_head_and_body
+     */
     void sendRequest(const SensorMessage& message, char delimiter, bool has_response_head_and_body = false) override;
 
+    /**
+     * Sends a request over serial. Implemented form ConnectionInterface.
+     * @param message
+     * @param response_size
+     */
     void sendRequest(std::string message, std::size_t response_size);
 
     virtual ~SerialClientServer();
 
   private:
+    /**
+     * Sends the message buffer over serial.
+     * @param message_buffer
+     * @param response_indentifier
+     * @param has_response_head_and_body
+     */
     template <typename Type>
     void sendMessage(const boost::asio::mutable_buffer& message_buffer,
                      Type response_indentifier,
                      bool has_response_head_and_body);
 
+    /**
+     * Handler when write complete.
+     * @param response_indentifier
+     * @param has_response_head_and_body
+     * @param error
+     * @param bytes_transferd
+     */
     template <typename Type>
     void handleWriteComplete(Type response_indentifier,
                              bool has_response_head_and_body,
                              const boost::system::error_code& error,
                              std::size_t bytes_transferd);
 
+    /**
+     * Handler for incomming messages.
+     * @param has_response_head_and_body
+     * @param error
+     * @param bytes_transferd
+     */
     void handleReceivedResponse(bool has_response_head_and_body,
                                 const boost::system::error_code& error,
                                 std::size_t bytes_transferd);
 
+    /**
+     * Handler when we have a timeout.
+     * @param error
+     */
     void timerExpired(const boost::system::error_code& error);
 
+    /**
+     * Stops serial communication.
+     */
     void stop();
 
     std::string port_name_;

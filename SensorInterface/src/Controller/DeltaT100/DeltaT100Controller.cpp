@@ -7,7 +7,6 @@
  */
 
 #include "../../Controller/DeltaT100/DeltaT100Controller.hpp"
-#include "../../Communication/IOHandler.hpp"
 #include "../../Messages/SonarReturnData.hpp"
 #include "../../Messages/SonarReturnDataPacket.hpp"
 
@@ -111,6 +110,7 @@ SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t leng
         // Return a message with 1 byte to reopen a connection.
         return SensorMessage(1);
     }
+#if DELTAT100_DEBUG == 1
     else
     {
         // Simulate a sensormessage if we have none.
@@ -125,6 +125,7 @@ SensorMessage DeltaT100Controller::handleRequest(uint8_t* data, std::size_t leng
         test += temp;
         depth_profiler_.addRawPoint(test, time);
     }
+#endif
 
     // Return an empty message to stop the connection.
     return SensorMessage(0);

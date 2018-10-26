@@ -7,7 +7,7 @@
  */
 
 #define MDP_TESTING
-#define DEPTHPROFILER_DEBUG 0
+#define DEPTHPROFILER_DEBUG 2
 
 #include "../MultibeamDataProcessor/src/Communication/IOHandler.hpp"
 #include "../MultibeamDataProcessor/src/Communication/RequestResponseHandler.hpp"
@@ -249,23 +249,36 @@ BOOST_AUTO_TEST_CASE(acuracy_depth_profiler)
         increase.at(i, 0)    = 1;
         test_matrix.at(i, 0) = i;
         test_matrix.at(i, 1) = 5;
+        if (i > 209 && i <= 240)
+        {
+            test_matrix.at(i, 1) = 5 - std::sin((i - 209) * 0.1);
+        }
         if (i > 240 && i <= 271)
         {
             test_matrix.at(i, 1) = 5 - std::sin((i - 240) * 0.1);
         }
+        if (i > 271 && i <= 302)
+        {
+            test_matrix.at(i, 1) = 5 - std::sin((i - 271) * 0.1);
+        }
     }
 
-    std::cout << "add first" << std::endl;
     depth_profiler.addRawPoint(test_matrix, Communication::ConnectionInterface::getCurrentTime());
-    test_matrix += increase;
-    std::cout << "add second" << std::endl;
-    depth_profiler.addRawPoint(test_matrix, Communication::ConnectionInterface::getCurrentTime());
+    float last_transport = 0.0;
+    for (std::size_t i = 1; i < 20; ++i) {
+        test_matrix += increase;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        depth_profiler.addRawPoint(test_matrix, Communication::ConnectionInterface::getCurrentTime());
+        float transport = depth_profiler.getDepthData().at(i).average_transport_;
+        BOOST_CHECK_CLOSE(transport, last_transport, 0.25);
+        last_transport = transport;
+	}
 
     // http://www.wolframalpha.com/widget/widgetPopup.jsp?p=v&id=d56e8a800745244232d295d3eae74aae&title=Area+under+the+Curve+Calculator&theme=green
-    // With param sin(x*0.1)+5 van x = 0 to x = 34 equals 150.332
-    float error_margin =
-        std::abs(150.332 - depth_profiler.getDepthData().begin()->dunes_.at(0).surface_area_) / 150.332;
-    BOOST_CHECK_EQUAL(depth_profiler.getDepthData().begin()->dunes_.size(), (std::size_t)1);
+    // With param sin(x*0.1)+5 van x = 0 to x = 30 equals 130.332
+   float error_margin =
+        std::abs(130.332 - depth_profiler.getDepthData().begin()->dunes_.at(1).surface_area_) / 130.332;
+    BOOST_CHECK_EQUAL(depth_profiler.getDepthData().begin()->dunes_.size(), (std::size_t)3);
     BOOST_CHECK_LT(error_margin, 0.05);
 }
 

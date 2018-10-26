@@ -9,6 +9,9 @@
 #ifndef SRC_FILTER_HPP_
 #define SRC_FILTER_HPP_
 
+#define FILTER_PEAK_DEFAULT_PERCENTAGE 25
+#define FILTER_SMOOTH_DEFAULT_KERNEL_SIZE 5
+
 #include "Profiler/Matrix.hpp"
 
 #include <cstdint>
@@ -81,7 +84,7 @@ class PeakFilter : public Filter
 {
   public:
     template <std::size_t H, std::size_t W, typename T>
-    static void applyFilter(Matrix<H, W, T>& matrix, std::size_t column = 0, float percentage = 25)
+    static void applyFilter(Matrix<H, W, T>& matrix, std::size_t column = 0, float percentage = FILTER_PEAK_DEFAULT_PERCENTAGE)
     {
         for (std::size_t i = 0; i < H - 1; ++i)
         {
@@ -94,11 +97,14 @@ class PeakFilter : public Filter
     }
 };
 
+/**
+ * Smoothes data based on the kernel size and by taking an average.
+ */
 class SmoothFilter : public Filter
 {
   public:
     template <std::size_t H, std::size_t W, typename T>
-    static void applyFilter(Matrix<H, W, T>& matrix, std::size_t column = 0, std::size_t kernel_size = 5)
+    static void applyFilter(Matrix<H, W, T>& matrix, std::size_t column = 0, std::size_t kernel_size = FILTER_SMOOTH_DEFAULT_KERNEL_SIZE)
     {
         for (std::size_t i = 0; i < H - kernel_size; ++i)
         {

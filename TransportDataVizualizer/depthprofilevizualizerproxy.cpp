@@ -11,20 +11,17 @@ DepthProfileVizualizerProxy::DepthProfileVizualizerProxy(QWidget* parent) : QWid
 
 DepthProfileVizualizerProxy::~DepthProfileVizualizerProxy()
 {
-    QTextStream(stdout) << __PRETTY_FUNCTION__;
 }
 
 void DepthProfileVizualizerProxy::readPendingDatagrams()
 {
     try
     {
-        QTextStream(stdout) << "Got packet";
         QByteArray datagram;
 
         datagram.resize(udp_socket_->pendingDatagramSize());
         udp_socket_->readDatagram(datagram.data(), datagram.size());
 
-        QTextStream(stdout) << "\nConstructed SensorMessage: " << datagram.size() << "\n";
         Messages::BottomTransportMessage depth_profile(reinterpret_cast<uint8_t*>(datagram.data()));
 
         messageReceived(depth_profile);

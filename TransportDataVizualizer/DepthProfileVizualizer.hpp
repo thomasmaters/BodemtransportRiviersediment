@@ -28,6 +28,8 @@ class DepthProfileVizualizer : public DepthProfileVizualizerProxy
 
     double total_average_;
 
+    QFile file;
+
   public slots:
 };
 

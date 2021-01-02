@@ -8,8 +8,10 @@ DepthProfileVizualizer::DepthProfileVizualizer(QCustomPlot* custom_plot, QCustom
     transport_data_(200),
     transport_key_(200),
     transport_average_(200),
-    total_average_(0)
+    total_average_(0),
+    file("C:/Data.txt")
 {
+    file.open(QIODevice::ReadWrite);
     custom_plot_->addGraph();
     custom_plot_->xAxis->setRange(0.0, 180.0);
 
@@ -70,6 +72,8 @@ void DepthProfileVizualizer::messageReceived(Messages::BottomTransportMessage me
 
     custom_plot2_->graph(0)->setData(transport_key_, transport_data_);
     custom_plot2_->graph(1)->addData(ping_time.toMSecsSinceEpoch(), (total_average_ / DPV_AVERAGE_LENGTH));
+
+    QTextStream(stdout) << (total_average_ / DPV_AVERAGE_LENGTH);
 
     custom_plot2_->xAxis->setRange(ping_time.addSecs(-50).toMSecsSinceEpoch(),
                                    ping_time.addSecs(10).toMSecsSinceEpoch());
